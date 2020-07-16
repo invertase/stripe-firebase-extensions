@@ -1,0 +1,34 @@
+{
+  "name": "stripe-firebase-extensions",
+  "version": "1.0.0",
+  "description": "Repository of Firebase extensions built by Stripe.",
+  "private": true,
+  "scripts": {
+    "format": "prettier --write \"**/*.{js,md,yml,ts,json,yaml}\"",
+    "lint": "prettier --list-different \"**/*.{js,md,yml,ts,json,yaml}\"",
+    "clean": "lerna run --parallel clean",
+    "build": "lerna run --parallel build",
+    "postinstall": "lerna bootstrap --no-ci && npm run clean && npm run build",
+    "generate-readmes": "lerna run --parallel generate-readme",
+    "dev": "cd $npm_config_ext/ && firebase ext:dev:emulators:start --test-params=../.env --project=$npm_config_project",
+    "dev:invoices": "npm run dev --ext=firestore-stripe-invoices --project=stripe-subs-ext",
+    "dev:subs": "npm run dev --ext=firestore-stripe-subscriptions --project=stripe-subs-ext",
+    "ext:install": "npm run build && firebase ext:install ./$npm_config_ext/ --params=.env --project=$npm_config_project",
+    "ext:update": "npm run build && firebase ext:update $npm_config_ext ./$npm_config_ext/ --project=$npm_config_project",
+    "ext:uninstall": "firebase ext:uninstall $npm_config_ext --project=$npm_config_project",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stripe/stripe-firebase-extensions.git"
+  },
+  "author": "Stripe (https://stripe.com/)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/stripe/stripe-firebase-extensions/issues"
+  },
+  "devDependencies": {
+    "lerna": "^3.4.3",
+    "prettier": "2.0.5"
+  }
+}
