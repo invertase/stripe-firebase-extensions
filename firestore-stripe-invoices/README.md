@@ -15,6 +15,7 @@ email: "customer@example.com",
 items: [{
     amount: 2000,
     currency: "usd",
+    quantity: 2, // Optional, defaults to 1.
     description: "Growth plan"
 }]
 ```

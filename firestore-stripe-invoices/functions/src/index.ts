@@ -47,8 +47,9 @@ const createInvoice = async function (
         return stripe.invoiceItems.create(
           {
             customer: customer.id,
-            amount: item.amount,
+            unit_amount: item.amount,
             currency: item.currency,
+            quantity: item.quantity ?? 1,
             description: item.description,
           },
           { idempotencyKey: `invoiceItems-create-${idempotencyKey}-${index}` }
