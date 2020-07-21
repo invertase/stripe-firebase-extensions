@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
+export interface CustomerData {
+  metadata: {
+    firebaseUID: string;
+  };
+  email?: string;
+}
+
 export interface Price {
   /**
    * Whether the price can be used for new purchases.
