@@ -49,7 +49,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-invoices',
-        version: '0.2.0',
+        version: '0.1.3',
     },
 });
 admin.initializeApp();
@@ -58,10 +58,12 @@ const createInvoice = async function (customer, orderItems, daysUntilDue, idempo
     try {
         // Create an invoice item for each item in the document
         const itemPromises = orderItems.map((item, index) => {
+            var _a;
             return stripe.invoiceItems.create({
                 customer: customer.id,
-                amount: item.amount,
+                unit_amount: item.amount,
                 currency: item.currency,
+                quantity: (_a = item.quantity) !== null && _a !== void 0 ? _a : 1,
                 description: item.description,
             }, { idempotencyKey: `invoiceItems-create-${idempotencyKey}-${index}` });
         });

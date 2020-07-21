@@ -27,7 +27,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-invoices',
-    version: '0.2.0',
+    version: '0.1.3',
   },
 });
 
@@ -47,8 +47,9 @@ const createInvoice = async function (
         return stripe.invoiceItems.create(
           {
             customer: customer.id,
-            amount: item.amount,
+            unit_amount: item.amount,
             currency: item.currency,
+            quantity: item.quantity ?? 1,
             description: item.description,
           },
           { idempotencyKey: `invoiceItems-create-${idempotencyKey}-${index}` }

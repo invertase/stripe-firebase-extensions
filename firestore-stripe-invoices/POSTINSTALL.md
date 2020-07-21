@@ -13,6 +13,7 @@ You can test out this extension right away!
    items: [{
        amount: 1999,
        currency: "usd",
+       quantity: 2, // Optional, defaults to 1.
        description: "my super cool item"
    },
    {
@@ -37,13 +38,15 @@ An invoice requires either an email address or a [Firebase Authentication](https
   - `email`: (_plaintext string_) email address of the customer
   - `uid`: (_string_) Firebase Authentication user ID that has an associated email address
 
-- **`items`**: An array of items (each one is a map) that are included in the invoice. Each item must include an `amount` (_number_), `currency` (_string_), and `description` (_string_).
+- **`items`**: An array of items (each one is a map) that are included in the invoice. Each item must include an `amount` (_number_), `currency` (_string_), and `description` (_string_). 
+- **`quantity`**: An optional `quantity` (_number_) parameter can be provided. If omitted the quantity will default to `1`.
 
   ```js
   items: [
     {
       amount: 999,
       currency: 'usd',
+      quantity: 2,
       description: 'one shirt, size medium',
     },
   ];
@@ -95,6 +98,7 @@ db.collection('${param:INVOICES_COLLECTION}')
       {
         amount: 1000, // $10.00
         currency: 'usd',
+       quantity: 2, // Optional, defaults to 1.
         description: 'Cool hat',
       },
     ],
