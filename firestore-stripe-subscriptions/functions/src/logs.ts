@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-export const userNoEmail = () => {
-  console.error('❗️[Error]: User does not have an email!');
-};
-
 export const creatingCustomer = (uid: string) => {
   console.log(`⚙️ Creating customer object for [${uid}].`);
 };

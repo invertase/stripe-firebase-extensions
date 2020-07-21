@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.webhookHandlerError = exports.webhookHandlerSucceeded = exports.startWebhookEventProcessing = exports.badWebhookSecret = exports.userCustomClaimSet = exports.firestoreDocCreated = exports.billingPortalLinkCreationError = exports.createdBillingPortalLink = exports.checkoutSessionCreationError = exports.checkoutSessionCreated = exports.creatingCheckoutSession = exports.customerCreated = exports.customerDeletionError = exports.customerCreationError = exports.creatingCustomer = exports.userNoEmail = void 0;
-exports.userNoEmail = () => {
-    console.error('❗️[Error]: User does not have an email!');
-};
+exports.webhookHandlerError = exports.webhookHandlerSucceeded = exports.startWebhookEventProcessing = exports.badWebhookSecret = exports.userCustomClaimSet = exports.firestoreDocCreated = exports.billingPortalLinkCreationError = exports.createdBillingPortalLink = exports.checkoutSessionCreationError = exports.checkoutSessionCreated = exports.creatingCheckoutSession = exports.customerCreated = exports.customerDeletionError = exports.customerCreationError = exports.creatingCustomer = void 0;
 exports.creatingCustomer = (uid) => {
     console.log(`⚙️ Creating customer object for [${uid}].`);
 };

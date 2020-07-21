@@ -49,41 +49,45 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.0',
+        version: '0.1.2',
     },
 });
 admin.initializeApp();
 /**
  * Create a customer object in Stripe when a user is created.
  */
-exports.createCustomer = functions.auth.user().onCreate(async (user) => {
-    const { email, uid } = user;
-    if (!email) {
-        logs.userNoEmail();
-        return;
-    }
+const createCustomerRecord = async ({ email, uid, }) => {
     try {
         logs.creatingCustomer(uid);
-        const customer = await stripe.customers.create({
-            email,
+        const customerData = {
             metadata: {
                 firebaseUID: uid,
             },
-        });
-        // Add a mapping
+        };
+        if (email)
+            customerData.email = email;
+        const customer = await stripe.customers.create(customerData);
+        // Add a mapping record in Cloud Firestore.
+        const customerRecord = {
+            stripeId: customer.id,
+            stripeLink: `https://dashboard.stripe.com${customer.livemode ? '' : '/test'}/customers/${customer.id}`,
+        };
         await admin
             .firestore()
             .collection(config_1.default.customersCollectionPath)
             .doc(uid)
-            .set({
-            stripeId: customer.id,
-            stripeLink: `https://dashboard.stripe.com${customer.livemode ? '' : '/test'}/customers/${customer.id}`,
-        });
+            .set(customerRecord);
         logs.customerCreated(customer.id, customer.livemode);
+        return customerRecord;
     }
     catch (error) {
         logs.customerCreationError(error, uid);
+        return null;
     }
+};
+exports.createCustomer = functions.auth.user().onCreate(async (user) => {
+    const { email, uid } = user;
+    await createCustomerRecord({ email, uid });
 });
 /**
  * Create a CheckoutSession for the customer so they can sign up for the subscription.
@@ -95,7 +99,13 @@ exports.createCheckoutSession = functions.firestore
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
-        const customer = (await snap.ref.parent.parent.get()).data().stripeId;
+        let customerRecord = (await snap.ref.parent.parent.get()).data();
+        if (!customerRecord) {
+            customerRecord = await createCustomerRecord({
+                uid: context.params.uid,
+            });
+        }
+        const customer = customerRecord.stripeId;
         const session = await stripe.checkout.sessions.create({
             payment_method_types,
             customer,

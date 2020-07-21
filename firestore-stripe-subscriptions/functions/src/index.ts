@@ -17,7 +17,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
-import { Product, Price, Subscription } from './interfaces';
+import { Product, Price, Subscription, CustomerData } from './interfaces';
 import * as logs from './logs';
 import config from './config';
 
@@ -27,7 +27,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.0',
+    version: '0.1.2',
   },
 });
 
@@ -36,36 +36,46 @@ admin.initializeApp();
 /**
  * Create a customer object in Stripe when a user is created.
  */
+const createCustomerRecord = async ({
+  email,
+  uid,
+}: {
+  email?: string;
+  uid: string;
+}) => {
+  try {
+    logs.creatingCustomer(uid);
+    const customerData: CustomerData = {
+      metadata: {
+        firebaseUID: uid,
+      },
+    };
+    if (email) customerData.email = email;
+    const customer = await stripe.customers.create(customerData);
+    // Add a mapping record in Cloud Firestore.
+    const customerRecord = {
+      stripeId: customer.id,
+      stripeLink: `https://dashboard.stripe.com${
+        customer.livemode ? '' : '/test'
+      }/customers/${customer.id}`,
+    };
+    await admin
+      .firestore()
+      .collection(config.customersCollectionPath)
+      .doc(uid)
+      .set(customerRecord);
+    logs.customerCreated(customer.id, customer.livemode);
+    return customerRecord;
+  } catch (error) {
+    logs.customerCreationError(error, uid);
+    return null;
+  }
+};
+
 exports.createCustomer = functions.auth.user().onCreate(
   async (user): Promise<void> => {
     const { email, uid } = user;
-    if (!email) {
-      logs.userNoEmail();
-      return;
-    }
-    try {
-      logs.creatingCustomer(uid);
-      const customer = await stripe.customers.create({
-        email,
-        metadata: {
-          firebaseUID: uid,
-        },
-      });
-      // Add a mapping
-      await admin
-        .firestore()
-        .collection(config.customersCollectionPath)
-        .doc(uid)
-        .set({
-          stripeId: customer.id,
-          stripeLink: `https://dashboard.stripe.com${
-            customer.livemode ? '' : '/test'
-          }/customers/${customer.id}`,
-        });
-      logs.customerCreated(customer.id, customer.livemode);
-    } catch (error) {
-      logs.customerCreationError(error, uid);
-    }
+    await createCustomerRecord({ email, uid });
   }
 );
 
@@ -85,7 +95,13 @@ exports.createCheckoutSession = functions.firestore
     try {
       logs.creatingCheckoutSession(context.params.id);
       // Get stripe customer id
-      const customer = (await snap.ref.parent.parent.get()).data().stripeId;
+      let customerRecord = (await snap.ref.parent.parent.get()).data();
+      if (!customerRecord) {
+        customerRecord = await createCustomerRecord({
+          uid: context.params.uid,
+        });
+      }
+      const customer = customerRecord.stripeId;
       const session = await stripe.checkout.sessions.create(
         {
           payment_method_types,
