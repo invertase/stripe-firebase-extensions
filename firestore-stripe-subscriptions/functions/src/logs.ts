@@ -29,11 +29,18 @@ export const customerCreationError = (error: Error, uid: string) => {
   );
 };
 
+export const customerDeletionError = (error: Error, uid: string) => {
+  console.error(
+    `❗️[Error]: Failed to delete customer for [${uid}]:`,
+    error.message
+  );
+};
+
 export function customerCreated(id: string, livemode: boolean) {
   console.log(
     `✅Created a new customer: https://dashboard.stripe.com${
       livemode ? '' : '/test'
-    }/customers/[${id}].`
+    }/customers/${id}.`
   );
 }
 

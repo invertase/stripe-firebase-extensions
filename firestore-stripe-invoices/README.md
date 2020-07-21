@@ -1,5 +1,7 @@
 # Send Invoices using Stripe
 
+**Author**: Stripe (**[https://stripe.com](https://stripe.com)**)
+
 **Description**: Creates and sends brandable customer invoices using the Stripe payments platform.
 
 
