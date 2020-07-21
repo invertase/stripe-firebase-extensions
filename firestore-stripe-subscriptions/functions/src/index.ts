@@ -209,7 +209,10 @@ const manageSubscriptionStatusChange = async (
     .collection(config.customersCollectionPath)
     .where('stripeId', '==', customerId)
     .get();
-  if (customersSnap.size !== 1) throw new Error('User not found!');
+  if (customersSnap.size !== 1) {
+    if (!subscription.canceled_at) throw new Error('User not found!');
+    return;
+  }
   const uid = customersSnap.docs[0].id;
   const price: Stripe.Price = subscription.items.data[0].price;
   const product: Stripe.Product = price.product as Stripe.Product;
@@ -243,13 +246,18 @@ const manageSubscriptionStatusChange = async (
 
   // Update their custom claims
   if (role) {
-    // Set new role in custom claims as long as the subs status allows
-    if (['trialing', 'active'].includes(subscription.status)) {
-      logs.userCustomClaimSet(uid, { stripeRole: role });
-      await admin.auth().setCustomUserClaims(uid, { stripeRole: role });
-    } else {
-      logs.userCustomClaimSet(uid, { stripeRole: null });
-      await admin.auth().setCustomUserClaims(uid, { stripeRole: null });
+    try {
+      // Set new role in custom claims as long as the subs status allows
+      if (['trialing', 'active'].includes(subscription.status)) {
+        logs.userCustomClaimSet(uid, { stripeRole: role });
+        await admin.auth().setCustomUserClaims(uid, { stripeRole: role });
+      } else {
+        logs.userCustomClaimSet(uid, { stripeRole: null });
+        await admin.auth().setCustomUserClaims(uid, { stripeRole: null });
+      }
+    } catch (error) {
+      // User has been deleted, simply return.
+      return;
     }
   }
   return;
@@ -329,3 +337,50 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
     resp.json({ received: true });
   }
 );
+
+/*
+ * The `clearStripeData` function cancels the user's active subscriptions immediately
+ * and deltes their customer object in Stripe.
+ */
+export const clearStripeData = functions.auth.user().onDelete(async (user) => {
+  // TODO: can we ensure this runs before the delete user data extension triggers?
+  // Get the Stripe customer id.
+  const customer = (
+    await admin
+      .firestore()
+      .collection(config.customersCollectionPath)
+      .doc(user.uid)
+      .get()
+  ).data();
+  if (customer) {
+    try {
+      // Delete their customer object.
+      // Deleting the customer object will immediately cancel all their active subscriptions.
+      await stripe.customers.del(customer.stripeId);
+      // Mark all their subscriptions as cancelled in Firestore.
+      const update = {
+        status: 'canceled',
+        ended_at: admin.firestore.Timestamp.now(),
+      };
+      const subscriptionsSnap = await admin
+        .firestore()
+        .collection(config.customersCollectionPath)
+        .doc(user.uid)
+        .collection('subscriptions')
+        .where('status', 'in', ['trialing', 'active'])
+        .get();
+      subscriptionsSnap.forEach((doc) => {
+        doc.ref.set(update, { merge: true });
+      });
+    } catch (error) {
+      logs.customerDeletionError(error, user.uid);
+    }
+  } else {
+    // The customer details were already deleted.
+    const dashboardURL = `https://dashboard.stripe.com/search?query=${user.uid}`;
+    const error = new Error(
+      `Firestore details already deleted. You will need to delete the Stripe customer object manually: ${dashboardURL}`
+    );
+    logs.customerDeletionError(error, user.uid);
+  }
+});
