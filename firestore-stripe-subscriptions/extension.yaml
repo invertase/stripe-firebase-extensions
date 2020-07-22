@@ -85,7 +85,7 @@ resources:
       runtime: nodejs10
       httpsTrigger: {}
 
-  - name: clearStripeData
+  - name: onUserDeleted
     type: firebaseextensions.v1beta.function
     description: >-
       Deletes the Stripe customer object and cancels all their subscriptions when the user is deleted in Firebase Authentication.
@@ -95,6 +95,17 @@ resources:
       eventTrigger:
         eventType: providers/firebase.auth/eventTypes/user.delete
         resource: projects/${PROJECT_ID}
+
+  - name: onStoreDeleted
+    type: firebaseextensions.v1beta.function
+    description: >-
+      Deletes the Stripe customer object and cancels all their subscriptions when the customer doc in Cloud Firestore is deleted.
+    properties:
+      location: ${LOCATION}
+      runtime: nodejs10
+      eventTrigger:
+        eventType: providers/cloud.firestore/eventTypes/document.delete
+        resource: projects/${PROJECT_ID}/databases/(default)/documents/${CUSTOMERS_COLLECTION}/{uid}
 
 params:
   - param: LOCATION
