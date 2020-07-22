@@ -37,7 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onStoreDeleted = exports.onUserDeleted = exports.handleWebhookEvents = void 0;
+exports.onCustomerDataDeleted = exports.onUserDeleted = exports.handleWebhookEvents = void 0;
 const admin = __importStar(require("firebase-admin"));
 const functions = __importStar(require("firebase-functions"));
 const stripe_1 = __importDefault(require("stripe"));
@@ -375,15 +375,15 @@ exports.onUserDeleted = functions.auth.user().onDelete(async (user) => {
         .doc(user.uid)
         .get()).data();
     // If you use the `delete-user-data` extension it could be the case that the customer record is already deleted.
-    // In that case, the `onStoreDeleted` function below takes care of deleting the Stripe customer object.
+    // In that case, the `onCustomerDataDeleted` function below takes care of deleting the Stripe customer object.
     if (customer) {
         await deleteStripeCustomer({ uid: user.uid, stripeId: customer.stripeId });
     }
 });
 /*
- * The `onStoreDeleted` deletes their customer object in Stripe which immediately cancels all their subscriptions.
+ * The `onCustomerDataDeleted` deletes their customer object in Stripe which immediately cancels all their subscriptions.
  */
-exports.onStoreDeleted = functions.firestore
+exports.onCustomerDataDeleted = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}`)
     .onDelete(async (snap, context) => {
     const { stripeId } = snap.data();

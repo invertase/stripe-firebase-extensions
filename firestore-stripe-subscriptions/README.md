@@ -80,7 +80,7 @@ Starting August 17 2020, you will be billed a small amount (typically less than 
 
 * **onUserDeleted:** Deletes the Stripe customer object and cancels all their subscriptions when the user is deleted in Firebase Authentication.
 
-* **onStoreDeleted:** Deletes the Stripe customer object and cancels all their subscriptions when the customer doc in Cloud Firestore is deleted.
+* **onCustomerDataDeleted:** Deletes the Stripe customer object and cancels all their subscriptions when the customer doc in Cloud Firestore is deleted.
 
 
 

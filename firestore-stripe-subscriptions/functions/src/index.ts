@@ -400,16 +400,16 @@ export const onUserDeleted = functions.auth.user().onDelete(async (user) => {
       .get()
   ).data();
   // If you use the `delete-user-data` extension it could be the case that the customer record is already deleted.
-  // In that case, the `onStoreDeleted` function below takes care of deleting the Stripe customer object.
+  // In that case, the `onCustomerDataDeleted` function below takes care of deleting the Stripe customer object.
   if (customer) {
     await deleteStripeCustomer({ uid: user.uid, stripeId: customer.stripeId });
   }
 });
 
 /*
- * The `onStoreDeleted` deletes their customer object in Stripe which immediately cancels all their subscriptions.
+ * The `onCustomerDataDeleted` deletes their customer object in Stripe which immediately cancels all their subscriptions.
  */
-export const onStoreDeleted = functions.firestore
+export const onCustomerDataDeleted = functions.firestore
   .document(`/${config.customersCollectionPath}/{uid}`)
   .onDelete(async (snap, context) => {
     const { stripeId } = snap.data();

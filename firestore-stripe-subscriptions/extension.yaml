@@ -96,7 +96,7 @@ resources:
         eventType: providers/firebase.auth/eventTypes/user.delete
         resource: projects/${PROJECT_ID}
 
-  - name: onStoreDeleted
+  - name: onCustomerDataDeleted
     type: firebaseextensions.v1beta.function
     description: >-
       Deletes the Stripe customer object and cancels all their subscriptions when the customer doc in Cloud Firestore is deleted.
