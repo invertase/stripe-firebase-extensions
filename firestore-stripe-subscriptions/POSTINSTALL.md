@@ -213,7 +213,7 @@ window.location.assign(data.url);
 
 When a user is deleted in Firebase Authentication the extension will delete their customer object in Stripe which will immediately cancel all subscriptions for the user. 
 
-The extension will not delete any data from the Cloud Firestore. Should you wish to the customer data from Cloud Firestore, you can use the [Delete User Data](https://firebase.google.com/products/extensions/delete-user-data) extension built by the Firebase team.
+The extension will not delete any data from your Cloud Firestore. Should you wish to delete the customer data from Cloud Firestore, you can use the [Delete User Data](https://firebase.google.com/products/extensions/delete-user-data) extension built by the Firebase team.
 
 ### Monitoring
 

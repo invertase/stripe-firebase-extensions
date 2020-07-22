@@ -63,7 +63,7 @@ const createCustomerRecord = async ({
       .firestore()
       .collection(config.customersCollectionPath)
       .doc(uid)
-      .set(customerRecord);
+      .set(customerRecord, { merge: true });
     logs.customerCreated(customer.id, customer.livemode);
     return customerRecord;
   } catch (error) {
@@ -96,7 +96,7 @@ exports.createCheckoutSession = functions.firestore
       logs.creatingCheckoutSession(context.params.id);
       // Get stripe customer id
       let customerRecord = (await snap.ref.parent.parent.get()).data();
-      if (!customerRecord) {
+      if (!customerRecord?.stripeId) {
         customerRecord = await createCustomerRecord({
           uid: context.params.uid,
         });
@@ -354,12 +354,43 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
   }
 );
 
+const deleteStripeCustomer = async ({
+  uid,
+  stripeId,
+}: {
+  uid: string;
+  stripeId: string;
+}) => {
+  try {
+    // Delete their customer object.
+    // Deleting the customer object will immediately cancel all their active subscriptions.
+    await stripe.customers.del(stripeId);
+    logs.customerDeleted(stripeId);
+    // Mark all their subscriptions as cancelled in Firestore.
+    const update = {
+      status: 'canceled',
+      ended_at: admin.firestore.Timestamp.now(),
+    };
+    // Set all subscription records to canceled.
+    const subscriptionsSnap = await admin
+      .firestore()
+      .collection(config.customersCollectionPath)
+      .doc(uid)
+      .collection('subscriptions')
+      .where('status', 'in', ['trialing', 'active'])
+      .get();
+    subscriptionsSnap.forEach((doc) => {
+      doc.ref.set(update, { merge: true });
+    });
+  } catch (error) {
+    logs.customerDeletionError(error, uid);
+  }
+};
+
 /*
- * The `clearStripeData` function cancels the user's active subscriptions immediately
- * and deltes their customer object in Stripe.
+ * The `onUserDeleted` deletes their customer object in Stripe which immediately cancels all their subscriptions.
  */
-export const clearStripeData = functions.auth.user().onDelete(async (user) => {
-  // TODO: can we ensure this runs before the delete user data extension triggers?
+export const onUserDeleted = functions.auth.user().onDelete(async (user) => {
   // Get the Stripe customer id.
   const customer = (
     await admin
@@ -368,35 +399,19 @@ export const clearStripeData = functions.auth.user().onDelete(async (user) => {
       .doc(user.uid)
       .get()
   ).data();
+  // If you use the `delete-user-data` extension it could be the case that the customer record is already deleted.
+  // In that case, the `onStoreDeleted` function below takes care of deleting the Stripe customer object.
   if (customer) {
-    try {
-      // Delete their customer object.
-      // Deleting the customer object will immediately cancel all their active subscriptions.
-      await stripe.customers.del(customer.stripeId);
-      // Mark all their subscriptions as cancelled in Firestore.
-      const update = {
-        status: 'canceled',
-        ended_at: admin.firestore.Timestamp.now(),
-      };
-      const subscriptionsSnap = await admin
-        .firestore()
-        .collection(config.customersCollectionPath)
-        .doc(user.uid)
-        .collection('subscriptions')
-        .where('status', 'in', ['trialing', 'active'])
-        .get();
-      subscriptionsSnap.forEach((doc) => {
-        doc.ref.set(update, { merge: true });
-      });
-    } catch (error) {
-      logs.customerDeletionError(error, user.uid);
-    }
-  } else {
-    // The customer details were already deleted.
-    const dashboardURL = `https://dashboard.stripe.com/search?query=${user.uid}`;
-    const error = new Error(
-      `Firestore details already deleted. You will need to delete the Stripe customer object manually: ${dashboardURL}`
-    );
-    logs.customerDeletionError(error, user.uid);
+    await deleteStripeCustomer({ uid: user.uid, stripeId: customer.stripeId });
   }
 });
+
+/*
+ * The `onStoreDeleted` deletes their customer object in Stripe which immediately cancels all their subscriptions.
+ */
+export const onStoreDeleted = functions.firestore
+  .document(`/${config.customersCollectionPath}/{uid}`)
+  .onDelete(async (snap, context) => {
+    const { stripeId } = snap.data();
+    await deleteStripeCustomer({ uid: context.params.uid, stripeId });
+  });

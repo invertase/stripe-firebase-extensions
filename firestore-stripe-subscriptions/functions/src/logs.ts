@@ -40,6 +40,10 @@ export function customerCreated(id: string, livemode: boolean) {
   );
 }
 
+export function customerDeleted(id: string) {
+  console.log(`🗑Deleted Stripe customer [${id}]`);
+}
+
 export function creatingCheckoutSession(docId: string) {
   console.log(`⚙️ Creating checkout session for doc [${docId}].`);
 }
