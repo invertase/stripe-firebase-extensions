@@ -17,7 +17,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
-import { Product, Price, Subscription } from './interfaces';
+import { Product, Price, Subscription, CustomerData } from './interfaces';
 import * as logs from './logs';
 import config from './config';
 
@@ -27,7 +27,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.0',
+    version: '0.1.2',
   },
 });
 
@@ -36,36 +36,46 @@ admin.initializeApp();
 /**
  * Create a customer object in Stripe when a user is created.
  */
+const createCustomerRecord = async ({
+  email,
+  uid,
+}: {
+  email?: string;
+  uid: string;
+}) => {
+  try {
+    logs.creatingCustomer(uid);
+    const customerData: CustomerData = {
+      metadata: {
+        firebaseUID: uid,
+      },
+    };
+    if (email) customerData.email = email;
+    const customer = await stripe.customers.create(customerData);
+    // Add a mapping record in Cloud Firestore.
+    const customerRecord = {
+      stripeId: customer.id,
+      stripeLink: `https://dashboard.stripe.com${
+        customer.livemode ? '' : '/test'
+      }/customers/${customer.id}`,
+    };
+    await admin
+      .firestore()
+      .collection(config.customersCollectionPath)
+      .doc(uid)
+      .set(customerRecord, { merge: true });
+    logs.customerCreated(customer.id, customer.livemode);
+    return customerRecord;
+  } catch (error) {
+    logs.customerCreationError(error, uid);
+    return null;
+  }
+};
+
 exports.createCustomer = functions.auth.user().onCreate(
   async (user): Promise<void> => {
     const { email, uid } = user;
-    if (!email) {
-      logs.userNoEmail();
-      return;
-    }
-    try {
-      logs.creatingCustomer(uid);
-      const customer = await stripe.customers.create({
-        email,
-        metadata: {
-          firebaseUID: uid,
-        },
-      });
-      // Add a mapping
-      await admin
-        .firestore()
-        .collection(config.customersCollectionPath)
-        .doc(uid)
-        .set({
-          stripeId: customer.id,
-          stripeLink: `https://dashboard.stripe.com${
-            customer.livemode ? '' : '/test'
-          }/customers/${customer.id}`,
-        });
-      logs.customerCreated(customer.id, customer.livemode);
-    } catch (error) {
-      logs.customerCreationError(error, uid);
-    }
+    await createCustomerRecord({ email, uid });
   }
 );
 
@@ -85,7 +95,13 @@ exports.createCheckoutSession = functions.firestore
     try {
       logs.creatingCheckoutSession(context.params.id);
       // Get stripe customer id
-      const customer = (await snap.ref.parent.parent.get()).data().stripeId;
+      let customerRecord = (await snap.ref.parent.parent.get()).data();
+      if (!customerRecord?.stripeId) {
+        customerRecord = await createCustomerRecord({
+          uid: context.params.uid,
+        });
+      }
+      const customer = customerRecord.stripeId;
       const session = await stripe.checkout.sessions.create(
         {
           payment_method_types,
@@ -209,7 +225,10 @@ const manageSubscriptionStatusChange = async (
     .collection(config.customersCollectionPath)
     .where('stripeId', '==', customerId)
     .get();
-  if (customersSnap.size !== 1) throw new Error('User not found!');
+  if (customersSnap.size !== 1) {
+    if (!subscription.canceled_at) throw new Error('User not found!');
+    return;
+  }
   const uid = customersSnap.docs[0].id;
   const price: Stripe.Price = subscription.items.data[0].price;
   const product: Stripe.Product = price.product as Stripe.Product;
@@ -243,13 +262,18 @@ const manageSubscriptionStatusChange = async (
 
   // Update their custom claims
   if (role) {
-    // Set new role in custom claims as long as the subs status allows
-    if (['trialing', 'active'].includes(subscription.status)) {
-      logs.userCustomClaimSet(uid, { stripeRole: role });
-      await admin.auth().setCustomUserClaims(uid, { stripeRole: role });
-    } else {
-      logs.userCustomClaimSet(uid, { stripeRole: null });
-      await admin.auth().setCustomUserClaims(uid, { stripeRole: null });
+    try {
+      // Set new role in custom claims as long as the subs status allows
+      if (['trialing', 'active'].includes(subscription.status)) {
+        logs.userCustomClaimSet(uid, { stripeRole: role });
+        await admin.auth().setCustomUserClaims(uid, { stripeRole: role });
+      } else {
+        logs.userCustomClaimSet(uid, { stripeRole: null });
+        await admin.auth().setCustomUserClaims(uid, { stripeRole: null });
+      }
+    } catch (error) {
+      // User has been deleted, simply return.
+      return;
     }
   }
   return;
@@ -329,3 +353,65 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
     resp.json({ received: true });
   }
 );
+
+const deleteStripeCustomer = async ({
+  uid,
+  stripeId,
+}: {
+  uid: string;
+  stripeId: string;
+}) => {
+  try {
+    // Delete their customer object.
+    // Deleting the customer object will immediately cancel all their active subscriptions.
+    await stripe.customers.del(stripeId);
+    logs.customerDeleted(stripeId);
+    // Mark all their subscriptions as cancelled in Firestore.
+    const update = {
+      status: 'canceled',
+      ended_at: admin.firestore.Timestamp.now(),
+    };
+    // Set all subscription records to canceled.
+    const subscriptionsSnap = await admin
+      .firestore()
+      .collection(config.customersCollectionPath)
+      .doc(uid)
+      .collection('subscriptions')
+      .where('status', 'in', ['trialing', 'active'])
+      .get();
+    subscriptionsSnap.forEach((doc) => {
+      doc.ref.set(update, { merge: true });
+    });
+  } catch (error) {
+    logs.customerDeletionError(error, uid);
+  }
+};
+
+/*
+ * The `onUserDeleted` deletes their customer object in Stripe which immediately cancels all their subscriptions.
+ */
+export const onUserDeleted = functions.auth.user().onDelete(async (user) => {
+  // Get the Stripe customer id.
+  const customer = (
+    await admin
+      .firestore()
+      .collection(config.customersCollectionPath)
+      .doc(user.uid)
+      .get()
+  ).data();
+  // If you use the `delete-user-data` extension it could be the case that the customer record is already deleted.
+  // In that case, the `onCustomerDataDeleted` function below takes care of deleting the Stripe customer object.
+  if (customer) {
+    await deleteStripeCustomer({ uid: user.uid, stripeId: customer.stripeId });
+  }
+});
+
+/*
+ * The `onCustomerDataDeleted` deletes their customer object in Stripe which immediately cancels all their subscriptions.
+ */
+export const onCustomerDataDeleted = functions.firestore
+  .document(`/${config.customersCollectionPath}/{uid}`)
+  .onDelete(async (snap, context) => {
+    const { stripeId } = snap.data();
+    await deleteStripeCustomer({ uid: context.params.uid, stripeId });
+  });

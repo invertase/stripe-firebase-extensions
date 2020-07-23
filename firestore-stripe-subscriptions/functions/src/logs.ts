@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-export const userNoEmail = () => {
-  console.error('❗️[Error]: User does not have an email!');
-};
-
 export const creatingCustomer = (uid: string) => {
   console.log(`⚙️ Creating customer object for [${uid}].`);
 };
@@ -29,12 +25,23 @@ export const customerCreationError = (error: Error, uid: string) => {
   );
 };
 
+export const customerDeletionError = (error: Error, uid: string) => {
+  console.error(
+    `❗️[Error]: Failed to delete customer for [${uid}]:`,
+    error.message
+  );
+};
+
 export function customerCreated(id: string, livemode: boolean) {
   console.log(
     `✅Created a new customer: https://dashboard.stripe.com${
       livemode ? '' : '/test'
-    }/customers/[${id}].`
+    }/customers/${id}.`
   );
+}
+
+export function customerDeleted(id: string) {
+  console.log(`🗑Deleted Stripe customer [${id}]`);
 }
 
 export function creatingCheckoutSession(docId: string) {

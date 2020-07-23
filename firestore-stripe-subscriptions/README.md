@@ -1,5 +1,7 @@
 # Run Subscription Payments with Stripe
 
+**Author**: Stripe (**[https://stripe.com](https://stripe.com)**)
+
 **Description**: Controls access to paid content by syncing your subscriptions with Firebase Authentication.
 
 
@@ -75,6 +77,10 @@ Starting August 17 2020, you will be billed a small amount (typically less than 
 * **createPortalLink:** Creates links to the customer portal for the user to manage their payment & subscription details.
 
 * **handleWebhookEvents:** Handles Stripe webhook events to keep subscription statuses in sync and update custom claims.
+
+* **onUserDeleted:** Deletes the Stripe customer object and cancels all their subscriptions when the user is deleted in Firebase Authentication.
+
+* **onCustomerDataDeleted:** Deletes the Stripe customer object and cancels all their subscriptions when the customer doc in Cloud Firestore is deleted.
 
 
 
