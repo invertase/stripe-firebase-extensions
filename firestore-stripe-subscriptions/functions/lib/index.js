@@ -49,7 +49,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.2',
+        version: '0.1.3',
     },
 });
 admin.initializeApp();
@@ -116,6 +116,9 @@ exports.createCheckoutSession = functions.firestore
                 },
             ],
             mode: 'subscription',
+            subscription_data: {
+                trial_from_plan: true,
+            },
             success_url,
             cancel_url,
         }, { idempotencyKey: context.params.id });
@@ -243,9 +246,23 @@ const manageSubscriptionStatusChange = async (subscriptionId) => {
             .doc(price.id),
         quantity: subscription.quantity,
         cancel_at_period_end: subscription.cancel_at_period_end,
+        cancel_at: subscription.cancel_at
+            ? admin.firestore.Timestamp.fromMillis(subscription.cancel_at * 1000)
+            : null,
+        canceled_at: subscription.canceled_at
+            ? admin.firestore.Timestamp.fromMillis(subscription.canceled_at * 1000)
+            : null,
+        current_period_start: admin.firestore.Timestamp.fromMillis(subscription.current_period_start * 1000),
+        current_period_end: admin.firestore.Timestamp.fromMillis(subscription.current_period_end * 1000),
         created: admin.firestore.Timestamp.fromMillis(subscription.created * 1000),
         ended_at: subscription.ended_at
             ? admin.firestore.Timestamp.fromMillis(subscription.ended_at * 1000)
+            : null,
+        trial_start: subscription.trial_start
+            ? admin.firestore.Timestamp.fromMillis(subscription.trial_start * 1000)
+            : null,
+        trial_end: subscription.trial_end
+            ? admin.firestore.Timestamp.fromMillis(subscription.trial_end * 1000)
             : null,
     };
     await subsDbRef.set(subscriptionData);
