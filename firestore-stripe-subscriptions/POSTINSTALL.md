@@ -164,7 +164,7 @@ const docRef = await db
   .doc(currentUser.uid)
   .collection('checkout_sessions')
   .add({
-    price: formData.get('price'),
+    price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
     success_url: window.location.origin,
     cancel_url: window.location.origin,
   });
