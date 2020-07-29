@@ -95,7 +95,7 @@ exports.createCustomer = functions.auth.user().onCreate(async (user) => {
 exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
-    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], } = snap.data();
+    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -118,6 +118,7 @@ exports.createCheckoutSession = functions.firestore
             mode: 'subscription',
             subscription_data: {
                 trial_from_plan: true,
+                metadata,
             },
             success_url,
             cancel_url,
@@ -235,6 +236,7 @@ const manageSubscriptionStatusChange = async (subscriptionId) => {
         .doc(subscription.id);
     // Update with new Subscription status
     const subscriptionData = {
+        metadata: subscription.metadata,
         role,
         status: subscription.status,
         stripeLink: `https://dashboard.stripe.com${subscription.livemode ? '' : '/test'}/subscriptions/${subscription.id}`,

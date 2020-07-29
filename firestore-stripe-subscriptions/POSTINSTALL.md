@@ -180,6 +180,25 @@ docRef.onSnapshot((snap) => {
 });
 ```
 
+#### Setting metadata on the subscription
+
+You can optionally set a metadata object with key-value pairs when creating the checkout session. This can be useful for storing additional information about the customer's subscription. This metadata will be synced to both the Stripe subscription object (making it searchable in the Stripe Dashboard) and the subscription document in the Cloud Firestore.
+
+```js
+const docRef = await db
+    .collection('customers')
+    .doc(currentUser)
+    .collection('checkout_sessions')
+    .add({
+      price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
+      success_url: window.location.origin,
+      cancel_url: window.location.origin,
+      metadata: {
+        item: 'item001',
+      },
+    });
+```
+
 #### Get the customer's subscription
 
 Subscription details are synced to the `subscriptions` sub-collection in the user's corresponding customer doc.

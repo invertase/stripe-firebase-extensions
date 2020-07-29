@@ -91,6 +91,7 @@ exports.createCheckoutSession = functions.firestore
       cancel_url,
       quantity = 1,
       payment_method_types = ['card'],
+      metadata = {},
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -115,6 +116,7 @@ exports.createCheckoutSession = functions.firestore
           mode: 'subscription',
           subscription_data: {
             trial_from_plan: true,
+            metadata,
           },
           success_url,
           cancel_url,
@@ -242,6 +244,7 @@ const manageSubscriptionStatusChange = async (
     .doc(subscription.id);
   // Update with new Subscription status
   const subscriptionData: Subscription = {
+    metadata: subscription.metadata,
     role,
     status: subscription.status,
     stripeLink: `https://dashboard.stripe.com${
