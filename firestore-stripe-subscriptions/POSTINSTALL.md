@@ -191,7 +191,7 @@ db.collection('${param:CUSTOMERS_COLLECTION}')
   .where('status', '==', 'active')
   .onSnapshot(async (snapshot) => {
     // In this implementation we only expect one active Subscription to exist
-    const doc = snapshot.docs[0].data();
+    const doc = snapshot.docs[0];
     console.log(doc.id, ' => ', doc.data());
   });
 ```
