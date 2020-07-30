@@ -207,10 +207,10 @@ Subscription details are synced to the `subscriptions` sub-collection in the use
 db.collection('${param:CUSTOMERS_COLLECTION}')
   .doc(currentUser.uid)
   .collection('subscriptions')
-  .where('status', '==', 'active')
+  .where('status', 'in', ['trialing', 'active'])
   .onSnapshot(async (snapshot) => {
-    // In this implementation we only expect one active Subscription to exist
-    const doc = snapshot.docs[0].data();
+    // In this implementation we only expect one active or trialing subscription to exist.
+    const doc = snapshot.docs[0];
     console.log(doc.id, ' => ', doc.data());
   });
 ```
