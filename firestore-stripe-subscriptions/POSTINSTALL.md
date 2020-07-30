@@ -164,7 +164,7 @@ const docRef = await db
   .doc(currentUser.uid)
   .collection('checkout_sessions')
   .add({
-    price: formData.get('price'),
+    price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
     success_url: window.location.origin,
     cancel_url: window.location.origin,
   });
@@ -180,6 +180,25 @@ docRef.onSnapshot((snap) => {
 });
 ```
 
+#### Setting metadata on the subscription
+
+You can optionally set a metadata object with key-value pairs when creating the checkout session. This can be useful for storing additional information about the customer's subscription. This metadata will be synced to both the Stripe subscription object (making it searchable in the Stripe Dashboard) and the subscription document in the Cloud Firestore.
+
+```js
+const docRef = await db
+    .collection('customers')
+    .doc(currentUser)
+    .collection('checkout_sessions')
+    .add({
+      price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
+      success_url: window.location.origin,
+      cancel_url: window.location.origin,
+      metadata: {
+        item: 'item001',
+      },
+    });
+```
+
 #### Get the customer's subscription
 
 Subscription details are synced to the `subscriptions` sub-collection in the user's corresponding customer doc.
@@ -188,10 +207,10 @@ Subscription details are synced to the `subscriptions` sub-collection in the use
 db.collection('${param:CUSTOMERS_COLLECTION}')
   .doc(currentUser.uid)
   .collection('subscriptions')
-  .where('status', '==', 'active')
+  .where('status', 'in', ['trialing', 'active'])
   .onSnapshot(async (snapshot) => {
-    // In this implementation we only expect one active Subscription to exist
-    const doc = snapshot.docs[0].data();
+    // In this implementation we only expect one active or trialing subscription to exist.
+    const doc = snapshot.docs[0];
     console.log(doc.id, ' => ', doc.data());
   });
 ```

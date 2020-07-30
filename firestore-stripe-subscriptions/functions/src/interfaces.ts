@@ -74,6 +74,13 @@ export interface Product {
 }
 
 export interface Subscription {
+  /**
+   * Set of key-value pairs that you can attach to an object.
+   * This can be useful for storing additional information about the object in a structured format.
+   */
+  metadata: {
+    [name: string]: string;
+  };
   stripeLink: string;
   role: string | null;
   quantity: number;
@@ -101,7 +108,31 @@ export interface Subscription {
    */
   created: FirebaseFirestore.Timestamp;
   /**
+   * Start of the current period that the subscription has been invoiced for.
+   */
+  current_period_start: FirebaseFirestore.Timestamp;
+  /**
+   * End of the current period that the subscription has been invoiced for. At the end of this period, a new invoice will be created.
+   */
+  current_period_end: FirebaseFirestore.Timestamp;
+  /**
    * If the subscription has ended, the timestamp of the date the subscription ended.
    */
   ended_at: FirebaseFirestore.Timestamp | null;
+  /**
+   * A date in the future at which the subscription will automatically get canceled.
+   */
+  cancel_at: FirebaseFirestore.Timestamp | null;
+  /**
+   * If the subscription has been canceled, the date of that cancellation. If the subscription was canceled with `cancel_at_period_end`, `canceled_at` will still reflect the date of the initial cancellation request, not the end of the subscription period when the subscription is automatically moved to a canceled state.
+   */
+  canceled_at: FirebaseFirestore.Timestamp | null;
+  /**
+   * If the subscription has a trial, the beginning of that trial.
+   */
+  trial_start: FirebaseFirestore.Timestamp | null;
+  /**
+   * If the subscription has a trial, the end of that trial.
+   */
+  trial_end: FirebaseFirestore.Timestamp | null;
 }
