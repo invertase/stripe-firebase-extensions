@@ -199,10 +199,12 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
   const priceData: Price = {
     active: price.active,
     currency: price.currency,
+    description: price.nickname,
+    type: price.type,
     unit_amount: price.unit_amount,
-    interval: price.recurring.interval,
-    interval_count: price.recurring.interval_count,
-    trial_period_days: price.recurring.trial_period_days,
+    interval: price.recurring?.interval ?? null,
+    interval_count: price.recurring?.interval_count ?? null,
+    trial_period_days: price.recurring?.trial_period_days ?? null,
   };
   const dbRef = admin
     .firestore()
