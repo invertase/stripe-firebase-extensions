@@ -2,6 +2,17 @@
 
 [fix] - Make sure to merge existing custom claims before setting the `stripeRole` custom claim. Previously the extensions would overwrite the user's existing custom claims.
 
+[fix] - Corretly handle one-time (non-recurring) prices. This update adds a `type` parameter to the price document in Cloud Firestore:
+
+```ts
+/**
+ * One of `one_time` or `recurring` depending on whether the price is for a one-time purchase or a recurring (subscription) purchase.
+ */
+type: "one_time" | "recurring";
+```
+
+[feat] - Sync the price description to Cloud Firestore.
+
 ## Version 0.1.3
 
 [fix] - Apply trial days from pricing plan to the checkout session.
@@ -64,6 +75,7 @@ metadata: {
 ## Version 0.1.2
 
 [feat] - Adds the `onUserDeleted` function which is triggered by a user being deleted in Firebase Authentication. Upon user deletion the extension will delete their customer object in Stripe which will immediately cancel all subscriptions for the user.
+
 [feat] - Adds the `onCustomerDataDeleted` function which has the same effect as `onUserDeleted` but is triggered when the customer doc in the Cloud Firestore is deleted. This ensures compatibility with the [Delete User Data](https://firebase.google.com/products/extensions/delete-user-data) extension built by the Firebase team.
 
 [fix] - Allow creation of a Stripe customer object without email address.

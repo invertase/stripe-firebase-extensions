@@ -189,13 +189,16 @@ const createProductRecord = async (product) => {
  * Create a price (billing price plan) and insert it into a subcollection in Products.
  */
 const insertPriceRecord = async (price) => {
+    var _a, _b, _c, _d, _e, _f;
     const priceData = {
         active: price.active,
         currency: price.currency,
+        description: price.nickname,
+        type: price.type,
         unit_amount: price.unit_amount,
-        interval: price.recurring.interval,
-        interval_count: price.recurring.interval_count,
-        trial_period_days: price.recurring.trial_period_days,
+        interval: (_b = (_a = price.recurring) === null || _a === void 0 ? void 0 : _a.interval) !== null && _b !== void 0 ? _b : null,
+        interval_count: (_d = (_c = price.recurring) === null || _c === void 0 ? void 0 : _c.interval_count) !== null && _d !== void 0 ? _d : null,
+        trial_period_days: (_f = (_e = price.recurring) === null || _e === void 0 ? void 0 : _e.trial_period_days) !== null && _f !== void 0 ? _f : null,
     };
     const dbRef = admin
         .firestore()
