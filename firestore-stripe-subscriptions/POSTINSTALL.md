@@ -180,23 +180,40 @@ docRef.onSnapshot((snap) => {
 });
 ```
 
+#### Applying tax rates to the subscription
+
+You can collect and report taxes with [Tax Rates](https://stripe.com/docs/billing/taxes/tax-rates). To apply tax rates to the subscription, you first need to create your tax rates in the [Stripe Dashboard](https://dashboard.stripe.com/tax-rates). When creating a new `checkout_sessions` document, specify the optional `tax_rates` list with [up to five](https://stripe.com/docs/billing/taxes/tax-rates#using-multiple-tax-rates) tax rate IDs:
+
+```js
+const docRef = await db
+  .collection('${param:CUSTOMERS_COLLECTION}')
+  .doc(currentUser)
+  .collection('checkout_sessions')
+  .add({
+    price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
+    tax_rates: ['txr_1HCjzTHYgolSBA35m0e1tJN5'],
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
 #### Setting metadata on the subscription
 
 You can optionally set a metadata object with key-value pairs when creating the checkout session. This can be useful for storing additional information about the customer's subscription. This metadata will be synced to both the Stripe subscription object (making it searchable in the Stripe Dashboard) and the subscription document in the Cloud Firestore.
 
 ```js
 const docRef = await db
-    .collection('customers')
-    .doc(currentUser)
-    .collection('checkout_sessions')
-    .add({
-      price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
-      success_url: window.location.origin,
-      cancel_url: window.location.origin,
-      metadata: {
-        item: 'item001',
-      },
-    });
+  .collection('${param:CUSTOMERS_COLLECTION}')
+  .doc(currentUser)
+  .collection('checkout_sessions')
+  .add({
+    price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+    metadata: {
+      item: 'item001',
+    },
+  });
 ```
 
 #### Get the customer's subscription
