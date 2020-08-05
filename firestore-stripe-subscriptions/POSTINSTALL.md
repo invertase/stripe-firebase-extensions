@@ -187,6 +187,25 @@ docRef.onSnapshot((snap) => {
 });
 ```
 
+#### Applying discount, coupon, promotion codes
+
+You can create customer-facing promotion codes in the [Stripe Dashboard](https://dashboard.stripe.com/coupons/create). Refer to the [docs](https://stripe.com/docs/billing/subscriptions/discounts/codes) for a detailed guide on how to set these up.
+
+In order for the promotion code redemption box to show up on the checkout page, set `allow_promotion_codes: true` when creating the `checkout_session` document:
+
+```js
+const docRef = await db
+  .collection('${param:CUSTOMERS_COLLECTION}')
+  .doc(currentUser)
+  .collection('checkout_sessions')
+  .add({
+    price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
+    allow_promotion_codes: true,
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
 #### Applying tax rates to the subscription
 
 You can collect and report taxes with [Tax Rates](https://stripe.com/docs/billing/taxes/tax-rates). To apply tax rates to the subscription, you first need to create your tax rates in the [Stripe Dashboard](https://dashboard.stripe.com/tax-rates). When creating a new `checkout_sessions` document, specify the optional `tax_rates` list with [up to five](https://stripe.com/docs/billing/taxes/tax-rates#using-multiple-tax-rates) tax rate IDs:

@@ -13,6 +13,25 @@ type: "one_time" | "recurring";
 
 [feat] - Sync the price description to Cloud Firestore.
 
+[feat] - Add support for discounts, coupons, promotion codes:
+
+You can create customer-facing promotion codes in the [Stripe Dashboard](https://dashboard.stripe.com/coupons/create). Refer to the [docs](https://stripe.com/docs/billing/subscriptions/discounts/codes) for a detailed guide on how to set these up.
+
+To show the promotion code redemption box on the checkout page, set `allow_promotion_codes: true` when creating the `checkout_session` document:
+
+```js
+const docRef = await db
+  .collection("${param:CUSTOMERS_COLLECTION}")
+  .doc(currentUser)
+  .collection("checkout_sessions")
+  .add({
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    allow_promotion_codes: true,
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
 [feat] - Support setting tax rates when starting the subscription:
 
 You can collect and report taxes with [Tax Rates](https://stripe.com/docs/billing/taxes/tax-rates). To apply tax rates to the subscription, you first need to create your tax rates in the [Stripe Dashboard](https://dashboard.stripe.com/tax-rates). When creating a new `checkout_sessions` document, specify the optional `tax_rates` list with [up to five](https://stripe.com/docs/billing/taxes/tax-rates#using-multiple-tax-rates) tax rate IDs:
