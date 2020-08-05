@@ -93,6 +93,7 @@ exports.createCheckoutSession = functions.firestore
       payment_method_types = ['card'],
       metadata = {},
       tax_rates = [],
+      allow_promotion_codes = false,
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -116,6 +117,7 @@ exports.createCheckoutSession = functions.firestore
             },
           ],
           mode: 'subscription',
+          allow_promotion_codes,
           subscription_data: {
             trial_from_plan: true,
             metadata,
