@@ -1,5 +1,12 @@
 ### Configuring the extension
 
+Before you proceed, make sure you have the following Firebase services set up:
+
+- [Cloud Firestore](https://firebase.google.com/docs/firestore) to store customer & subscription details.
+  - Follow the steps in the [documentation](https://firebase.google.com/docs/firestore/quickstart#create) to create a Cloud Firestore database.
+- [Firebase Authentication](https://firebase.google.com/docs/auth) to enable different sign-up options for your users.
+  - Enable the sign-in methods in the [Firebase console](https://console.firebase.google.com/project/_/authentication/providers) that you want to offer your users.
+
 #### Set your Cloud Firestore security rules
 
 It is crucial to limit data access to authenticated users only and for users to only be able to see their own information. For product and pricing information it is important to disable write access for client applications. Use the rules below to restrict access as recommended in your project's [Cloud Firestore rules](https://console.firebase.google.com/project/_/database/firestore/rules):

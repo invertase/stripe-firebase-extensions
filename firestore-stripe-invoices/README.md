@@ -32,8 +32,10 @@ An optional feature of this extension is to automatically update the invoice's s
 
 Before installing this extension, set up the following Firebase services in your Firebase project:
 
-- [Cloud Firestore](https://firebase.google.com/docs/firestore) to store invoice information and optionally invoice status
-- [Firebase Authentication](https://firebase.google.com/docs/auth) to optionally manage email and customer data
+- [Cloud Firestore](https://firebase.google.com/docs/firestore) to store invoice information and optionally invoice status.
+    - Follow the steps in the [documentation](https://firebase.google.com/docs/firestore/quickstart#create) to create a Cloud Firestore database.
+- [Firebase Authentication](https://firebase.google.com/docs/auth) to optionally manage email and customer data.
+    - Enable the sign-in methods in the [Firebase console](https://console.firebase.google.com/project/_/authentication/providers) that you want to offer your users.
 
 You must also have a Stripe account and a [Stripe API key](https://dashboard.stripe.com/apikeys) before installing this extension.
 
