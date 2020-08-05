@@ -13,6 +13,23 @@ type: "one_time" | "recurring";
 
 [feat] - Sync the price description to Cloud Firestore.
 
+[feat] - Support setting tax rates when starting the subscription:
+
+You can collect and report taxes with [Tax Rates](https://stripe.com/docs/billing/taxes/tax-rates). To apply tax rates to the subscription, you first need to create your tax rates in the [Stripe Dashboard](https://dashboard.stripe.com/tax-rates). When creating a new `checkout_sessions` document, specify the optional `tax_rates` list with [up to five](https://stripe.com/docs/billing/taxes/tax-rates#using-multiple-tax-rates) tax rate IDs:
+
+```js
+const docRef = await db
+  .collection("${param:CUSTOMERS_COLLECTION}")
+  .doc(currentUser)
+  .collection("checkout_sessions")
+  .add({
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    tax_rates: ["txr_1HCjzTHYgolSBA35m0e1tJN5"],
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
 ## Version 0.1.3
 
 [fix] - Apply trial days from pricing plan to the checkout session.
