@@ -1,3 +1,8 @@
+## Version 0.1.4
+
+[fixed] - Add validation for Firestore collection param (#31)
+[changed] - Improved documentation (#30)
+
 ## Version 0.1.3
 
 [feat] - Add support for an optional `quantity` (_number_) parameter on objects in the `items` array, e.g.
