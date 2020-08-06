@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firestore-stripe-subscriptions
-version: 0.1.3
+version: 0.1.4
 specVersion: v1beta
 
 displayName: Run Subscription Payments with Stripe
@@ -142,6 +142,8 @@ params:
     description: >-
       What is the path to the Cloud Firestore collection where the extension should store Stripe pricing plans?
     default: products
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
     required: true
 
   - param: CUSTOMERS_COLLECTION
@@ -149,6 +151,8 @@ params:
     description: >-
       What is the path to the Cloud Firestore collection where the extension should store Stripe customer details?
     default: customers
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
     required: true
 
   - param: STRIPE_API_KEY

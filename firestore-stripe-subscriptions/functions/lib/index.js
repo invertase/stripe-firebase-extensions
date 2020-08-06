@@ -49,7 +49,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.3',
+        version: '0.1.4',
     },
 });
 admin.initializeApp();
@@ -95,7 +95,7 @@ exports.createCustomer = functions.auth.user().onCreate(async (user) => {
 exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
-    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, } = snap.data();
+    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, tax_rates = [], allow_promotion_codes = false, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -113,9 +113,11 @@ exports.createCheckoutSession = functions.firestore
                 {
                     price,
                     quantity,
+                    tax_rates,
                 },
             ],
             mode: 'subscription',
+            allow_promotion_codes,
             subscription_data: {
                 trial_from_plan: true,
                 metadata,
@@ -189,13 +191,16 @@ const createProductRecord = async (product) => {
  * Create a price (billing price plan) and insert it into a subcollection in Products.
  */
 const insertPriceRecord = async (price) => {
+    var _a, _b, _c, _d, _e, _f;
     const priceData = {
         active: price.active,
         currency: price.currency,
+        description: price.nickname,
+        type: price.type,
         unit_amount: price.unit_amount,
-        interval: price.recurring.interval,
-        interval_count: price.recurring.interval_count,
-        trial_period_days: price.recurring.trial_period_days,
+        interval: (_b = (_a = price.recurring) === null || _a === void 0 ? void 0 : _a.interval) !== null && _b !== void 0 ? _b : null,
+        interval_count: (_d = (_c = price.recurring) === null || _c === void 0 ? void 0 : _c.interval_count) !== null && _d !== void 0 ? _d : null,
+        trial_period_days: (_f = (_e = price.recurring) === null || _e === void 0 ? void 0 : _e.trial_period_days) !== null && _f !== void 0 ? _f : null,
     };
     const dbRef = admin
         .firestore()
@@ -272,14 +277,20 @@ const manageSubscriptionStatusChange = async (subscriptionId) => {
     // Update their custom claims
     if (role) {
         try {
+            // Get existing claims for the user
+            const { customClaims } = await admin.auth().getUser(uid);
             // Set new role in custom claims as long as the subs status allows
             if (['trialing', 'active'].includes(subscription.status)) {
-                logs.userCustomClaimSet(uid, { stripeRole: role });
-                await admin.auth().setCustomUserClaims(uid, { stripeRole: role });
+                logs.userCustomClaimSet(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: role }));
+                await admin
+                    .auth()
+                    .setCustomUserClaims(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: role }));
             }
             else {
-                logs.userCustomClaimSet(uid, { stripeRole: null });
-                await admin.auth().setCustomUserClaims(uid, { stripeRole: null });
+                logs.userCustomClaimSet(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: null }));
+                await admin
+                    .auth()
+                    .setCustomUserClaims(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: null }));
             }
         }
         catch (error) {

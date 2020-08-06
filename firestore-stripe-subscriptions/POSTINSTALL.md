@@ -1,5 +1,12 @@
 ### Configuring the extension
 
+Before you proceed, make sure you have the following Firebase services set up:
+
+- [Cloud Firestore](https://firebase.google.com/docs/firestore) to store customer & subscription details.
+  - Follow the steps in the [documentation](https://firebase.google.com/docs/firestore/quickstart#create) to create a Cloud Firestore database.
+- [Firebase Authentication](https://firebase.google.com/docs/auth) to enable different sign-up options for your users.
+  - Enable the sign-in methods in the [Firebase console](https://console.firebase.google.com/project/_/authentication/providers) that you want to offer your users.
+
 #### Set your Cloud Firestore security rules
 
 It is crucial to limit data access to authenticated users only and for users to only be able to see their own information. For product and pricing information it is important to disable write access for client applications. Use the rules below to restrict access as recommended in your project's [Cloud Firestore rules](https://console.firebase.google.com/project/_/database/firestore/rules):
@@ -180,23 +187,59 @@ docRef.onSnapshot((snap) => {
 });
 ```
 
+#### Applying discount, coupon, promotion codes
+
+You can create customer-facing promotion codes in the [Stripe Dashboard](https://dashboard.stripe.com/coupons/create). Refer to the [docs](https://stripe.com/docs/billing/subscriptions/discounts/codes) for a detailed guide on how to set these up.
+
+In order for the promotion code redemption box to show up on the checkout page, set `allow_promotion_codes: true` when creating the `checkout_session` document:
+
+```js
+const docRef = await db
+  .collection('${param:CUSTOMERS_COLLECTION}')
+  .doc(currentUser)
+  .collection('checkout_sessions')
+  .add({
+    price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
+    allow_promotion_codes: true,
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
+#### Applying tax rates to the subscription
+
+You can collect and report taxes with [Tax Rates](https://stripe.com/docs/billing/taxes/tax-rates). To apply tax rates to the subscription, you first need to create your tax rates in the [Stripe Dashboard](https://dashboard.stripe.com/tax-rates). When creating a new `checkout_sessions` document, specify the optional `tax_rates` list with [up to five](https://stripe.com/docs/billing/taxes/tax-rates#using-multiple-tax-rates) tax rate IDs:
+
+```js
+const docRef = await db
+  .collection('${param:CUSTOMERS_COLLECTION}')
+  .doc(currentUser)
+  .collection('checkout_sessions')
+  .add({
+    price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
+    tax_rates: ['txr_1HCjzTHYgolSBA35m0e1tJN5'],
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
 #### Setting metadata on the subscription
 
 You can optionally set a metadata object with key-value pairs when creating the checkout session. This can be useful for storing additional information about the customer's subscription. This metadata will be synced to both the Stripe subscription object (making it searchable in the Stripe Dashboard) and the subscription document in the Cloud Firestore.
 
 ```js
 const docRef = await db
-    .collection('customers')
-    .doc(currentUser)
-    .collection('checkout_sessions')
-    .add({
-      price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
-      success_url: window.location.origin,
-      cancel_url: window.location.origin,
-      metadata: {
-        item: 'item001',
-      },
-    });
+  .collection('${param:CUSTOMERS_COLLECTION}')
+  .doc(currentUser)
+  .collection('checkout_sessions')
+  .add({
+    price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+    metadata: {
+      item: 'item001',
+    },
+  });
 ```
 
 #### Get the customer's subscription

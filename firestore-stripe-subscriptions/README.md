@@ -26,7 +26,9 @@ This extension is meant for the web platform. If you're developing native mobile
 Before installing this extension, set up the following Firebase services in your Firebase project:
 
 - [Cloud Firestore](https://firebase.google.com/docs/firestore) to store customer & subscription details.
+  - Follow the steps in the [documentation](https://firebase.google.com/docs/firestore/quickstart#create) to create a Cloud Firestore database.
 - [Firebase Authentication](https://firebase.google.com/docs/auth) to enable different sign-up options for your users.
+  - Enable the sign-in methods in the [Firebase console](https://console.firebase.google.com/project/_/authentication/providers) that you want to offer your users.
 
 Then, in the [Stripe Dashboard](https://dashboard.stripe.com):
 

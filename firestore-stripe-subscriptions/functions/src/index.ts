@@ -27,7 +27,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.3',
+    version: '0.1.4',
   },
 });
 
@@ -92,6 +92,8 @@ exports.createCheckoutSession = functions.firestore
       quantity = 1,
       payment_method_types = ['card'],
       metadata = {},
+      tax_rates = [],
+      allow_promotion_codes = false,
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -111,9 +113,11 @@ exports.createCheckoutSession = functions.firestore
             {
               price,
               quantity,
+              tax_rates,
             },
           ],
           mode: 'subscription',
+          allow_promotion_codes,
           subscription_data: {
             trial_from_plan: true,
             metadata,
@@ -199,10 +203,12 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
   const priceData: Price = {
     active: price.active,
     currency: price.currency,
+    description: price.nickname,
+    type: price.type,
     unit_amount: price.unit_amount,
-    interval: price.recurring.interval,
-    interval_count: price.recurring.interval_count,
-    trial_period_days: price.recurring.trial_period_days,
+    interval: price.recurring?.interval ?? null,
+    interval_count: price.recurring?.interval_count ?? null,
+    trial_period_days: price.recurring?.trial_period_days ?? null,
   };
   const dbRef = admin
     .firestore()
@@ -287,13 +293,19 @@ const manageSubscriptionStatusChange = async (
   // Update their custom claims
   if (role) {
     try {
+      // Get existing claims for the user
+      const { customClaims } = await admin.auth().getUser(uid);
       // Set new role in custom claims as long as the subs status allows
       if (['trialing', 'active'].includes(subscription.status)) {
-        logs.userCustomClaimSet(uid, { stripeRole: role });
-        await admin.auth().setCustomUserClaims(uid, { stripeRole: role });
+        logs.userCustomClaimSet(uid, { ...customClaims, stripeRole: role });
+        await admin
+          .auth()
+          .setCustomUserClaims(uid, { ...customClaims, stripeRole: role });
       } else {
-        logs.userCustomClaimSet(uid, { stripeRole: null });
-        await admin.auth().setCustomUserClaims(uid, { stripeRole: null });
+        logs.userCustomClaimSet(uid, { ...customClaims, stripeRole: null });
+        await admin
+          .auth()
+          .setCustomUserClaims(uid, { ...customClaims, stripeRole: null });
       }
     } catch (error) {
       // User has been deleted, simply return.

@@ -1,6 +1,13 @@
 ### See it in action
 
-You can test out this extension right away!
+Before you proceed, make sure you have the following Firebase services set up:
+
+- [Cloud Firestore](https://firebase.google.com/docs/firestore) to store invoice information and optionally invoice status.
+    - Follow the steps in the [documentation](https://firebase.google.com/docs/firestore/quickstart#create) to create a Cloud Firestore database.
+- [Optional] [Firebase Authentication](https://firebase.google.com/docs/auth) to optionally manage email and customer data.
+    - Enable the sign-in methods in the [Firebase console](https://console.firebase.google.com/project/_/authentication/providers) that you want to offer your users.
+
+To test out the extension:
 
 1. Go to your [Cloud Firestore dashboard](https://console.firebase.google.com/project/${param:PROJECT_ID}/database/firestore/data) in the Firebase console.
 
