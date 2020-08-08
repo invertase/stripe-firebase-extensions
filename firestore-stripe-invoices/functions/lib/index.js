@@ -49,7 +49,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-invoices',
-        version: '0.1.3',
+        version: '0.1.4',
     },
 });
 admin.initializeApp();

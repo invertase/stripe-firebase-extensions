@@ -1,3 +1,7 @@
+## Version 0.1.5
+
+[changed] - Only log the `stripeRole` custom claim, not the whole claim object.
+
 ## Version 0.1.4
 
 [fix] - Make sure to merge existing custom claims before setting the `stripeRole` custom claim. Previously the extensions would overwrite the user's existing custom claims.

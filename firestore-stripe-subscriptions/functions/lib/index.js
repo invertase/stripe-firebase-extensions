@@ -49,7 +49,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.4',
+        version: '0.1.5',
     },
 });
 admin.initializeApp();
@@ -281,13 +281,13 @@ const manageSubscriptionStatusChange = async (subscriptionId) => {
             const { customClaims } = await admin.auth().getUser(uid);
             // Set new role in custom claims as long as the subs status allows
             if (['trialing', 'active'].includes(subscription.status)) {
-                logs.userCustomClaimSet(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: role }));
+                logs.userCustomClaimSet(uid, 'stripeRole', role);
                 await admin
                     .auth()
                     .setCustomUserClaims(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: role }));
             }
             else {
-                logs.userCustomClaimSet(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: null }));
+                logs.userCustomClaimSet(uid, 'stripeRole', role);
                 await admin
                     .auth()
                     .setCustomUserClaims(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: null }));
