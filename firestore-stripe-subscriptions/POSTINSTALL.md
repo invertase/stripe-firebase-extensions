@@ -242,6 +242,35 @@ const docRef = await db
   });
 ```
 
+#### Adding a one-time setup fees
+
+In addition to recurring prices, you can add one-time prices. These will only be on the initial invoice. This is useful for adding setup fees or other one-time fees associated with a subscription. To do so you will need to pass a `line_items` array instead:
+
+```js
+const docRef = await db
+    .collection('customers')
+    .doc(currentUser)
+    .collection('checkout_sessions')
+    .add({
+      line_items: [
+        {
+          price: 'price_1HCUD4HYgolSBA35icTHEXd5', // RECURRING_PRICE_ID
+          quantity: 1,
+          tax_rates: ['txr_1HCjzTHYgolSBA35m0e1tJN5'],
+        },
+        {
+          price: 'price_1HEtgDHYgolSBA35LMkO3ExX', // ONE_TIME_PRICE_ID
+          quantity: 1,
+          tax_rates: ['txr_1HCjzTHYgolSBA35m0e1tJN5'],
+        },
+      ],
+      success_url: window.location.origin,
+      cancel_url: window.location.origin,
+    });
+```
+
+**_NOTE_**: One-time prices are only supported in combination with a recurring price!
+
 #### Get the customer's subscription
 
 Subscription details are synced to the `subscriptions` sub-collection in the user's corresponding customer doc.

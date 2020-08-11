@@ -94,6 +94,7 @@ exports.createCheckoutSession = functions.firestore
       metadata = {},
       tax_rates = [],
       allow_promotion_codes = false,
+      line_items,
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -109,13 +110,15 @@ exports.createCheckoutSession = functions.firestore
         {
           payment_method_types,
           customer,
-          line_items: [
-            {
-              price,
-              quantity,
-              tax_rates,
-            },
-          ],
+          line_items: line_items
+            ? line_items
+            : [
+                {
+                  price,
+                  quantity,
+                  tax_rates,
+                },
+              ],
           mode: 'subscription',
           allow_promotion_codes,
           subscription_data: {
