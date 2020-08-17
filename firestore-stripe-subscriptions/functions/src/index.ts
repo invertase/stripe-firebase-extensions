@@ -101,8 +101,10 @@ exports.createCheckoutSession = functions.firestore
       // Get stripe customer id
       let customerRecord = (await snap.ref.parent.parent.get()).data();
       if (!customerRecord?.stripeId) {
+        const { email } = await admin.auth().getUser(context.params.uid);
         customerRecord = await createCustomerRecord({
           uid: context.params.uid,
+          email,
         });
       }
       const customer = customerRecord.stripeId;

@@ -2,6 +2,8 @@
 
 [changed] - Only log the `stripeRole` custom claim, not the whole claim object.
 
+[fix] - Supply email address to Stripe customer creation also for existing Firebase users. (#42)
+
 [feat] - Add support for multiple prices, including one-time setup fees: (#27; #33)
 
 In addition to recurring prices, you can add one-time prices. These will only be on the initial invoice. This is useful for adding setup fees or other one-time fees associated with a subscription. To do so you will need to pass a `line_items` array instead:
