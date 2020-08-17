@@ -29,7 +29,7 @@ const docRef = await db
   });
 ```
 
-**_NOTE_**: One-time prices are only supported in combination with recurring prices! If you specify more than one recurring price in the `line_items` array the subscription object in Cloud Firestore will list all recurring prices in the `prices` array. The `price` attribute on the subscription in Cloud Firestore will be equal to the first item in the `prices` array: `price === prices[0]`.
+**_NOTE_**: One-time prices are only supported in combination with recurring prices! If you specify more than one recurring price in the `line_items` array, the subscription object in Cloud Firestore will list all recurring prices in the `prices` array. The `price` attribute on the subscription in Cloud Firestore will be equal to the first item in the `prices` array: `price === prices[0]`.
 
 Note that the Stripe customer portal currently does not support changing subscriptions with multiple recurring prices. In this case the portal will only offer the option to cancel the subscription.
 
