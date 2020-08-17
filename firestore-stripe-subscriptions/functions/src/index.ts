@@ -245,6 +245,17 @@ const manageSubscriptionStatusChange = async (
   }
   const uid = customersSnap.docs[0].id;
   const price: Stripe.Price = subscription.items.data[0].price;
+  const prices = [];
+  for (const item of subscription.items.data) {
+    prices.push(
+      admin
+        .firestore()
+        .collection(config.productsCollectionPath)
+        .doc((item.price.product as Stripe.Product).id)
+        .collection('prices')
+        .doc(item.price.id)
+    );
+  }
   const product: Stripe.Product = price.product as Stripe.Product;
   const role = product.metadata.firebaseRole ?? null;
   // Write the subscription to the cutsomer in Firestore
@@ -265,6 +276,7 @@ const manageSubscriptionStatusChange = async (
       .doc(product.id)
       .collection('prices')
       .doc(price.id),
+    prices,
     quantity: subscription.quantity,
     cancel_at_period_end: subscription.cancel_at_period_end,
     cancel_at: subscription.cancel_at

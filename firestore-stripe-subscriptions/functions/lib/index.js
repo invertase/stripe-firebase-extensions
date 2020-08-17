@@ -235,6 +235,15 @@ const manageSubscriptionStatusChange = async (subscriptionId) => {
     }
     const uid = customersSnap.docs[0].id;
     const price = subscription.items.data[0].price;
+    const prices = [];
+    for (const item of subscription.items.data) {
+        prices.push(admin
+            .firestore()
+            .collection(config_1.default.productsCollectionPath)
+            .doc(item.price.product.id)
+            .collection('prices')
+            .doc(item.price.id));
+    }
     const product = price.product;
     const role = (_a = product.metadata.firebaseRole) !== null && _a !== void 0 ? _a : null;
     // Write the subscription to the cutsomer in Firestore
@@ -253,6 +262,7 @@ const manageSubscriptionStatusChange = async (subscriptionId) => {
             .doc(product.id)
             .collection('prices')
             .doc(price.id),
+        prices,
         quantity: subscription.quantity,
         cancel_at_period_end: subscription.cancel_at_period_end,
         cancel_at: subscription.cancel_at
