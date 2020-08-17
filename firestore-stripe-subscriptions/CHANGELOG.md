@@ -2,7 +2,7 @@
 
 [changed] - Only log the `stripeRole` custom claim, not the whole claim object.
 
-[fixed] - Supply email address to Stripe customer creation also for existing Firebase users. (#42)
+[fix] - Supply email address to Stripe customer creation also for existing Firebase users. (#42)
 
 [feat] - Add support for multiple prices, including one-time setup fees: (#27; #33)
 
