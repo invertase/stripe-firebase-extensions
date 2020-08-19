@@ -16,23 +16,21 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /${param:CUSTOMERS_COLLECTION}/{uid} {
-      allow read, write: if request.auth.uid == uid;
+      allow read: if request.auth.uid == uid;
 
       match /checkout_sessions/{id} {
         allow read, write: if request.auth.uid == uid;
       }
       match /subscriptions/{id} {
-        allow read, write: if request.auth.uid == uid;
+        allow read: if request.auth.uid == uid;
       }
     }
 
     match /${param:PRODUCTS_COLLECTION}/{id} {
       allow read: if true;
-      allow write: if false;
 
       match /prices/{id} {
         allow read: if true;
-        allow write: if false;
       }
     }
   }

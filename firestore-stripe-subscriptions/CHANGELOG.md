@@ -1,6 +1,8 @@
 ## Version 0.1.5 - 2020-08-20
 
-[changed] - Only log the `stripeRole` custom claim, not the whole claim object.
+[change] - Only log the `stripeRole` custom claim, not the whole claim object.
+
+[fix] - Fix security rules example in `POSTINSTALL.md`. (#47)
 
 [fix] - Supply email address to Stripe customer creation also for existing Firebase users. (#42)
 
