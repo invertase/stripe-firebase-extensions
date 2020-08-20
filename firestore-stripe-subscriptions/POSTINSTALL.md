@@ -9,30 +9,28 @@ Before you proceed, make sure you have the following Firebase services set up:
 
 #### Set your Cloud Firestore security rules
 
-It is crucial to limit data access to authenticated users only and for users to only be able to see their own information. For product and pricing information it is important to disable write access for client applications. Use the rules below to restrict access as recommended in your project's [Cloud Firestore rules](https://console.firebase.google.com/project/_/database/firestore/rules):
+It is crucial to limit data access to authenticated users only and for users to only be able to see their own information. For product and pricing information it is important to disable write access for client applications. Use the rules below to restrict access as recommended in your project's [Cloud Firestore rules](https://console.firebase.google.com/project/${param:PROJECT_ID}/firestore/rules):
 
 ```
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /${param:CUSTOMERS_COLLECTION}/{uid} {
-      allow read, write: if request.auth.uid == uid;
+      allow read: if request.auth.uid == uid;
 
       match /checkout_sessions/{id} {
         allow read, write: if request.auth.uid == uid;
       }
       match /subscriptions/{id} {
-        allow read, write: if request.auth.uid == uid;
+        allow read: if request.auth.uid == uid;
       }
     }
 
     match /${param:PRODUCTS_COLLECTION}/{id} {
       allow read: if true;
-      allow write: if false;
 
       match /prices/{id} {
         allow read: if true;
-        allow write: if false;
       }
     }
   }
@@ -241,6 +239,37 @@ const docRef = await db
     },
   });
 ```
+
+#### Adding multiple prices, including one-time setup fees
+
+In addition to recurring prices, you can add one-time prices. These will only be on the initial invoice. This is useful for adding setup fees or other one-time fees associated with a subscription. To do so you will need to pass a `line_items` array instead:
+
+```js
+const docRef = await db
+    .collection('customers')
+    .doc(currentUser)
+    .collection('checkout_sessions')
+    .add({
+      line_items: [
+        {
+          price: 'price_1HCUD4HYgolSBA35icTHEXd5', // RECURRING_PRICE_ID
+          quantity: 1,
+          tax_rates: ['txr_1HCjzTHYgolSBA35m0e1tJN5'],
+        },
+        {
+          price: 'price_1HEtgDHYgolSBA35LMkO3ExX', // ONE_TIME_PRICE_ID
+          quantity: 1,
+          tax_rates: ['txr_1HCjzTHYgolSBA35m0e1tJN5'],
+        },
+      ],
+      success_url: window.location.origin,
+      cancel_url: window.location.origin,
+    });
+```
+
+**_NOTE_**: One-time prices are only supported in combination with recurring prices! If you specify more than one recurring price in the `line_items` array, the subscription object in Cloud Firestore will list all recurring prices in the `prices` array. The `price` attribute on the subscription in Cloud Firestore will be equal to the first item in the `prices` array: `price === prices[0]`.
+
+Note that the Stripe customer portal currently does not support changing subscriptions with multiple recurring prices. In this case the portal will only offer the option to cancel the subscription.
 
 #### Get the customer's subscription
 

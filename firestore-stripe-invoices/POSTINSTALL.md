@@ -9,7 +9,7 @@ Before you proceed, make sure you have the following Firebase services set up:
 
 To test out the extension:
 
-1. Go to your [Cloud Firestore dashboard](https://console.firebase.google.com/project/${param:PROJECT_ID}/database/firestore/data) in the Firebase console.
+1. Go to your [Cloud Firestore dashboard](https://console.firebase.google.com/project/${param:PROJECT_ID}/firestore/data) in the Firebase console.
 
 1. If it doesn't already exist, create the collection you specified during installation: `${param:INVOICES_COLLECTION}`
 

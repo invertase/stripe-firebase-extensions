@@ -27,7 +27,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.4',
+    version: '0.1.5',
   },
 });
 
@@ -94,14 +94,17 @@ exports.createCheckoutSession = functions.firestore
       metadata = {},
       tax_rates = [],
       allow_promotion_codes = false,
+      line_items,
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
       // Get stripe customer id
       let customerRecord = (await snap.ref.parent.parent.get()).data();
       if (!customerRecord?.stripeId) {
+        const { email } = await admin.auth().getUser(context.params.uid);
         customerRecord = await createCustomerRecord({
           uid: context.params.uid,
+          email,
         });
       }
       const customer = customerRecord.stripeId;
@@ -109,13 +112,15 @@ exports.createCheckoutSession = functions.firestore
         {
           payment_method_types,
           customer,
-          line_items: [
-            {
-              price,
-              quantity,
-              tax_rates,
-            },
-          ],
+          line_items: line_items
+            ? line_items
+            : [
+                {
+                  price,
+                  quantity,
+                  tax_rates,
+                },
+              ],
           mode: 'subscription',
           allow_promotion_codes,
           subscription_data: {
@@ -242,6 +247,17 @@ const manageSubscriptionStatusChange = async (
   }
   const uid = customersSnap.docs[0].id;
   const price: Stripe.Price = subscription.items.data[0].price;
+  const prices = [];
+  for (const item of subscription.items.data) {
+    prices.push(
+      admin
+        .firestore()
+        .collection(config.productsCollectionPath)
+        .doc((item.price.product as Stripe.Product).id)
+        .collection('prices')
+        .doc(item.price.id)
+    );
+  }
   const product: Stripe.Product = price.product as Stripe.Product;
   const role = product.metadata.firebaseRole ?? null;
   // Write the subscription to the cutsomer in Firestore
@@ -262,6 +278,7 @@ const manageSubscriptionStatusChange = async (
       .doc(product.id)
       .collection('prices')
       .doc(price.id),
+    prices,
     quantity: subscription.quantity,
     cancel_at_period_end: subscription.cancel_at_period_end,
     cancel_at: subscription.cancel_at
@@ -297,12 +314,12 @@ const manageSubscriptionStatusChange = async (
       const { customClaims } = await admin.auth().getUser(uid);
       // Set new role in custom claims as long as the subs status allows
       if (['trialing', 'active'].includes(subscription.status)) {
-        logs.userCustomClaimSet(uid, { ...customClaims, stripeRole: role });
+        logs.userCustomClaimSet(uid, 'stripeRole', role);
         await admin
           .auth()
           .setCustomUserClaims(uid, { ...customClaims, stripeRole: role });
       } else {
-        logs.userCustomClaimSet(uid, { ...customClaims, stripeRole: null });
+        logs.userCustomClaimSet(uid, 'stripeRole', role);
         await admin
           .auth()
           .setCustomUserClaims(uid, { ...customClaims, stripeRole: null });

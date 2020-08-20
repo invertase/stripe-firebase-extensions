@@ -76,9 +76,13 @@ export function firestoreDocCreated(collection: string, docId: string) {
   );
 }
 
-export function userCustomClaimSet(uid: string, claim: object) {
+export function userCustomClaimSet(
+  uid: string,
+  claimKey: string,
+  claimValue: string
+) {
   console.log(
-    `🚦 Set custom claim for user [${uid}]: ${JSON.stringify(claim)}.`
+    `🚦 Added custom claim [${claimKey}: ${claimValue}] for user [${uid}].`
   );
 }
 

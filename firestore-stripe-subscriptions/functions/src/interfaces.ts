@@ -97,6 +97,13 @@ export interface Subscription {
    */
   price: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>;
   /**
+   * Array of price references. If you prvoide multiple recurring prices to the checkout session via the `line_items` parameter,
+   * this array will hold the references for all recurring prices for this subscription. `price === prices[0]`.
+   */
+  prices: Array<
+    FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>
+  >;
+  /**
    * The status of the subscription object
    */
   status:

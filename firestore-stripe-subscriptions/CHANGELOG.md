@@ -1,3 +1,42 @@
+## Version 0.1.5 - 2020-08-20
+
+[change] - Only log the `stripeRole` custom claim, not the whole claim object.
+
+[fix] - Fix security rules example in `POSTINSTALL.md`. (#47)
+
+[fix] - Supply email address to Stripe customer creation also for existing Firebase users. (#42)
+
+[feat] - Add support for multiple prices, including one-time setup fees: (#27; #33)
+
+In addition to recurring prices, you can add one-time prices. These will only be on the initial invoice. This is useful for adding setup fees or other one-time fees associated with a subscription. To do so you will need to pass a `line_items` array instead:
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser)
+  .collection("checkout_sessions")
+  .add({
+    line_items: [
+      {
+        price: "price_1HCUD4HYgolSBA35icTHEXd5", // RECURRING_PRICE_ID
+        quantity: 1,
+        tax_rates: ["txr_1HCjzTHYgolSBA35m0e1tJN5"],
+      },
+      {
+        price: "price_1HEtgDHYgolSBA35LMkO3ExX", // ONE_TIME_PRICE_ID
+        quantity: 1,
+        tax_rates: ["txr_1HCjzTHYgolSBA35m0e1tJN5"],
+      },
+    ],
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
+**_NOTE_**: One-time prices are only supported in combination with recurring prices! If you specify more than one recurring price in the `line_items` array, the subscription object in Cloud Firestore will list all recurring prices in the `prices` array. The `price` attribute on the subscription in Cloud Firestore will be equal to the first item in the `prices` array: `price === prices[0]`.
+
+Note that the Stripe customer portal currently does not support changing subscriptions with multiple recurring prices. In this case the portal will only offer the option to cancel the subscription.
+
 ## Version 0.1.4
 
 [fix] - Make sure to merge existing custom claims before setting the `stripeRole` custom claim. Previously the extensions would overwrite the user's existing custom claims.

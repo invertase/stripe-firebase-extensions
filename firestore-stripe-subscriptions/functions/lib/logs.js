@@ -57,8 +57,8 @@ function firestoreDocCreated(collection, docId) {
     console.log(`🔥📄 Added doc [${docId}] to collection [${collection}] in Firestore.`);
 }
 exports.firestoreDocCreated = firestoreDocCreated;
-function userCustomClaimSet(uid, claim) {
-    console.log(`🚦 Set custom claim for user [${uid}]: ${JSON.stringify(claim)}.`);
+function userCustomClaimSet(uid, claimKey, claimValue) {
+    console.log(`🚦 Added custom claim [${claimKey}: ${claimValue}] for user [${uid}].`);
 }
 exports.userCustomClaimSet = userCustomClaimSet;
 function badWebhookSecret(error) {

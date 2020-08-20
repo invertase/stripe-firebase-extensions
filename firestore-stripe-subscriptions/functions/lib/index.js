@@ -49,7 +49,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.4',
+        version: '0.1.5',
     },
 });
 admin.initializeApp();
@@ -95,27 +95,31 @@ exports.createCustomer = functions.auth.user().onCreate(async (user) => {
 exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
-    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, tax_rates = [], allow_promotion_codes = false, } = snap.data();
+    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, tax_rates = [], allow_promotion_codes = false, line_items, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
         let customerRecord = (await snap.ref.parent.parent.get()).data();
         if (!(customerRecord === null || customerRecord === void 0 ? void 0 : customerRecord.stripeId)) {
+            const { email } = await admin.auth().getUser(context.params.uid);
             customerRecord = await createCustomerRecord({
                 uid: context.params.uid,
+                email,
             });
         }
         const customer = customerRecord.stripeId;
         const session = await stripe.checkout.sessions.create({
             payment_method_types,
             customer,
-            line_items: [
-                {
-                    price,
-                    quantity,
-                    tax_rates,
-                },
-            ],
+            line_items: line_items
+                ? line_items
+                : [
+                    {
+                        price,
+                        quantity,
+                        tax_rates,
+                    },
+                ],
             mode: 'subscription',
             allow_promotion_codes,
             subscription_data: {
@@ -233,6 +237,15 @@ const manageSubscriptionStatusChange = async (subscriptionId) => {
     }
     const uid = customersSnap.docs[0].id;
     const price = subscription.items.data[0].price;
+    const prices = [];
+    for (const item of subscription.items.data) {
+        prices.push(admin
+            .firestore()
+            .collection(config_1.default.productsCollectionPath)
+            .doc(item.price.product.id)
+            .collection('prices')
+            .doc(item.price.id));
+    }
     const product = price.product;
     const role = (_a = product.metadata.firebaseRole) !== null && _a !== void 0 ? _a : null;
     // Write the subscription to the cutsomer in Firestore
@@ -251,6 +264,7 @@ const manageSubscriptionStatusChange = async (subscriptionId) => {
             .doc(product.id)
             .collection('prices')
             .doc(price.id),
+        prices,
         quantity: subscription.quantity,
         cancel_at_period_end: subscription.cancel_at_period_end,
         cancel_at: subscription.cancel_at
@@ -281,13 +295,13 @@ const manageSubscriptionStatusChange = async (subscriptionId) => {
             const { customClaims } = await admin.auth().getUser(uid);
             // Set new role in custom claims as long as the subs status allows
             if (['trialing', 'active'].includes(subscription.status)) {
-                logs.userCustomClaimSet(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: role }));
+                logs.userCustomClaimSet(uid, 'stripeRole', role);
                 await admin
                     .auth()
                     .setCustomUserClaims(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: role }));
             }
             else {
-                logs.userCustomClaimSet(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: null }));
+                logs.userCustomClaimSet(uid, 'stripeRole', role);
                 await admin
                     .auth()
                     .setCustomUserClaims(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: null }));
