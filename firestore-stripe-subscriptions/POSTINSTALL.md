@@ -9,7 +9,7 @@ Before you proceed, make sure you have the following Firebase services set up:
 
 #### Set your Cloud Firestore security rules
 
-It is crucial to limit data access to authenticated users only and for users to only be able to see their own information. For product and pricing information it is important to disable write access for client applications. Use the rules below to restrict access as recommended in your project's [Cloud Firestore rules](https://console.firebase.google.com/project/_/database/firestore/rules):
+It is crucial to limit data access to authenticated users only and for users to only be able to see their own information. For product and pricing information it is important to disable write access for client applications. Use the rules below to restrict access as recommended in your project's [Cloud Firestore rules](https://console.firebase.google.com/project/${param:PROJECT_ID}/firestore/rules):
 
 ```
 rules_version = '2';
