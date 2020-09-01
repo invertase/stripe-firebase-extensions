@@ -185,6 +185,23 @@ docRef.onSnapshot((snap) => {
 });
 ```
 
+#### Handling trials
+
+By default, the trial period days that you've specified on the pricing plan will be applied to the checkout session. Should you wish to not offer the trial for a certain user (e.g. they've previously had a subscription with a trial that they canceled and are now signing up again), you can specify `trial_from_plan: false` when creating the checkout session doc:
+
+```js
+const docRef = await db
+  .collection("${param:CUSTOMERS_COLLECTION}")
+  .doc(currentUser)
+  .collection("checkout_sessions")
+  .add({
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    trial_from_plan: false,
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
 #### Applying discount, coupon, promotion codes
 
 You can create customer-facing promotion codes in the [Stripe Dashboard](https://dashboard.stripe.com/coupons/create). Refer to the [docs](https://stripe.com/docs/billing/subscriptions/discounts/codes) for a detailed guide on how to set these up.
