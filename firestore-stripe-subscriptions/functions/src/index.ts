@@ -27,7 +27,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.5',
+    version: '0.1.6',
   },
 });
 
@@ -94,6 +94,7 @@ exports.createCheckoutSession = functions.firestore
       metadata = {},
       tax_rates = [],
       allow_promotion_codes = false,
+      trial_from_plan = true,
       line_items,
     } = snap.data();
     try {
@@ -124,7 +125,7 @@ exports.createCheckoutSession = functions.firestore
           mode: 'subscription',
           allow_promotion_codes,
           subscription_data: {
-            trial_from_plan: true,
+            trial_from_plan,
             metadata,
           },
           success_url,
