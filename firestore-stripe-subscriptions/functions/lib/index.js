@@ -138,6 +138,7 @@ exports.createCheckoutSession = functions.firestore
     }
     catch (error) {
         logs.checkoutSessionCreationError(context.params.id, error);
+        await snap.ref.set({ error: { message: error.message } }, { merge: true });
     }
 });
 /**

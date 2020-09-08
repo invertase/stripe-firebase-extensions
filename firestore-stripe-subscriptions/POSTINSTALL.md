@@ -175,7 +175,12 @@ const docRef = await db
   });
 // Wait for the CheckoutSession to get attached by the extension
 docRef.onSnapshot((snap) => {
-  const { sessionId } = snap.data();
+  const { error, sessionId } = snap.data();
+  if (error) {
+    // Show an error to your customer and 
+    // inspect your Cloud Function logs in the Firebase console.
+    alert(`An error occured: ${error.message}`);
+  }
   if (sessionId) {
     // We have a session, let's redirect to Checkout
     // Init Stripe
