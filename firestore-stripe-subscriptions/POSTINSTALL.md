@@ -175,7 +175,12 @@ const docRef = await db
   });
 // Wait for the CheckoutSession to get attached by the extension
 docRef.onSnapshot((snap) => {
-  const { sessionId } = snap.data();
+  const { error, sessionId } = snap.data();
+  if (error) {
+    // Show an error to your customer and 
+    // inspect your Cloud Function logs in the Firebase console.
+    alert(`An error occured: ${error.message}`);
+  }
   if (sessionId) {
     // We have a session, let's redirect to Checkout
     // Init Stripe
@@ -183,6 +188,23 @@ docRef.onSnapshot((snap) => {
     stripe.redirectToCheckout({ sessionId });
   }
 });
+```
+
+#### Handling trials
+
+By default, the trial period days that you've specified on the pricing plan will be applied to the checkout session. Should you wish to not offer the trial for a certain user (e.g. they've previously had a subscription with a trial that they canceled and are now signing up again), you can specify `trial_from_plan: false` when creating the checkout session doc:
+
+```js
+const docRef = await db
+  .collection("${param:CUSTOMERS_COLLECTION}")
+  .doc(currentUser)
+  .collection("checkout_sessions")
+  .add({
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    trial_from_plan: false,
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
 ```
 
 #### Applying discount, coupon, promotion codes

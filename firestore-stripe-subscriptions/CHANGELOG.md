@@ -1,3 +1,48 @@
+## Version 0.1.6 - 2020-09-10
+
+[fix] - If there is an error during checkout session creation attach the error message to the Cloud Firestore doc so the client can know that an error happened (#57)
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser)
+  .collection("checkout_sessions")
+  .add({
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+// Wait for the CheckoutSession to get attached by the extension.
+docRef.onSnapshot((snap) => {
+  const { error, sessionId } = snap.data();
+  if (error) {
+    // Show an error to your customer and
+    // inspect your Cloud Function logs in the Firebase console.
+    alert(`An error occured: ${error.message}`);
+  }
+  if (sessionId) {
+    // We have a session, let's redirect to Checkout.
+    const stripe = Stripe("pk_test_1234");
+    stripe.redirectToCheckout({ sessionId });
+  }
+});
+```
+
+[feat] - Add the ability to disable the trial to be applied to a subscription by setting `trial_from_plan: false`. (#52)
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser)
+  .collection("checkout_sessions")
+  .add({
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    trial_from_plan: false,
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
 ## Version 0.1.5 - 2020-08-20
 
 [change] - Only log the `stripeRole` custom claim, not the whole claim object.
@@ -60,7 +105,7 @@ To show the promotion code redemption box on the checkout page, set `allow_promo
 
 ```js
 const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
+  .collection("customers")
   .doc(currentUser)
   .collection("checkout_sessions")
   .add({
@@ -77,7 +122,7 @@ You can collect and report taxes with [Tax Rates](https://stripe.com/docs/billin
 
 ```js
 const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
+  .collection("customers")
   .doc(currentUser)
   .collection("checkout_sessions")
   .add({
