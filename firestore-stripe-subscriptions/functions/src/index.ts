@@ -96,6 +96,7 @@ exports.createCheckoutSession = functions.firestore
       allow_promotion_codes = false,
       trial_from_plan = true,
       line_items,
+      location,
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -130,6 +131,7 @@ exports.createCheckoutSession = functions.firestore
           },
           success_url,
           cancel_url,
+          location,
         },
         { idempotencyKey: context.params.id }
       );
