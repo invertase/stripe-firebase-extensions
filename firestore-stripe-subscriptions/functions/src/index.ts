@@ -234,7 +234,8 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
  * Manage subscription status changes.
  */
 const manageSubscriptionStatusChange = async (
-  subscriptionId: string
+  subscriptionId: string,
+  createAction = false
 ): Promise<void> => {
   // Retrieve latest subscription status and write it to the Firestore
   const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
@@ -270,6 +271,11 @@ const manageSubscriptionStatusChange = async (
   const subsDbRef = customersSnap.docs[0].ref
     .collection('subscriptions')
     .doc(subscription.id);
+  // For a create action, check if already created via another event.
+  if (createAction) {
+    const subsDoc = await subsDbRef.get();
+    if (subsDoc.exists) return;
+  }
   // Update with new Subscription status
   const subscriptionData: Subscription = {
     metadata: subscription.metadata,
@@ -325,7 +331,7 @@ const manageSubscriptionStatusChange = async (
           .auth()
           .setCustomUserClaims(uid, { ...customClaims, stripeRole: role });
       } else {
-        logs.userCustomClaimSet(uid, 'stripeRole', role);
+        logs.userCustomClaimSet(uid, 'stripeRole', 'null');
         await admin
           .auth()
           .setCustomUserClaims(uid, { ...customClaims, stripeRole: null });
@@ -349,6 +355,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
       'price.created',
       'price.updated',
       'checkout.session.completed',
+      'customer.subscription.created',
       'customer.subscription.updated',
       'customer.subscription.deleted',
     ]);
@@ -384,17 +391,21 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
             const price = event.data.object as Stripe.Price;
             await insertPriceRecord(price);
             break;
+          case 'customer.subscription.created':
           case 'customer.subscription.updated':
           case 'customer.subscription.deleted':
             const subscription = event.data.object as Stripe.Subscription;
-            await manageSubscriptionStatusChange(subscription.id);
+            await manageSubscriptionStatusChange(
+              subscription.id,
+              event.type === 'customer.subscription.created'
+            );
             break;
           case 'checkout.session.completed':
             const checkoutSession = event.data
               .object as Stripe.Checkout.Session;
             if (checkoutSession.mode === 'subscription') {
               const subscriptionId = checkoutSession.subscription as string;
-              await manageSubscriptionStatusChange(subscriptionId);
+              await manageSubscriptionStatusChange(subscriptionId, true);
             }
             break;
           default:
