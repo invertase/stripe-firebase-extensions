@@ -2,6 +2,10 @@
 
 [change] - Additional configuration and **change of default behaviour**: you can now disable the automatic sync of new users to Stripe customers and Cloud Firestore, and the default behaviour has been changed to "on the fly" creation of customer objects. (#66; #51; #76)
 
+[feat] - Add support for subscriptions not created via Checkout, e.g. via the Stripe Dashboard or directly via the API. (#43)
+
+Previously, only subscriptions created via Stripe Checkout were synced to Cloud Firestore. By additionally listening to the `customer.subscription.created` event, the extension now also captures subscriptions created via the Stripe Dashboard or directly via the API. For this to work, Firebase Authentication users need to be synced with Stripe customer objects and the customers collection in Cloud Firestore (new configuration added in version `0.1.7`).
+
 [docs] - Add snippet on importing Stripe.js as an ES module when using a build toolchain for your client application (e.g. Angular, React, TypeScript, etc.) to `POSTINSTALL.md`. (#74)
 
 ## Version 0.1.6 - 2020-09-10
