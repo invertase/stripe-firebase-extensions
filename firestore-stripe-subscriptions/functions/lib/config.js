@@ -20,5 +20,6 @@ exports.default = {
     stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
     productsCollectionPath: process.env.PRODUCTS_COLLECTION,
     customersCollectionPath: process.env.CUSTOMERS_COLLECTION,
+    syncUsersOnCreate: process.env.SYNC_USERS_ON_CREATE === 'Sync',
 };
 //# sourceMappingURL=config.js.map

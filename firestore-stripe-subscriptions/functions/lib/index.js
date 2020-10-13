@@ -49,7 +49,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.6',
+        version: '0.1.7',
     },
 });
 admin.initializeApp();
@@ -86,6 +86,8 @@ const createCustomerRecord = async ({ email, uid, }) => {
     }
 };
 exports.createCustomer = functions.auth.user().onCreate(async (user) => {
+    if (!config_1.default.syncUsersOnCreate)
+        return;
     const { email, uid } = user;
     await createCustomerRecord({ email, uid });
 });

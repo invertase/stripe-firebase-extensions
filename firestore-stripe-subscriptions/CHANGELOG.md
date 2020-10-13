@@ -1,3 +1,9 @@
+## Version 0.1.7 - 2020-10-15
+
+[change] - Additional configuration and **change of default behaviour**: you can now disable the automatic sync of new users to Stripe customers and Cloud Firestore, and the default behaviour has been changed to "on the fly" creation of customer objects. (#66; #51; #76)
+
+[docs] - Add snippet on importing Stripe.js as an ES module when using a build toolchain for your client application (e.g. Angular, React, TypeScript, etc.) to `POSTINSTALL.md`. (#74)
+
 ## Version 0.1.6 - 2020-09-10
 
 [fix] - If there is an error during checkout session creation attach the error message to the Cloud Firestore doc so the client can know that an error happened (#57)
