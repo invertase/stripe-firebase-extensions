@@ -190,6 +190,30 @@ docRef.onSnapshot((snap) => {
 });
 ```
 
+#### Importing Stripe.js as ES module
+
+If you're using a build toolchain for your client application (e.g. Angular, React, TypeScript, etc.), it is recommended to import and load Stripe.js via the [`stripe-js` module](https://github.com/stripe/stripe-js#stripejs-es-module):
+
+```js
+import {loadStripe} from '@stripe/stripe-js';
+// [...]
+// Wait for the CheckoutSession to get attached by the extension
+docRef.onSnapshot(async (snap) => {
+  const { error, sessionId } = snap.data();
+  if (error) {
+    // Show an error to your customer and 
+    // inspect your Cloud Function logs in the Firebase console.
+    alert(`An error occured: ${error.message}`);
+  }
+  if (sessionId) {
+    // We have a session, let's redirect to Checkout
+    // Init Stripe
+    const stripe = await loadStripe('pk_test_1234');
+    stripe.redirectToCheckout({ sessionId });
+  }
+});
+```
+
 #### Handling trials
 
 By default, the trial period days that you've specified on the pricing plan will be applied to the checkout session. Should you wish to not offer the trial for a certain user (e.g. they've previously had a subscription with a trial that they canceled and are now signing up again), you can specify `trial_from_plan: false` when creating the checkout session doc:
