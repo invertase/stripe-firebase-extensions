@@ -49,7 +49,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.6',
+        version: '0.1.7',
     },
 });
 admin.initializeApp();
@@ -86,6 +86,8 @@ const createCustomerRecord = async ({ email, uid, }) => {
     }
 };
 exports.createCustomer = functions.auth.user().onCreate(async (user) => {
+    if (!config_1.default.syncUsersOnCreate)
+        return;
     const { email, uid } = user;
     await createCustomerRecord({ email, uid });
 });
@@ -218,7 +220,7 @@ const insertPriceRecord = async (price) => {
 /**
  * Manage subscription status changes.
  */
-const manageSubscriptionStatusChange = async (subscriptionId) => {
+const manageSubscriptionStatusChange = async (subscriptionId, createAction = false) => {
     var _a;
     // Retrieve latest subscription status and write it to the Firestore
     const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
@@ -253,6 +255,12 @@ const manageSubscriptionStatusChange = async (subscriptionId) => {
     const subsDbRef = customersSnap.docs[0].ref
         .collection('subscriptions')
         .doc(subscription.id);
+    // For a create action, check if already created via another event.
+    if (createAction) {
+        const subsDoc = await subsDbRef.get();
+        if (subsDoc.exists)
+            return;
+    }
     // Update with new Subscription status
     const subscriptionData = {
         metadata: subscription.metadata,
@@ -302,7 +310,7 @@ const manageSubscriptionStatusChange = async (subscriptionId) => {
                     .setCustomUserClaims(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: role }));
             }
             else {
-                logs.userCustomClaimSet(uid, 'stripeRole', role);
+                logs.userCustomClaimSet(uid, 'stripeRole', 'null');
                 await admin
                     .auth()
                     .setCustomUserClaims(uid, Object.assign(Object.assign({}, customClaims), { stripeRole: null }));
@@ -325,6 +333,7 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
         'price.created',
         'price.updated',
         'checkout.session.completed',
+        'customer.subscription.created',
         'customer.subscription.updated',
         'customer.subscription.deleted',
     ]);
@@ -355,17 +364,18 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
                     const price = event.data.object;
                     await insertPriceRecord(price);
                     break;
+                case 'customer.subscription.created':
                 case 'customer.subscription.updated':
                 case 'customer.subscription.deleted':
                     const subscription = event.data.object;
-                    await manageSubscriptionStatusChange(subscription.id);
+                    await manageSubscriptionStatusChange(subscription.id, event.type === 'customer.subscription.created');
                     break;
                 case 'checkout.session.completed':
                     const checkoutSession = event.data
                         .object;
                     if (checkoutSession.mode === 'subscription') {
                         const subscriptionId = checkoutSession.subscription;
-                        await manageSubscriptionStatusChange(subscriptionId);
+                        await manageSubscriptionStatusChange(subscriptionId, true);
                     }
                     break;
                 default:

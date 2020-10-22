@@ -56,6 +56,7 @@ Here's how to set up the webhook and configure your extension to use it:
    - `price.created`
    - `price.updated`
    - `checkout.session.completed`
+   - `customer.subscription.created`
    - `customer.subscription.updated`
    - `customer.subscription.deleted`
 
@@ -190,6 +191,30 @@ docRef.onSnapshot((snap) => {
 });
 ```
 
+#### Importing Stripe.js as ES module
+
+If you're using a build toolchain for your client application (e.g. Angular, React, TypeScript, etc.), it is recommended to import and load Stripe.js via the [`stripe-js` module](https://github.com/stripe/stripe-js#stripejs-es-module):
+
+```js
+import {loadStripe} from '@stripe/stripe-js';
+// [...]
+// Wait for the CheckoutSession to get attached by the extension
+docRef.onSnapshot(async (snap) => {
+  const { error, sessionId } = snap.data();
+  if (error) {
+    // Show an error to your customer and 
+    // inspect your Cloud Function logs in the Firebase console.
+    alert(`An error occured: ${error.message}`);
+  }
+  if (sessionId) {
+    // We have a session, let's redirect to Checkout
+    // Init Stripe
+    const stripe = await loadStripe('pk_test_1234');
+    stripe.redirectToCheckout({ sessionId });
+  }
+});
+```
+
 #### Handling trials
 
 By default, the trial period days that you've specified on the pricing plan will be applied to the checkout session. Should you wish to not offer the trial for a certain user (e.g. they've previously had a subscription with a trial that they canceled and are now signing up again), you can specify `trial_from_plan: false` when creating the checkout session doc:
@@ -292,6 +317,12 @@ const docRef = await db
 **_NOTE_**: One-time prices are only supported in combination with recurring prices! If you specify more than one recurring price in the `line_items` array, the subscription object in Cloud Firestore will list all recurring prices in the `prices` array. The `price` attribute on the subscription in Cloud Firestore will be equal to the first item in the `prices` array: `price === prices[0]`.
 
 Note that the Stripe customer portal currently does not support changing subscriptions with multiple recurring prices. In this case the portal will only offer the option to cancel the subscription.
+
+#### Start a subscription via the Stripe Dashboard or API
+
+Since version `0.1.7` the extension also syncs subscriptions that were not created via Stripe Checkout, e.g. via the [Stripe Dashboard](https://support.stripe.com/questions/create-update-and-schedule-subscriptions) or [via Elements and the API](https://stripe.com/docs/billing/subscriptions/fixed-price). 
+
+In order for this to work, Firebase Authentication users need to be synced with Stripe customer objects and the customers collection in Cloud Firestore (new configuration added in version `0.1.7`).
 
 #### Get the customer's subscription
 
