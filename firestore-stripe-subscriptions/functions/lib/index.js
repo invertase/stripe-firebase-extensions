@@ -187,6 +187,7 @@ const createProductRecord = async (product) => {
         description: product.description,
         role: (_a = product.metadata.firebaseRole) !== null && _a !== void 0 ? _a : null,
         images: product.images,
+        metadata: product.metadata,
     };
     await admin
         .firestore()

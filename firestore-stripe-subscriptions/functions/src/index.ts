@@ -200,6 +200,7 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
     description: product.description,
     role: product.metadata.firebaseRole ?? null,
     images: product.images,
+    metadata: product.metadata,
   };
   await admin
     .firestore()
