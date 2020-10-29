@@ -222,6 +222,7 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
     interval: price.recurring?.interval ?? null,
     interval_count: price.recurring?.interval_count ?? null,
     trial_period_days: price.recurring?.trial_period_days ?? null,
+    metadata: price.metadata,
   };
   const dbRef = admin
     .firestore()

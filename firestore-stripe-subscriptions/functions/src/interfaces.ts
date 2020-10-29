@@ -48,6 +48,13 @@ export interface Price {
    * Default number of trial days when subscribing a customer to this price using [`trial_from_plan=true`](https://stripe.com/docs/api#create_subscription-trial_from_plan).
    */
   trial_period_days: number | null;
+  /**
+   * Set of key-value pairs that you can attach to an object.
+   * This can be useful for storing additional information about the object in a structured format.
+   */
+  metadata: {
+    [name: string]: string;
+  };
 }
 
 export interface Product {

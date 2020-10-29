@@ -209,6 +209,7 @@ const insertPriceRecord = async (price) => {
         interval: (_b = (_a = price.recurring) === null || _a === void 0 ? void 0 : _a.interval) !== null && _b !== void 0 ? _b : null,
         interval_count: (_d = (_c = price.recurring) === null || _c === void 0 ? void 0 : _c.interval_count) !== null && _d !== void 0 ? _d : null,
         trial_period_days: (_f = (_e = price.recurring) === null || _e === void 0 ? void 0 : _e.trial_period_days) !== null && _f !== void 0 ? _f : null,
+        metadata: price.metadata,
     };
     const dbRef = admin
         .firestore()
