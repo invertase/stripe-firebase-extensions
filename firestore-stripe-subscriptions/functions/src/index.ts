@@ -208,7 +208,7 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
     .firestore()
     .collection(config.productsCollectionPath)
     .doc(product.id)
-    .set(productData, { merge: true });
+    .set(productData);
   logs.firestoreDocCreated(config.productsCollectionPath, product.id);
 };
 
