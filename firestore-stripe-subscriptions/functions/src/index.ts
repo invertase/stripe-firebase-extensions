@@ -194,13 +194,15 @@ exports.createPortalLink = functions.https.onCall(async (data, context) => {
  * Create a Product record in Firestore based on a Stripe Product object.
  */
 const createProductRecord = async (product: Stripe.Product): Promise<void> => {
+  const { firebaseRole, ...metadata } = product.metadata;
+
   const productData: Product = {
     active: product.active,
     name: product.name,
     description: product.description,
-    role: product.metadata.firebaseRole ?? null,
+    role: firebaseRole ?? null,
     images: product.images,
-    metadata: product.metadata,
+    metadata,
   };
   await admin
     .firestore()
