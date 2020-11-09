@@ -93,6 +93,10 @@ export interface Subscription {
   role: string | null;
   quantity: number;
   /**
+   * Firestore reference to the product doc for this Subscription.
+   */
+  product: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>;
+  /**
    * Firestore reference to the price for this Subscription.
    */
   price: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>;

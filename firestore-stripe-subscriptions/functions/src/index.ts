@@ -27,7 +27,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.7',
+    version: '0.1.8',
   },
 });
 
@@ -97,6 +97,7 @@ exports.createCheckoutSession = functions.firestore
       allow_promotion_codes = false,
       trial_from_plan = true,
       line_items,
+      billing_address_collection = 'required',
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -112,6 +113,7 @@ exports.createCheckoutSession = functions.firestore
       const customer = customerRecord.stripeId;
       const session = await stripe.checkout.sessions.create(
         {
+          billing_address_collection,
           payment_method_types,
           customer,
           line_items: line_items
@@ -284,6 +286,10 @@ const manageSubscriptionStatusChange = async (
     stripeLink: `https://dashboard.stripe.com${
       subscription.livemode ? '' : '/test'
     }/subscriptions/${subscription.id}`,
+    product: admin
+      .firestore()
+      .collection(config.productsCollectionPath)
+      .doc(product.id),
     price: admin
       .firestore()
       .collection(config.productsCollectionPath)

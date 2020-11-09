@@ -49,7 +49,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.7',
+        version: '0.1.8',
     },
 });
 admin.initializeApp();
@@ -97,7 +97,7 @@ exports.createCustomer = functions.auth.user().onCreate(async (user) => {
 exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
-    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, tax_rates = [], allow_promotion_codes = false, trial_from_plan = true, line_items, } = snap.data();
+    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, tax_rates = [], allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -111,6 +111,7 @@ exports.createCheckoutSession = functions.firestore
         }
         const customer = customerRecord.stripeId;
         const session = await stripe.checkout.sessions.create({
+            billing_address_collection,
             payment_method_types,
             customer,
             line_items: line_items
@@ -267,6 +268,10 @@ const manageSubscriptionStatusChange = async (subscriptionId, createAction = fal
         role,
         status: subscription.status,
         stripeLink: `https://dashboard.stripe.com${subscription.livemode ? '' : '/test'}/subscriptions/${subscription.id}`,
+        product: admin
+            .firestore()
+            .collection(config_1.default.productsCollectionPath)
+            .doc(product.id),
         price: admin
             .firestore()
             .collection(config_1.default.productsCollectionPath)
