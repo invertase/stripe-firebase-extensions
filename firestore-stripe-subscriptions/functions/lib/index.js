@@ -190,13 +190,16 @@ exports.createPortalLink = functions.https.onCall(async (data, context) => {
 /**
  * Prefix Stripe metadata keys with `stripe_metadata_` to be spread onto Product and Price records in Firebase.
  */
-const prefixedMetadataKeys = (metadata) => Object.keys(metadata).reduce((result, key) => (Object.assign(Object.assign({}, result), { ['stripe_metadata_'[key]]: metadata[key] })), {});
+const prefixMetadata = (metadata) => Object.keys(metadata).reduce((prefixedMetadata, key) => {
+    prefixedMetadata[`stripe_metadata_${key}`] = metadata[key];
+    return prefixedMetadata;
+}, {});
 /**
  * Create a Product record in Firestore based on a Stripe Product object.
  */
 const createProductRecord = async (product) => {
     const _a = product.metadata, { firebaseRole } = _a, rawMetadata = __rest(_a, ["firebaseRole"]);
-    const productData = Object.assign({ active: product.active, name: product.name, description: product.description, role: firebaseRole !== null && firebaseRole !== void 0 ? firebaseRole : null, images: product.images }, prefixedMetadataKeys(rawMetadata));
+    const productData = Object.assign({ active: product.active, name: product.name, description: product.description, role: firebaseRole !== null && firebaseRole !== void 0 ? firebaseRole : null, images: product.images }, prefixMetadata(rawMetadata));
     await admin
         .firestore()
         .collection(config_1.default.productsCollectionPath)
@@ -209,7 +212,7 @@ const createProductRecord = async (product) => {
  */
 const insertPriceRecord = async (price) => {
     var _a, _b, _c, _d, _e, _f;
-    const priceData = Object.assign({ active: price.active, currency: price.currency, description: price.nickname, type: price.type, unit_amount: price.unit_amount, interval: (_b = (_a = price.recurring) === null || _a === void 0 ? void 0 : _a.interval) !== null && _b !== void 0 ? _b : null, interval_count: (_d = (_c = price.recurring) === null || _c === void 0 ? void 0 : _c.interval_count) !== null && _d !== void 0 ? _d : null, trial_period_days: (_f = (_e = price.recurring) === null || _e === void 0 ? void 0 : _e.trial_period_days) !== null && _f !== void 0 ? _f : null }, prefixedMetadataKeys(price.metadata));
+    const priceData = Object.assign({ active: price.active, currency: price.currency, description: price.nickname, type: price.type, unit_amount: price.unit_amount, interval: (_b = (_a = price.recurring) === null || _a === void 0 ? void 0 : _a.interval) !== null && _b !== void 0 ? _b : null, interval_count: (_d = (_c = price.recurring) === null || _c === void 0 ? void 0 : _c.interval_count) !== null && _d !== void 0 ? _d : null, trial_period_days: (_f = (_e = price.recurring) === null || _e === void 0 ? void 0 : _e.trial_period_days) !== null && _f !== void 0 ? _f : null }, prefixMetadata(price.metadata));
     const dbRef = admin
         .firestore()
         .collection(config_1.default.productsCollectionPath)

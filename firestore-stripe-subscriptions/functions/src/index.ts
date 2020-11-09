@@ -194,14 +194,12 @@ exports.createPortalLink = functions.https.onCall(async (data, context) => {
  * Prefix Stripe metadata keys with `stripe_metadata_` to be spread onto Product and Price records in Firebase.
  */
 
- const prefixedMetadataKeys = (metadata: object) =>
-   Object.keys(metadata).reduce(
-     (result, key) => ({
-       ...result,
-       ...{ ['stripe_metadata_'[key]]: metadata[key] },
-     }),
-     {}
-   );
+ const prefixMetadata = (metadata: object) =>
+   Object.keys(metadata).reduce((prefixedMetadata, key) => {
+     prefixedMetadata[`stripe_metadata_${key}`] = metadata[key];
+
+     return prefixedMetadata;
+   }, {});
 
 /**
  * Create a Product record in Firestore based on a Stripe Product object.
@@ -215,7 +213,7 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
     description: product.description,
     role: firebaseRole ?? null,
     images: product.images,
-    ...prefixedMetadataKeys(rawMetadata),
+    ...prefixMetadata(rawMetadata),
   };
   await admin
     .firestore()
@@ -238,7 +236,7 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
     interval: price.recurring?.interval ?? null,
     interval_count: price.recurring?.interval_count ?? null,
     trial_period_days: price.recurring?.trial_period_days ?? null,
-    ...prefixedMetadataKeys(price.metadata),
+    ...prefixMetadata(price.metadata),
   };
   const dbRef = admin
     .firestore()
