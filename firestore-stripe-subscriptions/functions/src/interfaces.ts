@@ -49,12 +49,9 @@ export interface Price {
    */
   trial_period_days: number | null;
   /**
-   * Set of key-value pairs that you can attach to an object.
-   * This can be useful for storing additional information about the object in a structured format.
+   * Any additional properties
    */
-  metadata: {
-    [name: string]: string;
-  };
+  [propName: string]: any;
 }
 
 export interface Product {
@@ -82,13 +79,6 @@ export interface Product {
    * A list of Prices for this billing product.
    */
   prices?: Array<Price>;
-  /**
-   * Set of key-value pairs that you can attach to an object.
-   * This can be useful for storing additional information about the object in a structured format.
-   */
-  metadata: {
-    [name: string]: string;
-  };
   /**
    * Any additional properties
    */
