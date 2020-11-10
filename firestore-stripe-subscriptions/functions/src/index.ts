@@ -386,8 +386,10 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
     const relevantEvents = new Set([
       'product.created',
       'product.updated',
+      'product.deleted',
       'price.created',
       'price.updated',
+      'price.deleted',
       'checkout.session.completed',
       'customer.subscription.created',
       'customer.subscription.updated',
@@ -417,13 +419,17 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
         switch (event.type) {
           case 'product.created':
           case 'product.updated':
-            const product = event.data.object as Stripe.Product;
-            await createProductRecord(product);
+            await createProductRecord(event.data.object as Stripe.Product);
             break;
           case 'price.created':
           case 'price.updated':
-            const price = event.data.object as Stripe.Price;
-            await insertPriceRecord(price);
+            await insertPriceRecord(event.data.object as Stripe.Price);
+            break;
+          case 'product.deleted':
+            await deleteProductOrPrice(event.data.object as Stripe.Product);
+            break;
+          case 'price.deleted':
+            await deleteProductOrPrice(event.data.object as Stripe.Price);
             break;
           case 'customer.subscription.created':
           case 'customer.subscription.updated':
@@ -457,6 +463,27 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
     resp.json({ received: true });
   }
 );
+
+const deleteProductOrPrice = async (pr: Stripe.Product | Stripe.Price) => {
+  if (pr.object === 'product') {
+    await admin
+      .firestore()
+      .collection(config.productsCollectionPath)
+      .doc(pr.id)
+      .delete();
+    logs.firestoreDocDeleted(config.productsCollectionPath, pr.id);
+  }
+  if (pr.object === 'price') {
+    await admin
+      .firestore()
+      .collection(config.productsCollectionPath)
+      .doc((pr as Stripe.Price).product as string)
+      .collection('prices')
+      .doc(pr.id)
+      .delete();
+    logs.firestoreDocDeleted('prices', pr.id);
+  }
+};
 
 const deleteStripeCustomer = async ({
   uid,

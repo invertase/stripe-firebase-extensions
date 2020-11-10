@@ -53,8 +53,10 @@ Here's how to set up the webhook and configure your extension to use it:
 
    - `product.created`
    - `product.updated`
+   - `product.deleted`
    - `price.created`
    - `price.updated`
+   - `price.deleted`
    - `checkout.session.completed`
    - `customer.subscription.created`
    - `customer.subscription.updated`

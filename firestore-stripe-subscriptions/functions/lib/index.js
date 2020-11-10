@@ -348,8 +348,10 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
     const relevantEvents = new Set([
         'product.created',
         'product.updated',
+        'product.deleted',
         'price.created',
         'price.updated',
+        'price.deleted',
         'checkout.session.completed',
         'customer.subscription.created',
         'customer.subscription.updated',
@@ -374,13 +376,17 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
             switch (event.type) {
                 case 'product.created':
                 case 'product.updated':
-                    const product = event.data.object;
-                    await createProductRecord(product);
+                    await createProductRecord(event.data.object);
                     break;
                 case 'price.created':
                 case 'price.updated':
-                    const price = event.data.object;
-                    await insertPriceRecord(price);
+                    await insertPriceRecord(event.data.object);
+                    break;
+                case 'product.deleted':
+                    await deleteProductOrPrice(event.data.object);
+                    break;
+                case 'price.deleted':
+                    await deleteProductOrPrice(event.data.object);
                     break;
                 case 'customer.subscription.created':
                 case 'customer.subscription.updated':
@@ -410,6 +416,26 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
     // Return a response to Stripe to acknowledge receipt of the event.
     resp.json({ received: true });
 });
+const deleteProductOrPrice = async (pr) => {
+    if (pr.object === 'product') {
+        await admin
+            .firestore()
+            .collection(config_1.default.productsCollectionPath)
+            .doc(pr.id)
+            .delete();
+        logs.firestoreDocDeleted(config_1.default.productsCollectionPath, pr.id);
+    }
+    if (pr.object === 'price') {
+        await admin
+            .firestore()
+            .collection(config_1.default.productsCollectionPath)
+            .doc(pr.product)
+            .collection('prices')
+            .doc(pr.id)
+            .delete();
+        logs.firestoreDocDeleted('prices', pr.id);
+    }
+};
 const deleteStripeCustomer = async ({ uid, stripeId, }) => {
     try {
         // Delete their customer object.
