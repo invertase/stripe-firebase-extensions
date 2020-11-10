@@ -222,13 +222,21 @@ const insertPriceRecord = async (price) => {
     logs.firestoreDocCreated('prices', price.id);
 };
 /**
+ * Copies the billing details from the payment method to the customer object.
+ */
+const copyBillingDetailsToCustomer = async (payment_method) => {
+    const customer = payment_method.customer;
+    const { name, phone, address } = payment_method.billing_details;
+    await stripe.customers.update(customer, { name, phone, address });
+};
+/**
  * Manage subscription status changes.
  */
 const manageSubscriptionStatusChange = async (subscriptionId, createAction = false) => {
     var _a;
     // Retrieve latest subscription status and write it to the Firestore
     const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-        expand: ['items.data.price.product'],
+        expand: ['default_payment_method', 'items.data.price.product'],
     });
     const customerId = subscription.customer;
     // Get customer's UID from Firestore
@@ -255,7 +263,7 @@ const manageSubscriptionStatusChange = async (subscriptionId, createAction = fal
     }
     const product = price.product;
     const role = (_a = product.metadata.firebaseRole) !== null && _a !== void 0 ? _a : null;
-    // Write the subscription to the cutsomer in Firestore
+    // Get reference to subscription doc in Cloud Firestore.
     const subsDbRef = customersSnap.docs[0].ref
         .collection('subscriptions')
         .doc(subscription.id);
@@ -264,6 +272,8 @@ const manageSubscriptionStatusChange = async (subscriptionId, createAction = fal
         const subsDoc = await subsDbRef.get();
         if (subsDoc.exists)
             return;
+        else if (subscription.default_payment_method)
+            await copyBillingDetailsToCustomer(subscription.default_payment_method);
     }
     // Update with new Subscription status
     const subscriptionData = {

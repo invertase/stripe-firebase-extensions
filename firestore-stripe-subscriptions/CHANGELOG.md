@@ -12,7 +12,7 @@ db.collection("products")
   });
 ```
 
-[change] - The extension now defaults to collecting the customer's billing address during checkout. If you don't want to collect it, you cann pass `billing_address_collection: auto` to the checkout session doc creation.
+[feat] - The extension now defaults to collecting the customer's billing address during checkout and sets it as the address on the Stripe customer object. If you don't want to collect it, you can pass `billing_address_collection: auto` to the checkout session doc creation.
 
 [change] - The extension now adds a product doc reference to the subscription doc in addition to the price doc reference for easier access of the product data for a given subscription.
 
