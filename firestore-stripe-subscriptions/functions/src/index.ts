@@ -191,15 +191,13 @@ exports.createPortalLink = functions.https.onCall(async (data, context) => {
 });
 
 /**
- * Prefix Stripe metadata keys with `stripe_metadata_` to be spread onto Product and Price records in Firebase.
+ * Prefix Stripe metadata keys with `stripe_metadata_` to be spread onto Product and Price docs in Cloud Firestore.
  */
-
- const prefixMetadata = (metadata: object) =>
-   Object.keys(metadata).reduce((prefixedMetadata, key) => {
-     prefixedMetadata[`stripe_metadata_${key}`] = metadata[key];
-
-     return prefixedMetadata;
-   }, {});
+const prefixMetadata = (metadata: object) =>
+  Object.keys(metadata).reduce((prefixedMetadata, key) => {
+    prefixedMetadata[`stripe_metadata_${key}`] = metadata[key];
+    return prefixedMetadata;
+  }, {});
 
 /**
  * Create a Product record in Firestore based on a Stripe Product object.
