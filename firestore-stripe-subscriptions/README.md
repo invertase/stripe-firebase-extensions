@@ -64,7 +64,7 @@ Starting August 17 2020, you will be billed a small amount (typically less than 
 
 * Customer details and subscriptions collection: What is the path to the Cloud Firestore collection where the extension should store Stripe customer details? This can be the location of an existing user collection, the extension will not overwrite your existing data but rather merge the Stripe data into your existing `uid` docs.
 
-* Sync new users to Stripe customers and Cloud Firestore: Do you want to automatically sync new users to customer objects in Stripe? If set to YES, the extension will create a new customer object in Stripe and add a new doc to the customer collection in Firestore when a new user signs up via Firebase Authentication. If set to NO (default), the extension will create the customer object "on the fly" with the first checkout session creation.
+* Sync new users to Stripe customers and Cloud Firestore: Do you want to automatically sync new users to customer objects in Stripe? If set to 'Sync', the extension will create a new customer object in Stripe and add a new doc to the customer collection in Firestore when a new user signs up via Firebase Authentication. If set to 'Do not sync' (default), the extension will create the customer object "on the fly" with the first checkout session creation.
 
 * Stripe API key with restricted access: What is your Stripe API key?  We recommend creating a new [restricted key](https://stripe.com/docs/keys#limit-access) with write access only for the "Customers", "Checkout Sessions" and "Customer portal" resources. And read-only access for the "Subscriptions" resource.
 
