@@ -17,7 +17,13 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
-import { Product, Price, Subscription, CustomerData } from './interfaces';
+import {
+  Product,
+  Price,
+  Subscription,
+  CustomerData,
+  TaxRate,
+} from './interfaces';
 import * as logs from './logs';
 import config from './config';
 
@@ -246,6 +252,25 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
 };
 
 /**
+ * Insert tax rates into the products collection in Cloud Firestore.
+ */
+const insertTaxRateRecord = async (taxRate: Stripe.TaxRate): Promise<void> => {
+  const taxRateData: TaxRate = {
+    ...taxRate,
+    ...prefixMetadata(taxRate.metadata),
+  };
+  delete taxRateData.metadata;
+  await admin
+    .firestore()
+    .collection(config.productsCollectionPath)
+    .doc('tax_rates')
+    .collection('tax_rates')
+    .doc(taxRate.id)
+    .set(taxRateData);
+  logs.firestoreDocCreated('tax_rates', taxRate.id);
+};
+
+/**
  * Copies the billing details from the payment method to the customer object.
  */
 const copyBillingDetailsToCustomer = async (
@@ -394,6 +419,8 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
       'customer.subscription.created',
       'customer.subscription.updated',
       'customer.subscription.deleted',
+      'tax_rate.created',
+      'tax_rate.updated',
     ]);
     let event: Stripe.Event;
 
@@ -430,6 +457,10 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
             break;
           case 'price.deleted':
             await deleteProductOrPrice(event.data.object as Stripe.Price);
+            break;
+          case 'tax_rate.created':
+          case 'tax_rate.updated':
+            await insertTaxRateRecord(event.data.object as Stripe.TaxRate);
             break;
           case 'customer.subscription.created':
           case 'customer.subscription.updated':

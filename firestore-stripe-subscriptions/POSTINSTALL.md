@@ -32,6 +32,10 @@ service cloud.firestore {
       match /prices/{id} {
         allow read: if true;
       }
+      
+      match /tax_rates/{id} {
+        allow read: if true;
+      }
     }
   }
 }
@@ -61,6 +65,8 @@ Here's how to set up the webhook and configure your extension to use it:
    - `customer.subscription.created`
    - `customer.subscription.updated`
    - `customer.subscription.deleted`
+   - `tax_rate.created` (optional)
+   - `tax_rate.updated` (optional)
 
 1. Using the Firebase console or Firebase CLI, [reconfigure](https://console.firebase.google.com/project/${param:PROJECT_ID}/extensions/instances/${param:EXT_INSTANCE_ID}?tab=config) your extension with your webhook’s signing secret (such as, `whsec_12345678`). Enter the value in the parameter called `Stripe webhook secret`.
 

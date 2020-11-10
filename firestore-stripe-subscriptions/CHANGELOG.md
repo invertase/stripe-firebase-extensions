@@ -1,5 +1,15 @@
 ## Version 0.1.8 - 2020-11-19
 
+[feat] - Sync tax rates from your Stripe account to Cloud Firestore. Tax Rates are added to a `tax_rates` sub-collection on a `tax_rates` doc in your products collection:
+
+```js
+const taxRates = await db
+  .collection("products")
+  .doc("tax_rates")
+  .collection("tax_rates")
+  .get();
+```
+
 [feat] - Sync product and price metadata from Stripe to Cloud Firestore. To allow for [ordering and limiting](https://firebase.google.com/docs/firestore/query-data/order-limit-data) when querying product data, the metadata has been flattened to the Cloud Firestore docs with the `stripe_metadata_` prefix. E.g. adding `index:0` to your product metadata in Stripe will be available as `stripe_metadata_index` on your product doc in Cloud Firestore. This allows you to for example order products based on this index:
 
 ```js

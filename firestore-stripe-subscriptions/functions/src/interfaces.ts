@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import Stripe from 'stripe';
+
 export interface CustomerData {
   metadata: {
     firebaseUID: string;
@@ -79,6 +81,13 @@ export interface Product {
    * A list of Prices for this billing product.
    */
   prices?: Array<Price>;
+  /**
+   * Any additional properties
+   */
+  [propName: string]: any;
+}
+
+export interface TaxRate extends Stripe.TaxRate {
   /**
    * Any additional properties
    */

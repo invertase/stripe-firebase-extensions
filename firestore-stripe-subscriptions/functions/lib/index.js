@@ -222,6 +222,21 @@ const insertPriceRecord = async (price) => {
     logs.firestoreDocCreated('prices', price.id);
 };
 /**
+ * Insert tax rates into the products collection in Cloud Firestore.
+ */
+const insertTaxRateRecord = async (taxRate) => {
+    const taxRateData = Object.assign(Object.assign({}, taxRate), prefixMetadata(taxRate.metadata));
+    delete taxRateData.metadata;
+    await admin
+        .firestore()
+        .collection(config_1.default.productsCollectionPath)
+        .doc('tax_rates')
+        .collection('tax_rates')
+        .doc(taxRate.id)
+        .set(taxRateData);
+    logs.firestoreDocCreated('tax_rates', taxRate.id);
+};
+/**
  * Copies the billing details from the payment method to the customer object.
  */
 const copyBillingDetailsToCustomer = async (payment_method) => {
@@ -356,6 +371,8 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
         'customer.subscription.created',
         'customer.subscription.updated',
         'customer.subscription.deleted',
+        'tax_rate.created',
+        'tax_rate.updated',
     ]);
     let event;
     // Instead of getting the `Stripe.Event`
@@ -387,6 +404,10 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
                     break;
                 case 'price.deleted':
                     await deleteProductOrPrice(event.data.object);
+                    break;
+                case 'tax_rate.created':
+                case 'tax_rate.updated':
+                    await insertTaxRateRecord(event.data.object);
                     break;
                 case 'customer.subscription.created':
                 case 'customer.subscription.updated':
