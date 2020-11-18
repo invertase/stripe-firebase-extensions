@@ -27,7 +27,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-invoices',
-    version: '0.1.4',
+    version: '0.1.5',
   },
 });
 
@@ -84,8 +84,12 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
       const payload = snap.data() as InvoicePayload;
       const daysUntilDue = payload.daysUntilDue || config.daysUntilDue;
 
-      if (!(payload.email || payload.uid) || !payload.items.length) {
-        logs.missingPayload(payload);
+      if (
+        (payload.email && payload.uid) ||
+        !(payload.email || payload.uid) ||
+        !payload.items.length
+      ) {
+        logs.incorrectPayload(payload);
         return;
       }
 
@@ -98,7 +102,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
 
       logs.startInvoiceCreate();
 
-      let email;
+      let email: string;
 
       if (payload.uid) {
         // Look up the Firebase Authentication UserRecord to get the email
@@ -109,9 +113,14 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
         email = payload.email;
       }
 
+      if (!email) {
+        logs.noEmailForUser(payload.uid);
+        return;
+      }
+
       // Check to see if there's a Stripe customer associated with the email address
       let customers: Stripe.ApiList<Stripe.Customer> = await stripe.customers.list(
-        { email: payload.email }
+        { email }
       );
       let customer: Stripe.Customer;
 

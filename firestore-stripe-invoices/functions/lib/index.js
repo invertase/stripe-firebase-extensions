@@ -49,7 +49,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-invoices',
-        version: '0.1.4',
+        version: '0.1.5',
     },
 });
 admin.initializeApp();
@@ -88,8 +88,10 @@ exports.sendInvoice = functions.handler.firestore.document.onCreate(async (snap,
     try {
         const payload = snap.data();
         const daysUntilDue = payload.daysUntilDue || config_1.default.daysUntilDue;
-        if (!(payload.email || payload.uid) || !payload.items.length) {
-            logs.missingPayload(payload);
+        if ((payload.email && payload.uid) ||
+            !(payload.email || payload.uid) ||
+            !payload.items.length) {
+            logs.incorrectPayload(payload);
             return;
         }
         // Background functions fire "at least once"
@@ -109,8 +111,12 @@ exports.sendInvoice = functions.handler.firestore.document.onCreate(async (snap,
             // Use the email provided in the payload
             email = payload.email;
         }
+        if (!email) {
+            logs.noEmailForUser(payload.uid);
+            return;
+        }
         // Check to see if there's a Stripe customer associated with the email address
-        let customers = await stripe.customers.list({ email: payload.email });
+        let customers = await stripe.customers.list({ email });
         let customer;
         if (customers.data.length) {
             // Use the existing customer
