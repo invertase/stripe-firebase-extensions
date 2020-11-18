@@ -27,7 +27,7 @@ export function startInvoiceUpdate(eventType: string) {
   );
 }
 
-export function missingPayload(payload: InvoicePayload) {
+export function incorrectPayload(payload: InvoicePayload) {
   if (!payload.items.length) {
     console.error(
       new Error('😞[Error] Missing at least one line item in items[]')
@@ -40,6 +40,19 @@ export function missingPayload(payload: InvoicePayload) {
       )
     );
   }
+  if (payload.email && payload.uid) {
+    console.error(
+      new Error(
+        '😞[Error] Only either email or uid is permitted, you specified both.'
+      )
+    );
+  }
+}
+
+export function noEmailForUser(uid: string) {
+  console.error(
+    new Error(`😞[Error] User [${uid}] is missing an email address.`)
+  );
 }
 
 export function stripeError(err: Stripe.StripeCardError) {

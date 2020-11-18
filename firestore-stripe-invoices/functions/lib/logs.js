@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.statusUpdateComplete = exports.unexpectedInvoiceAmount = exports.ignoreEvent = exports.malformedEvent = exports.badSignature = exports.invoiceSent = exports.invoiceCreated = exports.customerRetrieved = exports.customerCreated = exports.invoiceCreatedError = exports.stripeError = exports.missingPayload = exports.startInvoiceUpdate = exports.startInvoiceCreate = void 0;
+exports.statusUpdateComplete = exports.unexpectedInvoiceAmount = exports.ignoreEvent = exports.malformedEvent = exports.badSignature = exports.invoiceSent = exports.invoiceCreated = exports.customerRetrieved = exports.customerCreated = exports.invoiceCreatedError = exports.stripeError = exports.noEmailForUser = exports.incorrectPayload = exports.startInvoiceUpdate = exports.startInvoiceCreate = void 0;
 function startInvoiceCreate() {
     console.log('🙂 Received new invoice, starting processing');
 }
@@ -24,15 +24,22 @@ function startInvoiceUpdate(eventType) {
     console.log(`🙂 Received new invoice event ${eventType}, starting processing`);
 }
 exports.startInvoiceUpdate = startInvoiceUpdate;
-function missingPayload(payload) {
+function incorrectPayload(payload) {
     if (!payload.items.length) {
         console.error(new Error('😞[Error] Missing at least one line item in items[]'));
     }
     if (!payload.email && !payload.uid) {
         console.error(new Error('😞[Error] Missing either a customer email address or Firebase Authentication uid'));
     }
+    if (payload.email && payload.uid) {
+        console.error(new Error('😞[Error] Only either email or uid is permitted, you specified both.'));
+    }
 }
-exports.missingPayload = missingPayload;
+exports.incorrectPayload = incorrectPayload;
+function noEmailForUser(uid) {
+    console.error(new Error(`😞[Error] User [${uid}] is missing an email address.`));
+}
+exports.noEmailForUser = noEmailForUser;
 function stripeError(err) {
     console.error(new Error('😞[Error] Error when making a request to the Stripe API:'), err);
 }

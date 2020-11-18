@@ -1,3 +1,7 @@
+## Version 0.1.5 - 2020-11-19
+
+[fixed] - Prevent users from specifying both email address and uid, only either one is allowed.
+
 ## Version 0.1.4
 
 [fixed] - Add validation for Firestore collection param (#31)
