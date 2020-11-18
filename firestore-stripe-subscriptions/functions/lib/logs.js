@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.webhookHandlerError = exports.webhookHandlerSucceeded = exports.startWebhookEventProcessing = exports.badWebhookSecret = exports.userCustomClaimSet = exports.firestoreDocCreated = exports.billingPortalLinkCreationError = exports.createdBillingPortalLink = exports.checkoutSessionCreationError = exports.checkoutSessionCreated = exports.creatingCheckoutSession = exports.customerDeleted = exports.customerCreated = exports.customerDeletionError = exports.customerCreationError = exports.creatingCustomer = void 0;
+exports.webhookHandlerError = exports.webhookHandlerSucceeded = exports.startWebhookEventProcessing = exports.badWebhookSecret = exports.userCustomClaimSet = exports.firestoreDocDeleted = exports.firestoreDocCreated = exports.billingPortalLinkCreationError = exports.createdBillingPortalLink = exports.checkoutSessionCreationError = exports.checkoutSessionCreated = exports.creatingCheckoutSession = exports.customerDeleted = exports.customerCreated = exports.customerDeletionError = exports.customerCreationError = exports.creatingCustomer = void 0;
 exports.creatingCustomer = (uid) => {
     console.log(`⚙️ Creating customer object for [${uid}].`);
 };
@@ -57,6 +57,10 @@ function firestoreDocCreated(collection, docId) {
     console.log(`🔥📄 Added doc [${docId}] to collection [${collection}] in Firestore.`);
 }
 exports.firestoreDocCreated = firestoreDocCreated;
+function firestoreDocDeleted(collection, docId) {
+    console.log(`🗑🔥📄 Deleted doc [${docId}] from collection [${collection}] in Firestore.`);
+}
+exports.firestoreDocDeleted = firestoreDocDeleted;
 function userCustomClaimSet(uid, claimKey, claimValue) {
     console.log(`🚦 Added custom claim [${claimKey}: ${claimValue}] for user [${uid}].`);
 }

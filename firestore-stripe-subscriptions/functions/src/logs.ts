@@ -76,6 +76,12 @@ export function firestoreDocCreated(collection: string, docId: string) {
   );
 }
 
+export function firestoreDocDeleted(collection: string, docId: string) {
+  console.log(
+    `🗑🔥📄 Deleted doc [${docId}] from collection [${collection}] in Firestore.`
+  );
+}
+
 export function userCustomClaimSet(
   uid: string,
   claimKey: string,

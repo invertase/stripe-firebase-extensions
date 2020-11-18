@@ -32,6 +32,10 @@ service cloud.firestore {
       match /prices/{id} {
         allow read: if true;
       }
+      
+      match /tax_rates/{id} {
+        allow read: if true;
+      }
     }
   }
 }
@@ -53,12 +57,16 @@ Here's how to set up the webhook and configure your extension to use it:
 
    - `product.created`
    - `product.updated`
+   - `product.deleted`
    - `price.created`
    - `price.updated`
+   - `price.deleted`
    - `checkout.session.completed`
    - `customer.subscription.created`
    - `customer.subscription.updated`
    - `customer.subscription.deleted`
+   - `tax_rate.created` (optional)
+   - `tax_rate.updated` (optional)
 
 1. Using the Firebase console or Firebase CLI, [reconfigure](https://console.firebase.google.com/project/${param:PROJECT_ID}/extensions/instances/${param:EXT_INSTANCE_ID}?tab=config) your extension with your webhook’s signing secret (such as, `whsec_12345678`). Enter the value in the parameter called `Stripe webhook secret`.
 
@@ -137,7 +145,7 @@ Once you've configured the extension you can add subscription payments and acces
 
 #### Sign-up users with Firebase Authentication
 
-The quickest way to sign-up new users is by using the [FirebaseUI library](https://firebase.google.com/docs/auth/web/firebaseui). Follow the steps outlined in the official docs. The extension listens to new users signing up and then automatically creates a Stripe customer object and a customer record in your Cloud Firestore.
+The quickest way to sign-up new users is by using the [FirebaseUI library](https://firebase.google.com/docs/auth/web/firebaseui). Follow the steps outlined in the official docs. When configuring the extension you can choose to 'Sync' new users to Stripe. If set to 'Sync', the extension listens to new users signing up and then automatically creates a Stripe customer object and a customer record in your Cloud Firestore. If set to 'Do not sync' (default), the extension will create the customer object "on the fly" with the first checkout session creation.
 
 #### List available products and prices
 
