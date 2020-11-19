@@ -82,7 +82,7 @@ items: [{
 or
 
 ```js
-uid: "customer@example.com",
+uid: "APkKkSLsT6cjxsCqYMh3Gi0TZtl5",
 items: [{
     amount: 1999,
     currency: "usd",

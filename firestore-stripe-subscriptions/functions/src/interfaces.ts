@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import Stripe from 'stripe';
+
 export interface CustomerData {
   metadata: {
     firebaseUID: string;
@@ -48,6 +50,10 @@ export interface Price {
    * Default number of trial days when subscribing a customer to this price using [`trial_from_plan=true`](https://stripe.com/docs/api#create_subscription-trial_from_plan).
    */
   trial_period_days: number | null;
+  /**
+   * Any additional properties
+   */
+  [propName: string]: any;
 }
 
 export interface Product {
@@ -81,6 +87,13 @@ export interface Product {
   [propName: string]: any;
 }
 
+export interface TaxRate extends Stripe.TaxRate {
+  /**
+   * Any additional properties
+   */
+  [propName: string]: any;
+}
+
 export interface Subscription {
   /**
    * Set of key-value pairs that you can attach to an object.
@@ -92,6 +105,10 @@ export interface Subscription {
   stripeLink: string;
   role: string | null;
   quantity: number;
+  /**
+   * Firestore reference to the product doc for this Subscription.
+   */
+  product: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>;
   /**
    * Firestore reference to the price for this Subscription.
    */

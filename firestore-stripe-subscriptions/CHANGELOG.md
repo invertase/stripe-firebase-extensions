@@ -1,4 +1,32 @@
-## Version 0.1.7 - 2020-10-15
+## Version 0.1.8 - 2020-11-19
+
+[feat] - Sync tax rates from your Stripe account to Cloud Firestore. Tax Rates are added to a `tax_rates` sub-collection on a `tax_rates` doc in your products collection:
+
+```js
+const taxRates = await db
+  .collection("products")
+  .doc("tax_rates")
+  .collection("tax_rates")
+  .get();
+```
+
+[feat] - Sync product and price metadata from Stripe to Cloud Firestore. To allow for [ordering and limiting](https://firebase.google.com/docs/firestore/query-data/order-limit-data) when querying product data, the metadata has been flattened to the Cloud Firestore docs with the `stripe_metadata_` prefix. E.g. adding `index:0` to your product metadata in Stripe will be available as `stripe_metadata_index` on your product doc in Cloud Firestore. This allows you to for example order products based on this index:
+
+```js
+db.collection("products")
+  .where("active", "==", true)
+  .orderBy("stripe_metadata_index")
+  .get()
+  .then(function (querySnapshot) {
+    // [...]
+  });
+```
+
+[feat] - The extension now defaults to collecting the customer's billing address during checkout and sets it as the address on the Stripe customer object. If you don't want to collect it, you can pass `billing_address_collection: auto` to the checkout session doc creation.
+
+[change] - The extension now adds a product doc reference to the subscription doc in addition to the price doc reference for easier access of the product data for a given subscription.
+
+## Version 0.1.7 - 2020-10-22
 
 [change] - Additional configuration and **change of default behaviour**: you can now disable the automatic sync of new users to Stripe customers and Cloud Firestore, and the default behaviour has been changed to "on the fly" creation of customer objects. (#66; #51; #76)
 
