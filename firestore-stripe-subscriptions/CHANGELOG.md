@@ -1,3 +1,5 @@
+## Version 0.1.9 - 2021-01-14
+
 ## Version 0.1.8 - 2020-11-19
 
 [feat] - Sync tax rates from your Stripe account to Cloud Firestore. Tax Rates are added to a `tax_rates` sub-collection on a `tax_rates` doc in your products collection:

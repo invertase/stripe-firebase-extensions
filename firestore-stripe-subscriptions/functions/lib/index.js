@@ -60,7 +60,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.8',
+        version: '0.1.9',
     },
 });
 admin.initializeApp();
@@ -247,13 +247,8 @@ const copyBillingDetailsToCustomer = async (payment_method) => {
 /**
  * Manage subscription status changes.
  */
-const manageSubscriptionStatusChange = async (subscriptionId, createAction = false) => {
+const manageSubscriptionStatusChange = async (subscriptionId, customerId, createAction) => {
     var _a;
-    // Retrieve latest subscription status and write it to the Firestore
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-        expand: ['default_payment_method', 'items.data.price.product'],
-    });
-    const customerId = subscription.customer;
     // Get customer's UID from Firestore
     const customersSnap = await admin
         .firestore()
@@ -261,11 +256,13 @@ const manageSubscriptionStatusChange = async (subscriptionId, createAction = fal
         .where('stripeId', '==', customerId)
         .get();
     if (customersSnap.size !== 1) {
-        if (!subscription.canceled_at)
-            throw new Error('User not found!');
-        return;
+        throw new Error('User not found!');
     }
     const uid = customersSnap.docs[0].id;
+    // Retrieve latest subscription status and write it to the Firestore
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+        expand: ['default_payment_method', 'items.data.price.product'],
+    });
     const price = subscription.items.data[0].price;
     const prices = [];
     for (const item of subscription.items.data) {
@@ -282,14 +279,6 @@ const manageSubscriptionStatusChange = async (subscriptionId, createAction = fal
     const subsDbRef = customersSnap.docs[0].ref
         .collection('subscriptions')
         .doc(subscription.id);
-    // For a create action, check if already created via another event.
-    if (createAction) {
-        const subsDoc = await subsDbRef.get();
-        if (subsDoc.exists)
-            return;
-        else if (subscription.default_payment_method)
-            await copyBillingDetailsToCustomer(subscription.default_payment_method);
-    }
     // Update with new Subscription status
     const subscriptionData = {
         metadata: subscription.metadata,
@@ -354,6 +343,11 @@ const manageSubscriptionStatusChange = async (subscriptionId, createAction = fal
             return;
         }
     }
+    // NOTE: This is a costly operation and should happen at the very end.
+    // Copy the billing deatils to the customer object.
+    if (createAction && subscription.default_payment_method) {
+        await copyBillingDetailsToCustomer(subscription.default_payment_method);
+    }
     return;
 };
 /**
@@ -413,24 +407,26 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
                 case 'customer.subscription.updated':
                 case 'customer.subscription.deleted':
                     const subscription = event.data.object;
-                    await manageSubscriptionStatusChange(subscription.id, event.type === 'customer.subscription.created');
+                    await manageSubscriptionStatusChange(subscription.id, subscription.customer, event.type === 'customer.subscription.created');
                     break;
                 case 'checkout.session.completed':
                     const checkoutSession = event.data
                         .object;
                     if (checkoutSession.mode === 'subscription') {
                         const subscriptionId = checkoutSession.subscription;
-                        await manageSubscriptionStatusChange(subscriptionId, true);
+                        await manageSubscriptionStatusChange(subscriptionId, subscription.customer, true);
                     }
                     break;
                 default:
-                    throw new Error('Unhandled relevant event!');
+                    logs.webhookHandlerError(new Error('Unhandled relevant event!'), event.id, event.type);
             }
             logs.webhookHandlerSucceeded(event.id, event.type);
         }
         catch (error) {
             logs.webhookHandlerError(error, event.id, event.type);
-            resp.status(400).send('Webhook handler failed. View logs.');
+            resp.json({
+                error: 'Webhook handler failed. View function logs in Firebase.',
+            });
             return;
         }
     }
