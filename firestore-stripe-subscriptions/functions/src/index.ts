@@ -231,8 +231,16 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
  * Create a price (billing price plan) and insert it into a subcollection in Products.
  */
 const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
+  if (price.billing_scheme === 'tiered')
+    // TODO: restricted key needs read rights for plans.
+    // Tiers aren't included by default, we need to retireve and expand.
+    price = await stripe.prices.retrieve(price.id, { expand: ['tiers'] });
+
   const priceData: Price = {
     active: price.active,
+    billing_scheme: price.billing_scheme,
+    tiers_mode: price.tiers_mode,
+    tiers: price.tiers ?? null,
     currency: price.currency,
     description: price.nickname,
     type: price.type,
