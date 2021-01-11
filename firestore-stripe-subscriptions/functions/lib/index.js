@@ -417,7 +417,7 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
                         .object;
                     if (checkoutSession.mode === 'subscription') {
                         const subscriptionId = checkoutSession.subscription;
-                        await manageSubscriptionStatusChange(subscriptionId, subscription.customer, true);
+                        await manageSubscriptionStatusChange(subscriptionId, checkoutSession.customer, true);
                     }
                     break;
                 default:

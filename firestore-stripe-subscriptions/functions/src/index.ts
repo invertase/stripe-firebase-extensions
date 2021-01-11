@@ -487,7 +487,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
               const subscriptionId = checkoutSession.subscription as string;
               await manageSubscriptionStatusChange(
                 subscriptionId,
-                subscription.customer as string,
+                checkoutSession.customer as string,
                 true
               );
             }
