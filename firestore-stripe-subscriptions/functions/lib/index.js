@@ -213,10 +213,9 @@ const createProductRecord = async (product) => {
 const insertPriceRecord = async (price) => {
     var _a, _b, _c, _d, _e, _f, _g;
     if (price.billing_scheme === 'tiered')
-        // TODO: restricted key needs read rights for plans.
         // Tiers aren't included by default, we need to retireve and expand.
         price = await stripe.prices.retrieve(price.id, { expand: ['tiers'] });
-    const priceData = Object.assign({ active: price.active, billing_scheme: price.billing_scheme, tiers_mode: price.tiers_mode, tiers: (_a = price.tiers) !== null && _a !== void 0 ? _a : null, currency: price.currency, description: price.nickname, type: price.type, unit_amount: price.unit_amount, interval: (_c = (_b = price.recurring) === null || _b === void 0 ? void 0 : _b.interval) !== null && _c !== void 0 ? _c : null, interval_count: (_e = (_d = price.recurring) === null || _d === void 0 ? void 0 : _d.interval_count) !== null && _e !== void 0 ? _e : null, trial_period_days: (_g = (_f = price.recurring) === null || _f === void 0 ? void 0 : _f.trial_period_days) !== null && _g !== void 0 ? _g : null }, prefixMetadata(price.metadata));
+    const priceData = Object.assign({ active: price.active, billing_scheme: price.billing_scheme, tiers_mode: price.tiers_mode, tiers: (_a = price.tiers) !== null && _a !== void 0 ? _a : null, currency: price.currency, description: price.nickname, type: price.type, unit_amount: price.unit_amount, recurring: price.recurring, interval: (_c = (_b = price.recurring) === null || _b === void 0 ? void 0 : _b.interval) !== null && _c !== void 0 ? _c : null, interval_count: (_e = (_d = price.recurring) === null || _d === void 0 ? void 0 : _d.interval_count) !== null && _e !== void 0 ? _e : null, trial_period_days: (_g = (_f = price.recurring) === null || _f === void 0 ? void 0 : _f.trial_period_days) !== null && _g !== void 0 ? _g : null, transform_quantity: price.transform_quantity }, prefixMetadata(price.metadata));
     const dbRef = admin
         .firestore()
         .collection(config_1.default.productsCollectionPath)

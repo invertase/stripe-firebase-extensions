@@ -232,7 +232,6 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
  */
 const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
   if (price.billing_scheme === 'tiered')
-    // TODO: restricted key needs read rights for plans.
     // Tiers aren't included by default, we need to retireve and expand.
     price = await stripe.prices.retrieve(price.id, { expand: ['tiers'] });
 
@@ -245,9 +244,11 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
     description: price.nickname,
     type: price.type,
     unit_amount: price.unit_amount,
+    recurring: price.recurring,
     interval: price.recurring?.interval ?? null,
     interval_count: price.recurring?.interval_count ?? null,
     trial_period_days: price.recurring?.trial_period_days ?? null,
+    transform_quantity: price.transform_quantity,
     ...prefixMetadata(price.metadata),
   };
   const dbRef = admin
