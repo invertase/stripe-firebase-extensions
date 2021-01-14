@@ -33,7 +33,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.8',
+    version: '0.1.9',
   },
 });
 
@@ -231,15 +231,24 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
  * Create a price (billing price plan) and insert it into a subcollection in Products.
  */
 const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
+  if (price.billing_scheme === 'tiered')
+    // Tiers aren't included by default, we need to retireve and expand.
+    price = await stripe.prices.retrieve(price.id, { expand: ['tiers'] });
+
   const priceData: Price = {
     active: price.active,
+    billing_scheme: price.billing_scheme,
+    tiers_mode: price.tiers_mode,
+    tiers: price.tiers ?? null,
     currency: price.currency,
     description: price.nickname,
     type: price.type,
     unit_amount: price.unit_amount,
+    recurring: price.recurring,
     interval: price.recurring?.interval ?? null,
     interval_count: price.recurring?.interval_count ?? null,
     trial_period_days: price.recurring?.trial_period_days ?? null,
+    transform_quantity: price.transform_quantity,
     ...prefixMetadata(price.metadata),
   };
   const dbRef = admin
@@ -286,13 +295,9 @@ const copyBillingDetailsToCustomer = async (
  */
 const manageSubscriptionStatusChange = async (
   subscriptionId: string,
-  createAction = false
+  customerId: string,
+  createAction: boolean
 ): Promise<void> => {
-  // Retrieve latest subscription status and write it to the Firestore
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-    expand: ['default_payment_method', 'items.data.price.product'],
-  });
-  const customerId = subscription.customer as string;
   // Get customer's UID from Firestore
   const customersSnap = await admin
     .firestore()
@@ -300,10 +305,13 @@ const manageSubscriptionStatusChange = async (
     .where('stripeId', '==', customerId)
     .get();
   if (customersSnap.size !== 1) {
-    if (!subscription.canceled_at) throw new Error('User not found!');
-    return;
+    throw new Error('User not found!');
   }
   const uid = customersSnap.docs[0].id;
+  // Retrieve latest subscription status and write it to the Firestore
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+    expand: ['default_payment_method', 'items.data.price.product'],
+  });
   const price: Stripe.Price = subscription.items.data[0].price;
   const prices = [];
   for (const item of subscription.items.data) {
@@ -322,15 +330,6 @@ const manageSubscriptionStatusChange = async (
   const subsDbRef = customersSnap.docs[0].ref
     .collection('subscriptions')
     .doc(subscription.id);
-  // For a create action, check if already created via another event.
-  if (createAction) {
-    const subsDoc = await subsDbRef.get();
-    if (subsDoc.exists) return;
-    else if (subscription.default_payment_method)
-      await copyBillingDetailsToCustomer(
-        subscription.default_payment_method as Stripe.PaymentMethod
-      );
-  }
   // Update with new Subscription status
   const subscriptionData: Subscription = {
     metadata: subscription.metadata,
@@ -400,6 +399,15 @@ const manageSubscriptionStatusChange = async (
       return;
     }
   }
+
+  // NOTE: This is a costly operation and should happen at the very end.
+  // Copy the billing deatils to the customer object.
+  if (createAction && subscription.default_payment_method) {
+    await copyBillingDetailsToCustomer(
+      subscription.default_payment_method as Stripe.PaymentMethod
+    );
+  }
+
   return;
 };
 
@@ -468,6 +476,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
             const subscription = event.data.object as Stripe.Subscription;
             await manageSubscriptionStatusChange(
               subscription.id,
+              subscription.customer as string,
               event.type === 'customer.subscription.created'
             );
             break;
@@ -476,16 +485,26 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
               .object as Stripe.Checkout.Session;
             if (checkoutSession.mode === 'subscription') {
               const subscriptionId = checkoutSession.subscription as string;
-              await manageSubscriptionStatusChange(subscriptionId, true);
+              await manageSubscriptionStatusChange(
+                subscriptionId,
+                checkoutSession.customer as string,
+                true
+              );
             }
             break;
           default:
-            throw new Error('Unhandled relevant event!');
+            logs.webhookHandlerError(
+              new Error('Unhandled relevant event!'),
+              event.id,
+              event.type
+            );
         }
         logs.webhookHandlerSucceeded(event.id, event.type);
       } catch (error) {
         logs.webhookHandlerError(error, event.id, event.type);
-        resp.status(400).send('Webhook handler failed. View logs.');
+        resp.json({
+          error: 'Webhook handler failed. View function logs in Firebase.',
+        });
         return;
       }
     }
