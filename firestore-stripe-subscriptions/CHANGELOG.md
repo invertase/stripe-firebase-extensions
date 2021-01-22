@@ -2,8 +2,6 @@
 
 [feat] - Support all billing pricing models.
 
-_*NOTE*_: Metered billing prices and tiered pricing are in beta. Reach out to checkout-beta-metered@stripe.com to participate.
-
 _*IMPORTANT*_: For tiered pricing plans to be synced correctly, you need to update the permissions of your restricted key to include read permissions for subscription plans!
 
 ## Version 0.1.8 - 2020-11-19
