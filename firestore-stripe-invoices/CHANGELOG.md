@@ -1,3 +1,7 @@
+## Version 0.1.6 - 2021-02-11
+
+[feat] - Support invoices in various different currencies for the same email address. Note that this will create a separate customer object for each currency but with the same email address.
+
 ## Version 0.1.5 - 2020-11-19
 
 [fixed] - Prevent users from specifying both email address and uid, only either one is allowed.

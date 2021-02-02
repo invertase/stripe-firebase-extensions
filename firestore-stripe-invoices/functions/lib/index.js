@@ -49,7 +49,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-invoices',
-        version: '0.1.5',
+        version: '0.1.6',
     },
 });
 admin.initializeApp();
@@ -120,10 +120,11 @@ exports.sendInvoice = functions.handler.firestore.document.onCreate(async (snap,
         let customer;
         if (customers.data.length) {
             // Use the existing customer
-            customer = customers.data[0];
-            logs.customerRetrieved(customer.id, customer.livemode);
+            customer = customers.data.find((cus) => cus.currency === payload.items[0].currency);
+            if (customer)
+                logs.customerRetrieved(customer.id, customer.livemode);
         }
-        else {
+        if (!customer) {
             // Create new Stripe customer with this email
             customer = await stripe.customers.create({
                 email,
