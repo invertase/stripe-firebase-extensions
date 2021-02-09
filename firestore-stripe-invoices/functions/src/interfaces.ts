@@ -19,6 +19,11 @@ export interface InvoicePayload {
   uid?: string;
   items: [OrderItem];
   daysUntilDue?: number;
+  default_tax_rates?: string[];
+  transfer_data?: {
+    destination: string;
+    amount?: number;
+  };
 }
 
 export interface OrderItem {
@@ -26,4 +31,5 @@ export interface OrderItem {
   currency: string;
   quantity?: number;
   description: string;
+  tax_rates?: string[];
 }

@@ -54,27 +54,32 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
 });
 admin.initializeApp();
 /* Creates a new invoice using Stripe */
-const createInvoice = async function (customer, orderItems, daysUntilDue, idempotencyKey) {
+const createInvoice = async function ({ customer, orderItems, daysUntilDue, idempotencyKey, default_tax_rates = [], transfer_data, }) {
     try {
         // Create an invoice item for each item in the document
         const itemPromises = orderItems.map((item, index) => {
-            var _a;
+            var _a, _b;
             return stripe.invoiceItems.create({
                 customer: customer.id,
                 unit_amount: item.amount,
                 currency: item.currency,
                 quantity: (_a = item.quantity) !== null && _a !== void 0 ? _a : 1,
                 description: item.description,
+                tax_rates: (_b = item.tax_rates) !== null && _b !== void 0 ? _b : [],
             }, { idempotencyKey: `invoiceItems-create-${idempotencyKey}-${index}` });
         });
         // Create the individual invoice items for this customer from the items in payload
         const items = await Promise.all(itemPromises);
-        const invoice = await stripe.invoices.create({
+        const invoiceCreateParams = {
             customer: customer.id,
             collection_method: 'send_invoice',
             days_until_due: daysUntilDue,
             auto_advance: true,
-        }, { idempotencyKey: `invoices-create-${idempotencyKey}` });
+            default_tax_rates,
+        };
+        if (transfer_data)
+            invoiceCreateParams.transfer_data = transfer_data;
+        const invoice = await stripe.invoices.create(invoiceCreateParams, { idempotencyKey: `invoices-create-${idempotencyKey}` });
         logs.invoiceCreated(invoice.id, invoice.livemode);
         return invoice;
     }
@@ -134,7 +139,14 @@ exports.sendInvoice = functions.handler.firestore.document.onCreate(async (snap,
             }, { idempotencyKey: `customers-create-${eventId}` });
             logs.customerCreated(customer.id, customer.livemode);
         }
-        const invoice = await createInvoice(customer, payload.items, daysUntilDue, eventId);
+        const invoice = await createInvoice({
+            customer,
+            orderItems: payload.items,
+            daysUntilDue,
+            idempotencyKey: eventId,
+            default_tax_rates: payload.default_tax_rates,
+            transfer_data: payload.transfer_data,
+        });
         if (invoice) {
             // Write the Stripe Invoice ID back to the document in Cloud Firestore
             // so that we can find it in the webhook
