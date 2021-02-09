@@ -1,5 +1,7 @@
 ## Version 0.1.6 - 2021-02-11
 
+[feat] - Add `stripeInvoiceUrl` to the invoice object in Cloud Firestore. #132
+
 [feat] - Support invoices in various different currencies for the same email address. Note that this will create a separate customer object for each currency but with the same email address.
 
 [feat] - Add support for [`default_tax_rates`](https://stripe.com/docs/api/invoices/create#create_invoice-default_tax_rates) for the invoice and [`tax_rates`](https://stripe.com/docs/api/invoiceitems/create#create_invoiceitem-tax_rates) for the invoice items. Read more details about how to use tax rates in the [Stripe docs](https://stripe.com/docs/billing/taxes/tax-rates). #118

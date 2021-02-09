@@ -173,26 +173,31 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
       });
 
       if (invoice) {
-        // Write the Stripe Invoice ID back to the document in Cloud Firestore
-        // so that we can find it in the webhook
-        await snap.ref.update({
-          stripeInvoiceId: invoice.id,
-          stripeInvoiceRecord: `https://dashboard.stripe.com${
-            invoice.livemode ? '' : '/test'
-          }/invoices/${invoice.id}`,
-        });
-
         // Email the invoice to the customer
-        const result: Stripe.Invoice = await stripe.invoices.sendInvoice(
+        const finalizedInvoice: Stripe.Invoice = await stripe.invoices.sendInvoice(
           invoice.id,
           { idempotencyKey: `invoices-sendInvoice-${eventId}` }
         );
-        if (result.status === 'open') {
+        if (finalizedInvoice.status === 'open') {
           // Successfully emailed the invoice
-          logs.invoiceSent(result.id, email, result.hosted_invoice_url);
+          logs.invoiceSent(
+            finalizedInvoice.id,
+            email,
+            finalizedInvoice.hosted_invoice_url
+          );
         } else {
-          logs.invoiceCreatedError(result);
+          logs.invoiceCreatedError(finalizedInvoice);
         }
+
+        // Write the Stripe Invoice ID back to the document in Cloud Firestore
+        // so that we can find it in the webhook.
+        await snap.ref.update({
+          stripeInvoiceId: finalizedInvoice.id,
+          stripeInvoiceUrl: finalizedInvoice.hosted_invoice_url,
+          stripeInvoiceRecord: `https://dashboard.stripe.com${
+            invoice.livemode ? '' : '/test'
+          }/invoices/${finalizedInvoice.id}`,
+        });
       } else {
         logs.invoiceCreatedError();
       }
