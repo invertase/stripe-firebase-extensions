@@ -126,6 +126,26 @@ const docRef = await db
 
 Note that the Stripe customer portal currently does not support changing subscriptions with multiple recurring prices. In this case the portal will only offer the option to cancel the subscription.
 
+[feat] - Add support for dynamic tax rates: (#115)
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser)
+  .collection("checkout_sessions")
+  .add({
+    line_items: [
+      {
+        price: "price_1HCUD4HYgolSBA35icTHEXd5",
+        quantity: 1,
+        dynamic_tax_rates: ["txr_1IJJtvHYgolSBA35ITTBOaew"],
+      },
+    ],
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
 ## Version 0.1.4
 
 [fix] - Make sure to merge existing custom claims before setting the `stripeRole` custom claim. Previously the extensions would overwrite the user's existing custom claims.

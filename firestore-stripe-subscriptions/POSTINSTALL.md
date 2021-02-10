@@ -259,7 +259,29 @@ const docRef = await db
   });
 ```
 
-#### Applying tax rates to the subscription
+#### Applying tax rates dynamically
+
+Stripe Checkout supports applying the correct tax rate for customers in  US, GB, AU, and all countries in the EU. With [dynamic tax rates](https://stripe.com/docs/billing/subscriptions/taxes#adding-tax-rates-to-checkout), you create tax rates for different regions (e.g., a 20% VAT tax rate for customers in the UK and a 7.25% sales tax rate for customers in California, US) and Stripe attempts to match your customer’s location to one of those tax rates.
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser)
+  .collection("checkout_sessions")
+  .add({
+    line_items: [
+      {
+        price: "price_1HCUD4HYgolSBA35icTHEXd5",
+        quantity: 1,
+        dynamic_tax_rates: ["txr_1IJJtvHYgolSBA35ITTBOaew", "txr_1Hlsk0HYgolSBA35rlraUVWO", "txr_1HCshzHYgolSBA35WkPjzOOi"],
+      },
+    ],
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
+#### Applying static tax rates
 
 You can collect and report taxes with [Tax Rates](https://stripe.com/docs/billing/taxes/tax-rates). To apply tax rates to the subscription, you first need to create your tax rates in the [Stripe Dashboard](https://dashboard.stripe.com/tax-rates). When creating a new `checkout_sessions` document, specify the optional `tax_rates` list with [up to five](https://stripe.com/docs/billing/taxes/tax-rates#using-multiple-tax-rates) tax rate IDs:
 
