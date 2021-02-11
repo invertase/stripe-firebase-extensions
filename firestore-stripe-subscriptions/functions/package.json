@@ -13,12 +13,12 @@
   "dependencies": {
     "firebase-admin": "^8.9.2",
     "firebase-functions": "^3.9.0",
-    "stripe": "8.83.0"
+    "stripe": "^8.135.0"
   },
   "devDependencies": {
+    "@types/express": "^4.17.11",
     "firebase-functions-test": "^0.1.6",
-    "@types/express": "^4.0.37",
-    "typescript": "^3.4.0"
+    "typescript": "^3.9.9"
   },
   "prettier": {
     "singleQuote": true,

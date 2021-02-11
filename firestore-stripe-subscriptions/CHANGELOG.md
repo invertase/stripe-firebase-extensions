@@ -1,6 +1,21 @@
 ## Version 0.1.10 - 2021-02-11
 
-[feat] Add local override for `checkout_sessions`:
+[feat] Set [promotion codes](https://stripe.com/docs/billing/subscriptions/discounts/codes) programmatically. **_NOTE_**: anyone with access to a promotion code ID would be able to apply it to their checkout session. Therefore make sure to limit your promotion codes and archive any codes you don't want to offer anymore. (#107)
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser.uid)
+  .collection("checkout_sessions")
+  .add({
+    promotion_code: "promo_1HCrfVHYgolSBA35b1q98MNk",
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
+[feat] Add `locale` override for `checkout_sessions`: (#131)
 
 ```js
 const docRef = await db
@@ -11,7 +26,7 @@ const docRef = await db
     price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
     success_url: window.location.origin,
     cancel_url: window.location.origin,
-    locale: "DE",
+    locale: "de",
   });
 ```
 

@@ -28,7 +28,7 @@ import * as logs from './logs';
 import config from './config';
 
 const stripe = new Stripe(config.stripeSecretKey, {
-  apiVersion: '2020-03-02',
+  apiVersion: '2020-08-27',
   // Register extension as a Stripe plugin
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
@@ -105,6 +105,7 @@ exports.createCheckoutSession = functions.firestore
       line_items,
       billing_address_collection = 'required',
       locale = 'auto',
+      promotion_code,
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -118,30 +119,35 @@ exports.createCheckoutSession = functions.firestore
         });
       }
       const customer = customerRecord.stripeId;
-      const session = await stripe.checkout.sessions.create(
-        {
-          billing_address_collection,
-          payment_method_types,
-          customer,
-          line_items: line_items
-            ? line_items
-            : [
-                {
-                  price,
-                  quantity,
-                  tax_rates,
-                },
-              ],
-          mode: 'subscription',
-          allow_promotion_codes,
-          subscription_data: {
-            trial_from_plan,
-            metadata,
-          },
-          success_url,
-          cancel_url,
-          locale,
+      const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
+        billing_address_collection,
+        payment_method_types,
+        customer,
+        line_items: line_items
+          ? line_items
+          : [
+              {
+                price,
+                quantity,
+                tax_rates,
+              },
+            ],
+        mode: 'subscription',
+        subscription_data: {
+          trial_from_plan,
+          metadata,
         },
+        success_url,
+        cancel_url,
+        locale,
+      };
+      if (promotion_code) {
+        sessionCreateParams.discounts = [{ promotion_code }];
+      } else {
+        sessionCreateParams.allow_promotion_codes = allow_promotion_codes;
+      }
+      const session = await stripe.checkout.sessions.create(
+        sessionCreateParams,
         { idempotencyKey: context.params.id }
       );
       await snap.ref.set(
@@ -351,7 +357,7 @@ const manageSubscriptionStatusChange = async (
       .collection('prices')
       .doc(price.id),
     prices,
-    quantity: subscription.quantity,
+    quantity: subscription.items.data[0].quantity,
     cancel_at_period_end: subscription.cancel_at_period_end,
     cancel_at: subscription.cancel_at
       ? admin.firestore.Timestamp.fromMillis(subscription.cancel_at * 1000)

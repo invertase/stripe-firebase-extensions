@@ -259,6 +259,25 @@ const docRef = await db
   });
 ```
 
+#### Applying promotion codes programmatically
+
+You can set a [promotion code](https://stripe.com/docs/billing/subscriptions/discounts/codes) to be applied to the checkout session without the customer needing to input it. 
+
+**_NOTE_**: anyone with access to a promotion code ID would be able to apply it to their checkout session. Therefore make sure to limit your promotion codes and archive any codes you don't want to offer anymore.
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser.uid)
+  .collection("checkout_sessions")
+  .add({
+    promotion_code: "promo_1HCrfVHYgolSBA35b1q98MNk",
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
 #### Applying tax rates dynamically
 
 Stripe Checkout supports applying the correct tax rate for customers in  US, GB, AU, and all countries in the EU. With [dynamic tax rates](https://stripe.com/docs/billing/subscriptions/taxes#adding-tax-rates-to-checkout), you create tax rates for different regions (e.g., a 20% VAT tax rate for customers in the UK and a 7.25% sales tax rate for customers in California, US) and Stripe attempts to match your customer’s location to one of those tax rates.
