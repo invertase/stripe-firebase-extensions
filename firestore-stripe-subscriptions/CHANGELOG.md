@@ -1,3 +1,48 @@
+## Version 0.1.10 - 2021-02-11
+
+[feat] Set [promotion codes](https://stripe.com/docs/billing/subscriptions/discounts/codes) programmatically. **_NOTE_**: anyone with access to a promotion code ID would be able to apply it to their checkout session. Therefore make sure to limit your promotion codes and archive any codes you don't want to offer anymore. (#107)
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser.uid)
+  .collection("checkout_sessions")
+  .add({
+    promotion_code: "promo_1HCrfVHYgolSBA35b1q98MNk",
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
+[feat] Add `locale` override for `checkout_sessions`: (#131)
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser.uid)
+  .collection("checkout_sessions")
+  .add({
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+    locale: "de",
+  });
+```
+
+[feat] Sync invoices with Cloud Firestore. You can now sync the full Stripe invoice objects to an `invoices` subcollection on their corresponding subscription doc by listening to the relevant invoices webhook events (`invoice.paid`, `invoice.payment_succeeded`, `invoice.payment_failed`, `invoice.upcoming`, `invoice.marked_uncollectible`, `invoice.payment_action_required`). Only select the
+events that you want to be notified about. You can then [listen to changes](https://firebase.google.com/docs/functions/firestore-events#writing-triggered_functions) on the invoices objects in Cloud Firestore: (#124)
+
+```js
+const functions = require("firebase-functions");
+
+exports.myFunction = functions.firestore
+  .document("customers/{uid}/subscriptions/{subsId}/invoices/{docId}")
+  .onWrite((change, context) => {
+    /* ... */
+  });
+```
+
 ## Version 0.1.9 - 2021-01-14
 
 [feat] - Support all billing pricing models.
@@ -125,6 +170,26 @@ const docRef = await db
 **_NOTE_**: One-time prices are only supported in combination with recurring prices! If you specify more than one recurring price in the `line_items` array, the subscription object in Cloud Firestore will list all recurring prices in the `prices` array. The `price` attribute on the subscription in Cloud Firestore will be equal to the first item in the `prices` array: `price === prices[0]`.
 
 Note that the Stripe customer portal currently does not support changing subscriptions with multiple recurring prices. In this case the portal will only offer the option to cancel the subscription.
+
+[feat] - Add support for dynamic tax rates: (#115)
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser)
+  .collection("checkout_sessions")
+  .add({
+    line_items: [
+      {
+        price: "price_1HCUD4HYgolSBA35icTHEXd5",
+        quantity: 1,
+        dynamic_tax_rates: ["txr_1IJJtvHYgolSBA35ITTBOaew"],
+      },
+    ],
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
 
 ## Version 0.1.4
 
