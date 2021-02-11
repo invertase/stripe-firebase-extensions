@@ -1,3 +1,20 @@
+## Version 0.1.10 - 2021-02-11
+
+[feat] Add local override for `checkout_sessions`:
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser.uid)
+  .collection("checkout_sessions")
+  .add({
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+    locale: "DE",
+  });
+```
+
 ## Version 0.1.9 - 2021-01-14
 
 [feat] - Support all billing pricing models.

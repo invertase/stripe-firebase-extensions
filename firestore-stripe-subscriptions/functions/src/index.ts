@@ -33,7 +33,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.9',
+    version: '0.1.10',
   },
 });
 
@@ -104,6 +104,7 @@ exports.createCheckoutSession = functions.firestore
       trial_from_plan = true,
       line_items,
       billing_address_collection = 'required',
+      locale = 'auto',
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -139,6 +140,7 @@ exports.createCheckoutSession = functions.firestore
           },
           success_url,
           cancel_url,
+          locale,
         },
         { idempotencyKey: context.params.id }
       );
