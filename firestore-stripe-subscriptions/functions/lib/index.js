@@ -361,6 +361,28 @@ const manageSubscriptionStatusChange = async (subscriptionId, customerId, create
     return;
 };
 /**
+ * Add invoice objects to Cloud Firestore.
+ */
+const insertInvoiceRecord = async (invoice) => {
+    // Get customer's UID from Firestore
+    const customersSnap = await admin
+        .firestore()
+        .collection(config_1.default.customersCollectionPath)
+        .where('stripeId', '==', invoice.customer)
+        .get();
+    if (customersSnap.size !== 1) {
+        throw new Error('User not found!');
+    }
+    // Write to invoice to a subcollection on the subscription doc.
+    await customersSnap.docs[0].ref
+        .collection('subscriptions')
+        .doc(invoice.subscription)
+        .collection('invoices')
+        .doc(invoice.id)
+        .set(invoice);
+    logs.firestoreDocCreated('invoices', invoice.id);
+};
+/**
  * A webhook handler function for the relevant Stripe events.
  */
 exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp) => {
@@ -377,6 +399,12 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
         'customer.subscription.deleted',
         'tax_rate.created',
         'tax_rate.updated',
+        'invoice.paid',
+        'invoice.payment_succeeded',
+        'invoice.payment_failed',
+        'invoice.upcoming',
+        'invoice.marked_uncollectible',
+        'invoice.payment_action_required',
     ]);
     let event;
     // Instead of getting the `Stripe.Event`
@@ -426,6 +454,15 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
                         const subscriptionId = checkoutSession.subscription;
                         await manageSubscriptionStatusChange(subscriptionId, checkoutSession.customer, true);
                     }
+                    break;
+                case 'invoice.paid':
+                case 'invoice.payment_succeeded':
+                case 'invoice.payment_failed':
+                case 'invoice.upcoming':
+                case 'invoice.marked_uncollectible':
+                case 'invoice.payment_action_required':
+                    const invoice = event.data.object;
+                    await insertInvoiceRecord(invoice);
                     break;
                 default:
                     logs.webhookHandlerError(new Error('Unhandled relevant event!'), event.id, event.type);

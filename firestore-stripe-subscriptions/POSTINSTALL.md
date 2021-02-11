@@ -67,6 +67,12 @@ Here's how to set up the webhook and configure your extension to use it:
    - `customer.subscription.deleted`
    - `tax_rate.created` (optional)
    - `tax_rate.updated` (optional)
+   - `invoice.paid` (optional, will sync invoices to Cloud Firestore)
+   - `invoice.payment_succeeded` (optional, will sync invoices to Cloud Firestore)
+   - `invoice.payment_failed` (optional, will sync invoices to Cloud Firestore)
+   - `invoice.upcoming` (optional, will sync invoices to Cloud Firestore)
+   - `invoice.marked_uncollectible` (optional, will sync invoices to Cloud Firestore)
+   - `invoice.payment_action_required` (optional, will sync invoices to Cloud Firestore)
 
 1. Using the Firebase console or Firebase CLI, [reconfigure](https://console.firebase.google.com/project/${param:PROJECT_ID}/extensions/instances/${param:EXT_INSTANCE_ID}?tab=config) your extension with your webhook’s signing secret (such as, `whsec_12345678`). Enter the value in the parameter called `Stripe webhook secret`.
 

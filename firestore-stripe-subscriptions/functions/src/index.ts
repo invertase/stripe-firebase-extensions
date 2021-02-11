@@ -420,6 +420,29 @@ const manageSubscriptionStatusChange = async (
 };
 
 /**
+ * Add invoice objects to Cloud Firestore.
+ */
+const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
+  // Get customer's UID from Firestore
+  const customersSnap = await admin
+    .firestore()
+    .collection(config.customersCollectionPath)
+    .where('stripeId', '==', invoice.customer)
+    .get();
+  if (customersSnap.size !== 1) {
+    throw new Error('User not found!');
+  }
+  // Write to invoice to a subcollection on the subscription doc.
+  await customersSnap.docs[0].ref
+    .collection('subscriptions')
+    .doc(invoice.subscription as string)
+    .collection('invoices')
+    .doc(invoice.id)
+    .set(invoice);
+  logs.firestoreDocCreated('invoices', invoice.id);
+};
+
+/**
  * A webhook handler function for the relevant Stripe events.
  */
 export const handleWebhookEvents = functions.handler.https.onRequest(
@@ -437,6 +460,12 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
       'customer.subscription.deleted',
       'tax_rate.created',
       'tax_rate.updated',
+      'invoice.paid',
+      'invoice.payment_succeeded',
+      'invoice.payment_failed',
+      'invoice.upcoming',
+      'invoice.marked_uncollectible',
+      'invoice.payment_action_required',
     ]);
     let event: Stripe.Event;
 
@@ -499,6 +528,15 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
                 true
               );
             }
+            break;
+          case 'invoice.paid':
+          case 'invoice.payment_succeeded':
+          case 'invoice.payment_failed':
+          case 'invoice.upcoming':
+          case 'invoice.marked_uncollectible':
+          case 'invoice.payment_action_required':
+            const invoice = event.data.object as Stripe.Invoice;
+            await insertInvoiceRecord(invoice);
             break;
           default:
             logs.webhookHandlerError(

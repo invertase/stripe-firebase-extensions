@@ -30,6 +30,19 @@ const docRef = await db
   });
 ```
 
+[feat] Sync invoices with Cloud Firestore. You can now sync the full Stripe invoice objects to an `invoices` subcollection on their corresponding subscription doc by listening to the relevant invoices webhook events (`invoice.paid`, `invoice.payment_succeeded`, `invoice.payment_failed`, `invoice.upcoming`, `invoice.marked_uncollectible`, `invoice.payment_action_required`). Only select the
+events that you want to be notified about. You can then [listen to changes](https://firebase.google.com/docs/functions/firestore-events#writing-triggered_functions) on the invoices objects in Cloud Firestore: (#124)
+
+```js
+const functions = require("firebase-functions");
+
+exports.myFunction = functions.firestore
+  .document("customers/{uid}/subscriptions/{subsId}/invoices/{docId}")
+  .onWrite((change, context) => {
+    /* ... */
+  });
+```
+
 ## Version 0.1.9 - 2021-01-14
 
 [feat] - Support all billing pricing models.
