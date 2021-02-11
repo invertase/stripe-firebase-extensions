@@ -55,12 +55,12 @@ const stripe_1 = __importDefault(require("stripe"));
 const logs = __importStar(require("./logs"));
 const config_1 = __importDefault(require("./config"));
 const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
-    apiVersion: '2020-03-02',
+    apiVersion: '2020-08-27',
     // Register extension as a Stripe plugin
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.9',
+        version: '0.1.10',
     },
 });
 admin.initializeApp();
@@ -108,7 +108,7 @@ exports.createCustomer = functions.auth.user().onCreate(async (user) => {
 exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
-    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, tax_rates = [], allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', } = snap.data();
+    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, tax_rates = [], allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', locale = 'auto', promotion_code, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -121,7 +121,7 @@ exports.createCheckoutSession = functions.firestore
             });
         }
         const customer = customerRecord.stripeId;
-        const session = await stripe.checkout.sessions.create({
+        const sessionCreateParams = {
             billing_address_collection,
             payment_method_types,
             customer,
@@ -135,14 +135,21 @@ exports.createCheckoutSession = functions.firestore
                     },
                 ],
             mode: 'subscription',
-            allow_promotion_codes,
             subscription_data: {
                 trial_from_plan,
                 metadata,
             },
             success_url,
             cancel_url,
-        }, { idempotencyKey: context.params.id });
+            locale,
+        };
+        if (promotion_code) {
+            sessionCreateParams.discounts = [{ promotion_code }];
+        }
+        else {
+            sessionCreateParams.allow_promotion_codes = allow_promotion_codes;
+        }
+        const session = await stripe.checkout.sessions.create(sessionCreateParams, { idempotencyKey: context.params.id });
         await snap.ref.set({
             sessionId: session.id,
             created: admin.firestore.Timestamp.now(),
@@ -299,7 +306,7 @@ const manageSubscriptionStatusChange = async (subscriptionId, customerId, create
             .collection('prices')
             .doc(price.id),
         prices,
-        quantity: subscription.quantity,
+        quantity: subscription.items.data[0].quantity,
         cancel_at_period_end: subscription.cancel_at_period_end,
         cancel_at: subscription.cancel_at
             ? admin.firestore.Timestamp.fromMillis(subscription.cancel_at * 1000)
@@ -354,6 +361,28 @@ const manageSubscriptionStatusChange = async (subscriptionId, customerId, create
     return;
 };
 /**
+ * Add invoice objects to Cloud Firestore.
+ */
+const insertInvoiceRecord = async (invoice) => {
+    // Get customer's UID from Firestore
+    const customersSnap = await admin
+        .firestore()
+        .collection(config_1.default.customersCollectionPath)
+        .where('stripeId', '==', invoice.customer)
+        .get();
+    if (customersSnap.size !== 1) {
+        throw new Error('User not found!');
+    }
+    // Write to invoice to a subcollection on the subscription doc.
+    await customersSnap.docs[0].ref
+        .collection('subscriptions')
+        .doc(invoice.subscription)
+        .collection('invoices')
+        .doc(invoice.id)
+        .set(invoice);
+    logs.firestoreDocCreated('invoices', invoice.id);
+};
+/**
  * A webhook handler function for the relevant Stripe events.
  */
 exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp) => {
@@ -370,6 +399,12 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
         'customer.subscription.deleted',
         'tax_rate.created',
         'tax_rate.updated',
+        'invoice.paid',
+        'invoice.payment_succeeded',
+        'invoice.payment_failed',
+        'invoice.upcoming',
+        'invoice.marked_uncollectible',
+        'invoice.payment_action_required',
     ]);
     let event;
     // Instead of getting the `Stripe.Event`
@@ -419,6 +454,15 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
                         const subscriptionId = checkoutSession.subscription;
                         await manageSubscriptionStatusChange(subscriptionId, checkoutSession.customer, true);
                     }
+                    break;
+                case 'invoice.paid':
+                case 'invoice.payment_succeeded':
+                case 'invoice.payment_failed':
+                case 'invoice.upcoming':
+                case 'invoice.marked_uncollectible':
+                case 'invoice.payment_action_required':
+                    const invoice = event.data.object;
+                    await insertInvoiceRecord(invoice);
                     break;
                 default:
                     logs.webhookHandlerError(new Error('Unhandled relevant event!'), event.id, event.type);

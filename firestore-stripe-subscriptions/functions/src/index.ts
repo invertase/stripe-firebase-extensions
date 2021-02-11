@@ -28,12 +28,12 @@ import * as logs from './logs';
 import config from './config';
 
 const stripe = new Stripe(config.stripeSecretKey, {
-  apiVersion: '2020-03-02',
+  apiVersion: '2020-08-27',
   // Register extension as a Stripe plugin
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.9',
+    version: '0.1.10',
   },
 });
 
@@ -104,6 +104,8 @@ exports.createCheckoutSession = functions.firestore
       trial_from_plan = true,
       line_items,
       billing_address_collection = 'required',
+      locale = 'auto',
+      promotion_code,
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -117,29 +119,35 @@ exports.createCheckoutSession = functions.firestore
         });
       }
       const customer = customerRecord.stripeId;
-      const session = await stripe.checkout.sessions.create(
-        {
-          billing_address_collection,
-          payment_method_types,
-          customer,
-          line_items: line_items
-            ? line_items
-            : [
-                {
-                  price,
-                  quantity,
-                  tax_rates,
-                },
-              ],
-          mode: 'subscription',
-          allow_promotion_codes,
-          subscription_data: {
-            trial_from_plan,
-            metadata,
-          },
-          success_url,
-          cancel_url,
+      const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
+        billing_address_collection,
+        payment_method_types,
+        customer,
+        line_items: line_items
+          ? line_items
+          : [
+              {
+                price,
+                quantity,
+                tax_rates,
+              },
+            ],
+        mode: 'subscription',
+        subscription_data: {
+          trial_from_plan,
+          metadata,
         },
+        success_url,
+        cancel_url,
+        locale,
+      };
+      if (promotion_code) {
+        sessionCreateParams.discounts = [{ promotion_code }];
+      } else {
+        sessionCreateParams.allow_promotion_codes = allow_promotion_codes;
+      }
+      const session = await stripe.checkout.sessions.create(
+        sessionCreateParams,
         { idempotencyKey: context.params.id }
       );
       await snap.ref.set(
@@ -349,7 +357,7 @@ const manageSubscriptionStatusChange = async (
       .collection('prices')
       .doc(price.id),
     prices,
-    quantity: subscription.quantity,
+    quantity: subscription.items.data[0].quantity,
     cancel_at_period_end: subscription.cancel_at_period_end,
     cancel_at: subscription.cancel_at
       ? admin.firestore.Timestamp.fromMillis(subscription.cancel_at * 1000)
@@ -412,6 +420,29 @@ const manageSubscriptionStatusChange = async (
 };
 
 /**
+ * Add invoice objects to Cloud Firestore.
+ */
+const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
+  // Get customer's UID from Firestore
+  const customersSnap = await admin
+    .firestore()
+    .collection(config.customersCollectionPath)
+    .where('stripeId', '==', invoice.customer)
+    .get();
+  if (customersSnap.size !== 1) {
+    throw new Error('User not found!');
+  }
+  // Write to invoice to a subcollection on the subscription doc.
+  await customersSnap.docs[0].ref
+    .collection('subscriptions')
+    .doc(invoice.subscription as string)
+    .collection('invoices')
+    .doc(invoice.id)
+    .set(invoice);
+  logs.firestoreDocCreated('invoices', invoice.id);
+};
+
+/**
  * A webhook handler function for the relevant Stripe events.
  */
 export const handleWebhookEvents = functions.handler.https.onRequest(
@@ -429,6 +460,12 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
       'customer.subscription.deleted',
       'tax_rate.created',
       'tax_rate.updated',
+      'invoice.paid',
+      'invoice.payment_succeeded',
+      'invoice.payment_failed',
+      'invoice.upcoming',
+      'invoice.marked_uncollectible',
+      'invoice.payment_action_required',
     ]);
     let event: Stripe.Event;
 
@@ -491,6 +528,15 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
                 true
               );
             }
+            break;
+          case 'invoice.paid':
+          case 'invoice.payment_succeeded':
+          case 'invoice.payment_failed':
+          case 'invoice.upcoming':
+          case 'invoice.marked_uncollectible':
+          case 'invoice.payment_action_required':
+            const invoice = event.data.object as Stripe.Invoice;
+            await insertInvoiceRecord(invoice);
             break;
           default:
             logs.webhookHandlerError(

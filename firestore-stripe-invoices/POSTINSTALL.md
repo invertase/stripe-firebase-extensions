@@ -15,20 +15,22 @@ To test out the extension:
 
 1. Test the invoicing functionality by adding a document to your collection, for example:
 
-   ```js
-   email: "customer@example.com",
-   items: [{
-       amount: 1999,
-       currency: "usd",
-       quantity: 2, // Optional, defaults to 1.
-       description: "my super cool item"
-   },
-   {
-       amount: 540,
-       currency: "usd",
-       description: "shipping cost"
-   }]
-   ```
+```js
+{
+  email: "customer@example.com",
+  items: [{
+      amount: 1999,
+      currency: "usd",
+      quantity: 2, // Optional, defaults to 1.
+      description: "my super cool item"
+  },
+  {
+      amount: 540,
+      currency: "usd",
+      description: "shipping cost"
+  }]
+}
+```
 
 1. Look in your [Stripe dashboard](https://dashboard.stripe.com/test/invoices) for a record of the test invoice.
 
@@ -45,18 +47,20 @@ An invoice requires either an email address or a [Firebase Authentication](https
   - `email`: (_plaintext string_) email address of the customer
   - `uid`: (_string_) Firebase Authentication user ID that has an associated email address
 
-- **`items`**: An array of items (each one is a map) that are included in the invoice. Each item must include an `amount` (_number_), `currency` (_string_), and `description` (_string_). 
+- **`items`**: An array of items (each one is a map) that are included in the invoice. Each item must include an `amount` (_number_), `currency` (_string_), and `description` (_string_). It can optionally include an array of [`tax_rates`](https://stripe.com/docs/api/invoiceitems/create#create_invoiceitem-tax_rates) (_string, optional_).
 - **`quantity`**: An optional `quantity` (_number_) parameter can be provided. If omitted the quantity will default to `1`.
 
   ```js
-  items: [
-    {
-      amount: 999,
-      currency: 'usd',
-      quantity: 2,
-      description: 'one shirt, size medium',
-    },
-  ];
+  {
+    items: [
+      {
+        amount: 999,
+        currency: 'usd',
+        quantity: 2,
+        description: 'one shirt, size medium',
+      },
+    ]
+  }
   ```
 
 **Note:** Stripe supports [135+ currencies](https://stripe.com/docs/currencies) and requires the amount to be in the currency’s small unit (for example, for USD, `999` is equivalent to \$9.99).
@@ -66,29 +70,79 @@ An invoice requires either an email address or a [Firebase Authentication](https
 Here are some example documents to represent an invoice:
 
 ```js
-email: "customer@example.com",
-items: [{
-    amount: 1999,
-    currency: "usd",
-    description: "my super cool item"
-},
 {
-    amount: 540,
-    currency: "usd",
-    description: "shipping cost"
-}]
+  email: "customer@example.com",
+  items: [{
+      amount: 1999,
+      currency: "usd",
+      description: "my super cool item"
+  },
+  {
+      amount: 540,
+      currency: "usd",
+      description: "shipping cost"
+  }]
+}
 ```
 
 or
 
 ```js
-uid: "APkKkSLsT6cjxsCqYMh3Gi0TZtl5",
-items: [{
-    amount: 1999,
-    currency: "usd",
-    description: "my super cool item"
-}],
-daysUntilDue: 2
+{
+  uid: "APkKkSLsT6cjxsCqYMh3Gi0TZtl5",
+  items: [{
+      amount: 1999,
+      currency: "usd",
+      description: "my super cool item"
+  }],
+  daysUntilDue: 2
+}
+```
+
+- **`default_tax_rates`**: (_string, optional_) An array of [tax rates](https://stripe.com/docs/billing/taxes/tax-rates) that should be applied to all invoice items.
+
+```js
+{
+  email: "testr@test.de",
+  default_tax_rates: ["txr_1HCkCjHYgolSBA35vh6cyHB5"],
+  items: [
+    {
+      amount: 1099,
+      currency: "usd",
+      description: "item 1",
+      tax_rates: ["txr_1HCshzHYgolSBA35WkPjzOOi"],
+    },
+    {
+      amount: 1250,
+      currency: "usd",
+      description: "item 2",
+    },
+  ],
+}
+```
+
+- **`transfer_data`**: (_object, optional_) A [`transfer_data`](https://stripe.com/docs/api/invoices/create#create_invoice-transfer_data) object to send funds to a connected account upon successful payment.
+
+```js
+{
+  transfer_data: {
+    destination: "acct_1234",
+    amount: 2114,
+  },
+  email: "testr@test.de",
+  items: [
+    {
+      amount: 1099,
+      currency: "usd",
+      description: "item 1",
+    },
+    {
+      amount: 1250,
+      currency: "usd",
+      description: "item 2",
+    },
+  ],
+}
 ```
 
 You can use a Firebase SDK to add an invoice document to [Cloud Firestore.](https://firebase.google.com/docs/firestore/quickstart#set_up_your_development_environment) Here's an example using the Firebase Node.js SDK:
@@ -105,7 +159,7 @@ db.collection('${param:INVOICES_COLLECTION}')
       {
         amount: 1000, // $10.00
         currency: 'usd',
-       quantity: 2, // Optional, defaults to 1.
+        quantity: 2, // Optional, defaults to 1.
         description: 'Cool hat',
       },
     ],
