@@ -33,7 +33,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.10',
+    version: '0.1.11',
   },
 });
 
@@ -357,7 +357,8 @@ const manageSubscriptionStatusChange = async (
       .collection('prices')
       .doc(price.id),
     prices,
-    quantity: subscription.items.data[0].quantity,
+    quantity: subscription.items.data[0].quantity ?? null,
+    items: subscription.items.data,
     cancel_at_period_end: subscription.cancel_at_period_end,
     cancel_at: subscription.cancel_at
       ? admin.firestore.Timestamp.fromMillis(subscription.cancel_at * 1000)

@@ -60,7 +60,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.10',
+        version: '0.1.11',
     },
 });
 admin.initializeApp();
@@ -258,7 +258,7 @@ const copyBillingDetailsToCustomer = async (payment_method) => {
  * Manage subscription status changes.
  */
 const manageSubscriptionStatusChange = async (subscriptionId, customerId, createAction) => {
-    var _a;
+    var _a, _b;
     // Get customer's UID from Firestore
     const customersSnap = await admin
         .firestore()
@@ -306,7 +306,8 @@ const manageSubscriptionStatusChange = async (subscriptionId, customerId, create
             .collection('prices')
             .doc(price.id),
         prices,
-        quantity: subscription.items.data[0].quantity,
+        quantity: (_b = subscription.items.data[0].quantity) !== null && _b !== void 0 ? _b : null,
+        items: subscription.items.data,
         cancel_at_period_end: subscription.cancel_at_period_end,
         cancel_at: subscription.cancel_at
             ? admin.firestore.Timestamp.fromMillis(subscription.cancel_at * 1000)
