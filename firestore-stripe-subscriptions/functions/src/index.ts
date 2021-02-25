@@ -106,6 +106,7 @@ exports.createCheckoutSession = functions.firestore
       billing_address_collection = 'required',
       locale = 'auto',
       promotion_code,
+      client_reference_id,
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -146,6 +147,8 @@ exports.createCheckoutSession = functions.firestore
       } else {
         sessionCreateParams.allow_promotion_codes = allow_promotion_codes;
       }
+      if (client_reference_id)
+        sessionCreateParams.client_reference_id = client_reference_id;
       const session = await stripe.checkout.sessions.create(
         sessionCreateParams,
         { idempotencyKey: context.params.id }
