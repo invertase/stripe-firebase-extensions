@@ -307,6 +307,7 @@ const manageSubscriptionStatusChange = async (subscriptionId, customerId, create
             .doc(price.id),
         prices,
         quantity: (_b = subscription.items.data[0].quantity) !== null && _b !== void 0 ? _b : null,
+        items: subscription.items.data,
         cancel_at_period_end: subscription.cancel_at_period_end,
         cancel_at: subscription.cancel_at
             ? admin.firestore.Timestamp.fromMillis(subscription.cancel_at * 1000)

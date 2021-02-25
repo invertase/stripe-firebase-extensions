@@ -1,6 +1,8 @@
 ## Version 0.1.11 - 2021-02-25
 
-[fix] Fix an issue where metered billing subscriptions were not synced to Cloud Firestore (#138)
+[fix] Fix an issue where metered billing subscriptions were not synced to Cloud Firestore. (#138)
+
+[feat] Sync subscription items to Cloud Firestore. (#140)
 
 ## Version 0.1.10 - 2021-02-11
 
