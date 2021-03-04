@@ -60,7 +60,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.10',
+        version: '0.1.11',
     },
 });
 admin.initializeApp();
@@ -108,7 +108,7 @@ exports.createCustomer = functions.auth.user().onCreate(async (user) => {
 exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
-    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, tax_rates = [], allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', locale = 'auto', promotion_code, } = snap.data();
+    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, tax_rates = [], allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', locale = 'auto', promotion_code, client_reference_id, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -149,6 +149,8 @@ exports.createCheckoutSession = functions.firestore
         else {
             sessionCreateParams.allow_promotion_codes = allow_promotion_codes;
         }
+        if (client_reference_id)
+            sessionCreateParams.client_reference_id = client_reference_id;
         const session = await stripe.checkout.sessions.create(sessionCreateParams, { idempotencyKey: context.params.id });
         await snap.ref.set({
             sessionId: session.id,
@@ -258,7 +260,7 @@ const copyBillingDetailsToCustomer = async (payment_method) => {
  * Manage subscription status changes.
  */
 const manageSubscriptionStatusChange = async (subscriptionId, customerId, createAction) => {
-    var _a;
+    var _a, _b;
     // Get customer's UID from Firestore
     const customersSnap = await admin
         .firestore()
@@ -306,7 +308,8 @@ const manageSubscriptionStatusChange = async (subscriptionId, customerId, create
             .collection('prices')
             .doc(price.id),
         prices,
-        quantity: subscription.items.data[0].quantity,
+        quantity: (_b = subscription.items.data[0].quantity) !== null && _b !== void 0 ? _b : null,
+        items: subscription.items.data,
         cancel_at_period_end: subscription.cancel_at_period_end,
         cancel_at: subscription.cancel_at
             ? admin.firestore.Timestamp.fromMillis(subscription.cancel_at * 1000)

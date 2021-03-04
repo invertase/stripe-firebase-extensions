@@ -1,3 +1,11 @@
+## Version 0.1.11 - 2021-02-25
+
+[fix] Fix an issue where metered billing subscriptions were not synced to Cloud Firestore. (#138)
+
+[feat] Sync subscription items to Cloud Firestore. (#140)
+
+[feat] Allow setting of [`client_reference_id`](https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-client_reference_id) on the checkout session doc. (#143)
+
 ## Version 0.1.10 - 2021-02-11
 
 [feat] Set [promotion codes](https://stripe.com/docs/billing/subscriptions/discounts/codes) programmatically. **_NOTE_**: anyone with access to a promotion code ID would be able to apply it to their checkout session. Therefore make sure to limit your promotion codes and archive any codes you don't want to offer anymore. (#107)

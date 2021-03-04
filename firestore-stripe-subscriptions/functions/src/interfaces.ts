@@ -105,6 +105,7 @@ export interface Subscription {
   stripeLink: string;
   role: string | null;
   quantity: number;
+  items: Stripe.SubscriptionItem[];
   /**
    * Firestore reference to the product doc for this Subscription.
    */

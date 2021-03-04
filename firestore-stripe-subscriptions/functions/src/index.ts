@@ -33,7 +33,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.10',
+    version: '0.1.11',
   },
 });
 
@@ -106,6 +106,7 @@ exports.createCheckoutSession = functions.firestore
       billing_address_collection = 'required',
       locale = 'auto',
       promotion_code,
+      client_reference_id,
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -146,6 +147,8 @@ exports.createCheckoutSession = functions.firestore
       } else {
         sessionCreateParams.allow_promotion_codes = allow_promotion_codes;
       }
+      if (client_reference_id)
+        sessionCreateParams.client_reference_id = client_reference_id;
       const session = await stripe.checkout.sessions.create(
         sessionCreateParams,
         { idempotencyKey: context.params.id }
@@ -357,7 +360,8 @@ const manageSubscriptionStatusChange = async (
       .collection('prices')
       .doc(price.id),
     prices,
-    quantity: subscription.items.data[0].quantity,
+    quantity: subscription.items.data[0].quantity ?? null,
+    items: subscription.items.data,
     cancel_at_period_end: subscription.cancel_at_period_end,
     cancel_at: subscription.cancel_at
       ? admin.firestore.Timestamp.fromMillis(subscription.cancel_at * 1000)
