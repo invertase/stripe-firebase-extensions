@@ -60,7 +60,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.11',
+        version: '0.1.12',
     },
 });
 admin.initializeApp();
@@ -80,6 +80,7 @@ const createCustomerRecord = async ({ email, uid, }) => {
         const customer = await stripe.customers.create(customerData);
         // Add a mapping record in Cloud Firestore.
         const customerRecord = {
+            email: customer.email,
             stripeId: customer.id,
             stripeLink: `https://dashboard.stripe.com${customer.livemode ? '' : '/test'}/customers/${customer.id}`,
         };
@@ -108,7 +109,8 @@ exports.createCustomer = functions.auth.user().onCreate(async (user) => {
 exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
-    const { price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, tax_rates = [], allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', locale = 'auto', promotion_code, client_reference_id, } = snap.data();
+    var _a, _b;
+    const { mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, tax_rates = [], allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -121,8 +123,16 @@ exports.createCheckoutSession = functions.firestore
             });
         }
         const customer = customerRecord.stripeId;
+        // Get shipping countries
+        const shippingCountries = collect_shipping_address
+            ? (_b = (_a = (await admin
+                .firestore()
+                .collection(config_1.default.productsCollectionPath)
+                .doc('shipping_countries')
+                .get()).data()) === null || _a === void 0 ? void 0 : _a['allowed_countries']) !== null && _b !== void 0 ? _b : [] : [];
         const sessionCreateParams = {
             billing_address_collection,
+            shipping_address_collection: { allowed_countries: shippingCountries },
             payment_method_types,
             customer,
             line_items: line_items
@@ -131,18 +141,20 @@ exports.createCheckoutSession = functions.firestore
                     {
                         price,
                         quantity,
-                        tax_rates,
                     },
                 ],
-            mode: 'subscription',
-            subscription_data: {
-                trial_from_plan,
-                metadata,
-            },
+            mode,
             success_url,
             cancel_url,
             locale,
         };
+        if (mode === 'subscription') {
+            sessionCreateParams.subscription_data = {
+                trial_from_plan,
+                metadata,
+                default_tax_rates: tax_rates,
+            };
+        }
         if (promotion_code) {
             sessionCreateParams.discounts = [{ promotion_code }];
         }
@@ -208,12 +220,12 @@ const prefixMetadata = (metadata) => Object.keys(metadata).reduce((prefixedMetad
  */
 const createProductRecord = async (product) => {
     const _a = product.metadata, { firebaseRole } = _a, rawMetadata = __rest(_a, ["firebaseRole"]);
-    const productData = Object.assign({ active: product.active, name: product.name, description: product.description, role: firebaseRole !== null && firebaseRole !== void 0 ? firebaseRole : null, images: product.images }, prefixMetadata(rawMetadata));
+    const productData = Object.assign({ active: product.active, name: product.name, description: product.description, role: firebaseRole !== null && firebaseRole !== void 0 ? firebaseRole : null, images: product.images, metadata: product.metadata }, prefixMetadata(rawMetadata));
     await admin
         .firestore()
         .collection(config_1.default.productsCollectionPath)
         .doc(product.id)
-        .set(productData);
+        .set(productData, { merge: true });
     logs.firestoreDocCreated(config_1.default.productsCollectionPath, product.id);
 };
 /**
@@ -224,13 +236,13 @@ const insertPriceRecord = async (price) => {
     if (price.billing_scheme === 'tiered')
         // Tiers aren't included by default, we need to retireve and expand.
         price = await stripe.prices.retrieve(price.id, { expand: ['tiers'] });
-    const priceData = Object.assign({ active: price.active, billing_scheme: price.billing_scheme, tiers_mode: price.tiers_mode, tiers: (_a = price.tiers) !== null && _a !== void 0 ? _a : null, currency: price.currency, description: price.nickname, type: price.type, unit_amount: price.unit_amount, recurring: price.recurring, interval: (_c = (_b = price.recurring) === null || _b === void 0 ? void 0 : _b.interval) !== null && _c !== void 0 ? _c : null, interval_count: (_e = (_d = price.recurring) === null || _d === void 0 ? void 0 : _d.interval_count) !== null && _e !== void 0 ? _e : null, trial_period_days: (_g = (_f = price.recurring) === null || _f === void 0 ? void 0 : _f.trial_period_days) !== null && _g !== void 0 ? _g : null, transform_quantity: price.transform_quantity }, prefixMetadata(price.metadata));
+    const priceData = Object.assign({ active: price.active, billing_scheme: price.billing_scheme, tiers_mode: price.tiers_mode, tiers: (_a = price.tiers) !== null && _a !== void 0 ? _a : null, currency: price.currency, description: price.nickname, type: price.type, unit_amount: price.unit_amount, recurring: price.recurring, interval: (_c = (_b = price.recurring) === null || _b === void 0 ? void 0 : _b.interval) !== null && _c !== void 0 ? _c : null, interval_count: (_e = (_d = price.recurring) === null || _d === void 0 ? void 0 : _d.interval_count) !== null && _e !== void 0 ? _e : null, trial_period_days: (_g = (_f = price.recurring) === null || _f === void 0 ? void 0 : _f.trial_period_days) !== null && _g !== void 0 ? _g : null, transform_quantity: price.transform_quantity, metadata: price.metadata }, prefixMetadata(price.metadata));
     const dbRef = admin
         .firestore()
         .collection(config_1.default.productsCollectionPath)
         .doc(price.product)
         .collection('prices');
-    await dbRef.doc(price.id).set(priceData);
+    await dbRef.doc(price.id).set(priceData, { merge: true });
     logs.firestoreDocCreated('prices', price.id);
 };
 /**
@@ -386,6 +398,26 @@ const insertInvoiceRecord = async (invoice) => {
     logs.firestoreDocCreated('invoices', invoice.id);
 };
 /**
+ * Add PaymentIntent objects to Cloud Firestore for one-time payments.
+ */
+const insertPaymentRecord = async (payment) => {
+    // Get customer's UID from Firestore
+    const customersSnap = await admin
+        .firestore()
+        .collection(config_1.default.customersCollectionPath)
+        .where('stripeId', '==', payment.customer)
+        .get();
+    if (customersSnap.size !== 1) {
+        throw new Error('User not found!');
+    }
+    // Write to invoice to a subcollection on the subscription doc.
+    await customersSnap.docs[0].ref
+        .collection('payments')
+        .doc(payment.id)
+        .set(payment);
+    logs.firestoreDocCreated('payments', payment.id);
+};
+/**
  * A webhook handler function for the relevant Stripe events.
  */
 exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp) => {
@@ -408,6 +440,10 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
         'invoice.upcoming',
         'invoice.marked_uncollectible',
         'invoice.payment_action_required',
+        'payment_intent.processing',
+        'payment_intent.succeeded',
+        'payment_intent.canceled',
+        'payment_intent.payment_failed',
     ]);
     let event;
     // Instead of getting the `Stripe.Event`
@@ -457,6 +493,11 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
                         const subscriptionId = checkoutSession.subscription;
                         await manageSubscriptionStatusChange(subscriptionId, checkoutSession.customer, true);
                     }
+                    else {
+                        const paymentIntentId = checkoutSession.payment_intent;
+                        const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+                        await insertPaymentRecord(paymentIntent);
+                    }
                     break;
                 case 'invoice.paid':
                 case 'invoice.payment_succeeded':
@@ -466,6 +507,13 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
                 case 'invoice.payment_action_required':
                     const invoice = event.data.object;
                     await insertInvoiceRecord(invoice);
+                    break;
+                case 'payment_intent.processing':
+                case 'payment_intent.succeeded':
+                case 'payment_intent.canceled':
+                case 'payment_intent.payment_failed':
+                    const paymentIntent = event.data.object;
+                    await insertPaymentRecord(paymentIntent);
                     break;
                 default:
                     logs.webhookHandlerError(new Error('Unhandled relevant event!'), event.id, event.type);
@@ -534,6 +582,8 @@ const deleteStripeCustomer = async ({ uid, stripeId, }) => {
  * The `onUserDeleted` deletes their customer object in Stripe which immediately cancels all their subscriptions.
  */
 exports.onUserDeleted = functions.auth.user().onDelete(async (user) => {
+    if (!config_1.default.autoDeleteUsers)
+        return;
     // Get the Stripe customer id.
     const customer = (await admin
         .firestore()
@@ -552,6 +602,8 @@ exports.onUserDeleted = functions.auth.user().onDelete(async (user) => {
 exports.onCustomerDataDeleted = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}`)
     .onDelete(async (snap, context) => {
+    if (!config_1.default.autoDeleteUsers)
+        return;
     const { stripeId } = snap.data();
     await deleteStripeCustomer({ uid: context.params.uid, stripeId });
 });
