@@ -323,6 +323,25 @@ const docRef = await db
   });
 ```
 
+#### Collecting a shipping address during checkout
+
+To collect a shipping address from your customer during checkout, you need to create a `shipping_countries` doc in your `products` collection. This doc needs to have a field called `allowed_countries` which needs to be an array. In this array, add the country codes for the countries that you ship to. You can find a list of supported countries [here](https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-shipping_address_collection-allowed_countries).
+
+Secondly, you need to add `collect_shipping_address: true` to the Checkout Session doc creation:
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser.uid)
+  .collection("checkout_sessions")
+  .add({
+    collect_shipping_address: true,
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
 #### Setting metadata on the subscription
 
 You can optionally set a metadata object with key-value pairs when creating the checkout session. This can be useful for storing additional information about the customer's subscription. This metadata will be synced to both the Stripe subscription object (making it searchable in the Stripe Dashboard) and the subscription document in the Cloud Firestore.
@@ -369,9 +388,28 @@ const docRef = await db
     });
 ```
 
-**_NOTE_**: One-time prices are only supported in combination with recurring prices! If you specify more than one recurring price in the `line_items` array, the subscription object in Cloud Firestore will list all recurring prices in the `prices` array. The `price` attribute on the subscription in Cloud Firestore will be equal to the first item in the `prices` array: `price === prices[0]`.
+**_NOTE_**: If you specify more than one recurring price in the `line_items` array, the subscription object in Cloud Firestore will list all recurring prices in the `prices` array. The `price` attribute on the subscription in Cloud Firestore will be equal to the first item in the `prices` array: `price === prices[0]`.
 
 Note that the Stripe customer portal currently does not support changing subscriptions with multiple recurring prices. In this case the portal will only offer the option to cancel the subscription.
+
+#### Collecting one-time payments without a subscription
+
+You can also create Checkout Sessions for one-time payments when referencing a one-time price ID. One-time payments will be synced to Cloud Firestore into a payments collection for the relevant customer doc if you update your webhook handler in the Stripe dashboard to include the following events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `payment_intent.processing`.
+
+To create a Checkout Session ID for a one-time payment, pass `mode: 'payment` to the Checkout Session doc creation:
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser.uid)
+  .collection("checkout_sessions")
+  .add({
+    mode: "payment",
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl", // One-time price created in Stripe
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
 
 #### Start a subscription via the Stripe Dashboard or API
 
@@ -410,7 +448,7 @@ window.location.assign(data.url);
 
 #### Delete User Data
 
-When a user is deleted in Firebase Authentication the extension will delete their customer object in Stripe which will immediately cancel all subscriptions for the user. 
+You have the option to automatically delete customer objects in Stripe by setting the deletion option in the configuration to "Auto delete". In that case, when a user is deleted in Firebase Authentication, the extension will delete their customer object in Stripe which will immediately cancel all subscriptions for the user. 
 
 The extension will not delete any data from Cloud Firestore. Should you wish to delete the customer data from Cloud Firestore, you can use the [Delete User Data](https://firebase.google.com/products/extensions/delete-user-data) extension built by the Firebase team.
 

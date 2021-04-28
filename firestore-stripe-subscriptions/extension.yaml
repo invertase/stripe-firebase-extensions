@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firestore-stripe-subscriptions
-version: 0.1.11
+version: 0.1.12
 specVersion: v1beta
 
 displayName: Run Subscription Payments with Stripe
@@ -192,6 +192,21 @@ params:
       - label: 'Sync'
         value: 'Sync'
     default: 'Do not sync'
+    required: true
+
+  - param: DELETE_STRIPE_CUSTOMERS
+    label: Automatically delete Stripe customer objects
+    description: >-
+      Do you want to automatically delete customer objects in Stripe? 
+      When a user is deleted in Firebase Authentication or in Cloud Firestore and set to 'Auto delete' 
+      the extension will delete their customer object in Stripe which will immediately cancel all subscriptions for the user.
+    type: select
+    options:
+      - label: 'Do not delete'
+        value: 'Do not delete'
+      - label: 'Auto delete'
+        value: 'Auto delete'
+    default: 'Do not delete'
     required: true
 
   - param: STRIPE_API_KEY

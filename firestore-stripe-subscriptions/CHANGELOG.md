@@ -1,3 +1,49 @@
+## Version 0.1.12 - 2021-04-29
+
+[feat] Sync customer email address to Cloud Firestore. (#157)
+
+[feat] Add support for one-time payment mode. (#39; #133; #151; #164)
+
+You can now create Checkout Sessions for one-time payments when referencing a one-time price ID. One-time payments will be synced to Cloud Firestore into a payments collection for the relevant customer doc if you update your webhook handler in the Stripe dashboard to include the following events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `payment_intent.processing`.
+
+To create a Checkout Session ID for a one-time payment, pass `mode: 'payment` to the Checkout Session doc creation:
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser.uid)
+  .collection("checkout_sessions")
+  .add({
+    mode: "payment",
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl", // One-time price created in Stripe
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
+[feat] Add support for shipping address collection. (#26)
+
+To collect a shipping address from your customer during checkout, you need to create a `shipping_countries` doc in your `products` collection. This doc needs to have a field called `allowed_countries` which needs to be an array. In this array, add the country codes for the countries that you ship to. You can find a list of supported countries [here](https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-shipping_address_collection-allowed_countries).
+
+Secondly, you need to add `collect_shipping_address: true` to the Checkout Session doc creation:
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser.uid)
+  .collection("checkout_sessions")
+  .add({
+    collect_shipping_address: true,
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
+[Fix] Merge product and price data instead of overwriting. This allows you to add additional data to your product and price docs in Cloud Firestore. Note: this means when you remove metadata keys from your products in Stripe, they won't be removed in Cloud Firestore. (#169; #152)
+
+[Fix] Stripe customer object deletion is now a configuration option which defaults to not deleting customer objects in Stripe. (#160)
+
 ## Version 0.1.11 - 2021-02-25
 
 [fix] Fix an issue where metered billing subscriptions were not synced to Cloud Firestore. (#138)

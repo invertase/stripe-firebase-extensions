@@ -20,4 +20,5 @@ export default {
   productsCollectionPath: process.env.PRODUCTS_COLLECTION,
   customersCollectionPath: process.env.CUSTOMERS_COLLECTION,
   syncUsersOnCreate: process.env.SYNC_USERS_ON_CREATE === 'Sync',
+  autoDeleteUsers: process.env.DELETE_STRIPE_CUSTOMERS === 'Auto delete',
 };
