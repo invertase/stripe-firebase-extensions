@@ -104,6 +104,7 @@ exports.createCheckoutSession = functions.firestore
       tax_rates = [],
       allow_promotion_codes = false,
       trial_from_plan = true,
+      trial_period_days = 0,
       line_items,
       billing_address_collection = 'required',
       collect_shipping_address = false,
@@ -157,6 +158,10 @@ exports.createCheckoutSession = functions.firestore
           metadata,
           default_tax_rates: tax_rates,
         };
+        if (trial_period_days > 0) {
+          sessionCreateParams.subscription_data['trial_period_days']
+            = trial_period_days;
+        }
       }
       if (promotion_code) {
         sessionCreateParams.discounts = [{ promotion_code }];
