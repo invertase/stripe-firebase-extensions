@@ -110,7 +110,7 @@ exports.createCheckoutSession = functions.firestore
       locale = 'auto',
       promotion_code,
       client_reference_id,
-      vendor_reference_id,
+      stripeAccount, // Connected account (vendor) Stripe ID
       application_fee_percent = 0
     } = snap.data();
     try {
@@ -167,8 +167,8 @@ exports.createCheckoutSession = functions.firestore
       }
       if (client_reference_id)
         sessionCreateParams.client_reference_id = client_reference_id;
-      if (vendor_reference_id)
-        sessionCreateParams.vendor_reference_id = vendor_reference_id;
+      if (stripeAccount)
+        sessionCreateParams.stripeAccount = stripeAccount;
       if (application_fee_percent !== 0)
         sessionCreateParams.application_fee_percent = application_fee_percent;
       const session = await stripe.checkout.sessions.create(
