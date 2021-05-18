@@ -1,0 +1,3 @@
+stripe-firebase-extensions/*
+!stripe-firebase-extensions/.firebaserc
+!stripe-firebase-extensions/firebase.json
