@@ -264,7 +264,7 @@ type: "one_time" | "recurring";
 
 You can create customer-facing promotion codes in the [Stripe Dashboard](https://dashboard.stripe.com/coupons/create). Refer to the [docs](https://stripe.com/docs/billing/subscriptions/discounts/codes) for a detailed guide on how to set these up.
 
-To show the promotion code redemption box on the checkout page, set `allow_promotion_codes: true` when creating the `checkout_session` document:
+To show the promotion code redemption box on the checkout page, set `allow_promotion_codes: true` when creating the `checkout_sessions` document:
 
 ```js
 const docRef = await db
