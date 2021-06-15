@@ -334,7 +334,7 @@ function startDataListeners() {
 
 ### Create a subscription for your customer
 
-To create a subscription for your customer, you first need to create a Checkout Session, which is the programmatic representation of what your customer sees when they’re redirected to the payment form. The extension listens to documents being created in the `checkout_session` sub-collection and then creates the checkout session for you.
+To create a subscription for your customer, you first need to create a Checkout Session, which is the programmatic representation of what your customer sees when they’re redirected to the payment form. The extension listens to documents being created in the `checkout_sessions` sub-collection and then creates the checkout session for you.
 
 In your `app.js` below the "Event listeners" comment block add the following code.
 

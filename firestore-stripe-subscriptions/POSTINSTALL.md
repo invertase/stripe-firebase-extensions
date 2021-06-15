@@ -250,7 +250,7 @@ const docRef = await db
 
 You can create customer-facing promotion codes in the [Stripe Dashboard](https://dashboard.stripe.com/coupons/create). Refer to the [docs](https://stripe.com/docs/billing/subscriptions/discounts/codes) for a detailed guide on how to set these up.
 
-In order for the promotion code redemption box to show up on the checkout page, set `allow_promotion_codes: true` when creating the `checkout_session` document:
+In order for the promotion code redemption box to show up on the checkout page, set `allow_promotion_codes: true` when creating the `checkout_sessions` document:
 
 ```js
 const docRef = await db
