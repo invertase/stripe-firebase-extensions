@@ -1,3 +1,7 @@
+## Version 0.1.13 - 2021-06-17
+
+[fix] Add a `prices` and an `items` array to the one-time payment docs in the `payments` collection. The `prices` array holds Firestore references for the prices that make up this payment, and the `items` array includes the full line items of the Stripe Checkout session.
+
 ## Version 0.1.12 - 2021-04-29
 
 [feat] Sync customer email address to Cloud Firestore. (#157)

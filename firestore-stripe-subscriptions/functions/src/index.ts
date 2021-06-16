@@ -33,7 +33,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.12',
+    version: '0.1.13',
   },
 });
 
@@ -467,7 +467,10 @@ const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
 /**
  * Add PaymentIntent objects to Cloud Firestore for one-time payments.
  */
-const insertPaymentRecord = async (payment: Stripe.PaymentIntent) => {
+const insertPaymentRecord = async (
+  payment: Stripe.PaymentIntent,
+  checkoutSession?: Stripe.Checkout.Session
+) => {
   // Get customer's UID from Firestore
   const customersSnap = await admin
     .firestore()
@@ -477,11 +480,29 @@ const insertPaymentRecord = async (payment: Stripe.PaymentIntent) => {
   if (customersSnap.size !== 1) {
     throw new Error('User not found!');
   }
+  if (checkoutSession) {
+    const lineItems = await stripe.checkout.sessions.listLineItems(
+      checkoutSession.id
+    );
+    const prices = [];
+    for (const item of lineItems.data) {
+      prices.push(
+        admin
+          .firestore()
+          .collection(config.productsCollectionPath)
+          .doc(item.price.product as string)
+          .collection('prices')
+          .doc(item.price.id)
+      );
+    }
+    payment['prices'] = prices;
+    payment['items'] = lineItems.data;
+  }
   // Write to invoice to a subcollection on the subscription doc.
   await customersSnap.docs[0].ref
     .collection('payments')
     .doc(payment.id)
-    .set(payment);
+    .set(payment, { merge: true });
   logs.firestoreDocCreated('payments', payment.id);
 };
 
@@ -579,7 +600,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
               const paymentIntent = await stripe.paymentIntents.retrieve(
                 paymentIntentId
               );
-              await insertPaymentRecord(paymentIntent);
+              await insertPaymentRecord(paymentIntent, checkoutSession);
             }
             break;
           case 'invoice.paid':
