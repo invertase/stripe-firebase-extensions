@@ -60,7 +60,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.12',
+        version: '0.1.13',
     },
 });
 admin.initializeApp();
@@ -400,7 +400,7 @@ const insertInvoiceRecord = async (invoice) => {
 /**
  * Add PaymentIntent objects to Cloud Firestore for one-time payments.
  */
-const insertPaymentRecord = async (payment) => {
+const insertPaymentRecord = async (payment, checkoutSession) => {
     // Get customer's UID from Firestore
     const customersSnap = await admin
         .firestore()
@@ -410,11 +410,25 @@ const insertPaymentRecord = async (payment) => {
     if (customersSnap.size !== 1) {
         throw new Error('User not found!');
     }
+    if (checkoutSession) {
+        const lineItems = await stripe.checkout.sessions.listLineItems(checkoutSession.id);
+        const prices = [];
+        for (const item of lineItems.data) {
+            prices.push(admin
+                .firestore()
+                .collection(config_1.default.productsCollectionPath)
+                .doc(item.price.product)
+                .collection('prices')
+                .doc(item.price.id));
+        }
+        payment['prices'] = prices;
+        payment['items'] = lineItems.data;
+    }
     // Write to invoice to a subcollection on the subscription doc.
     await customersSnap.docs[0].ref
         .collection('payments')
         .doc(payment.id)
-        .set(payment);
+        .set(payment, { merge: true });
     logs.firestoreDocCreated('payments', payment.id);
 };
 /**
@@ -496,7 +510,7 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
                     else {
                         const paymentIntentId = checkoutSession.payment_intent;
                         const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-                        await insertPaymentRecord(paymentIntent);
+                        await insertPaymentRecord(paymentIntent, checkoutSession);
                     }
                     break;
                 case 'invoice.paid':
