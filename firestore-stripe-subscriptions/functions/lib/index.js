@@ -116,10 +116,11 @@ exports.createCheckoutSession = functions.firestore
         // Get stripe customer id
         let customerRecord = (await snap.ref.parent.parent.get()).data();
         if (!(customerRecord === null || customerRecord === void 0 ? void 0 : customerRecord.stripeId)) {
-            const { email } = await admin.auth().getUser(context.params.uid);
+            const customerEmail = customerRecord === null || customerRecord === void 0 ? void 0 : customerRecord.email;
+            const user = await admin.auth().getUser(context.params.uid).catch(err => null);
             customerRecord = await createCustomerRecord({
                 uid: context.params.uid,
-                email,
+                email: customerEmail !== null && customerEmail !== void 0 ? customerEmail : user === null || user === void 0 ? void 0 : user.email,
             });
         }
         const customer = customerRecord.stripeId;
