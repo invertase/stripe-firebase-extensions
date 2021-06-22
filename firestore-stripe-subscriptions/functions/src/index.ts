@@ -106,6 +106,7 @@ exports.createCheckoutSession = functions.firestore
       trial_from_plan = true,
       line_items,
       billing_address_collection = 'required',
+      customer_email = false,
       collect_shipping_address = false,
       locale = 'auto',
       promotion_code,
@@ -133,7 +134,7 @@ exports.createCheckoutSession = functions.firestore
               .get()
           ).data()?.['allowed_countries'] ?? []
         : [];
-      const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
+d      const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
         billing_address_collection,
         shipping_address_collection: { allowed_countries: shippingCountries },
         payment_method_types,
@@ -151,6 +152,9 @@ exports.createCheckoutSession = functions.firestore
         cancel_url,
         locale,
       };
+      if(customer_email){
+        sessionCreateParams.customerEmail = await admin.auth().getUser(context.params.uid).email;
+      }
       if (mode === 'subscription') {
         sessionCreateParams.subscription_data = {
           trial_from_plan,
