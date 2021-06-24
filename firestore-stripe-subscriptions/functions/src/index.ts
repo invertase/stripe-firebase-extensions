@@ -109,6 +109,7 @@ exports.createCheckoutSession = functions.firestore
       collect_shipping_address = false,
       locale = 'auto',
       promotion_code,
+      customer_update,
       client_reference_id,
     } = snap.data();
     try {
@@ -138,6 +139,7 @@ exports.createCheckoutSession = functions.firestore
         shipping_address_collection: { allowed_countries: shippingCountries },
         payment_method_types,
         customer,
+        customer_update,
         line_items: line_items
           ? line_items
           : [
