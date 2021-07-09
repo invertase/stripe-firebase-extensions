@@ -1,3 +1,58 @@
+## Version 0.1.14 - 2021-07-08
+
+[feat] Automatic tax calculation with [Stripe Tax](https://stripe.com/tax)
+
+Stripe Tax lets you calculate and collect sales tax, VAT, and GST.
+
+1. Request access: https://stripe.com/tax#request-access
+2. Set up Stripe Tax in the Dashboard: https://stripe.com/docs/tax/set-up
+3. Enable automatic tax calculation when creating your `checkout_sessions` docs:
+
+```js
+const docRef = await db
+  .collection("customers")
+  .doc(currentUser.uid)
+  .collection("checkout_sessions")
+  .add({
+    automatic_tax: true, // Automatically calculate tax based on the customer's address
+    tax_id_collection: true, // Collect the customer's tax ID (important for B2B transactions)
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
+[feat] Redirect to Stripe Checkout via URL instead of Stripe.js (#212)
+
+Stripe Checkout now returns a URL which means Stripe.js is no longer needed to redirect to checkout:
+
+```js
+const docRef = await db
+  .collection("${param:CUSTOMERS_COLLECTION}")
+  .doc(currentUser.uid)
+  .collection("checkout_sessions")
+  .add({
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+// Wait for the CheckoutSession to get attached by the extension
+docRef.onSnapshot((snap) => {
+  const { error, url } = snap.data();
+  if (error) {
+    // Show an error to your customer and
+    // inspect your Cloud Function logs in the Firebase console.
+    alert(`An error occured: ${error.message}`);
+  }
+  if (url) {
+    // We have a Stripe Checkout URL, let's redirect.
+    window.location.assign(url);
+  }
+});
+```
+
+[fix] Add checkout session metadata to one time payments (#203)
+
 ## Version 0.1.13 - 2021-06-17
 
 [fix] Add a `prices` and an `items` array to the one-time payment docs in the `payments` collection. The `prices` array holds Firestore references for the prices that make up this payment, and the `items` array includes the full line items of the Stripe Checkout session.
