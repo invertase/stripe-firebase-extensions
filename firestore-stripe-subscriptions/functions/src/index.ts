@@ -197,6 +197,7 @@ exports.createCheckoutSession = functions.firestore
       await snap.ref.set(
         {
           sessionId: session.id,
+          url: session.url,
           created: admin.firestore.Timestamp.now(),
         },
         { merge: true }

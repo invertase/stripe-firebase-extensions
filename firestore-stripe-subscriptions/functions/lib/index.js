@@ -190,6 +190,7 @@ exports.createCheckoutSession = functions.firestore
         const session = await stripe.checkout.sessions.create(sessionCreateParams, { idempotencyKey: context.params.id });
         await snap.ref.set({
             sessionId: session.id,
+            url: session.url,
             created: admin.firestore.Timestamp.now(),
         }, { merge: true });
         logs.checkoutSessionCreated(context.params.id);
