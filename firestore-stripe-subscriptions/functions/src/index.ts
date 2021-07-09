@@ -33,7 +33,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.13',
+    version: '0.1.14',
   },
 });
 
@@ -101,7 +101,9 @@ exports.createCheckoutSession = functions.firestore
       quantity = 1,
       payment_method_types = ['card'],
       metadata = {},
+      automatic_tax = false,
       tax_rates = [],
+      tax_id_collection = false,
       allow_promotion_codes = false,
       trial_from_plan = true,
       line_items,
@@ -124,7 +126,7 @@ exports.createCheckoutSession = functions.firestore
       }
       const customer = customerRecord.stripeId;
       // Get shipping countries
-      const shippingCountries = collect_shipping_address
+      const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] = collect_shipping_address
         ? (
             await admin
               .firestore()
@@ -155,7 +157,30 @@ exports.createCheckoutSession = functions.firestore
         sessionCreateParams.subscription_data = {
           trial_from_plan,
           metadata,
-          default_tax_rates: tax_rates,
+        };
+        if (!automatic_tax) {
+          sessionCreateParams.subscription_data.default_tax_rates = tax_rates;
+        }
+      } else if (mode === 'payment') {
+        sessionCreateParams.payment_intent_data = {
+          metadata,
+        };
+      }
+      if (automatic_tax) {
+        sessionCreateParams.automatic_tax = {
+          enabled: true,
+        };
+        sessionCreateParams.customer_update = {
+          name: 'auto',
+          address: 'auto',
+        };
+        if (shippingCountries.length) {
+          sessionCreateParams.customer_update.shipping = 'auto';
+        }
+      }
+      if (tax_id_collection) {
+        sessionCreateParams.tax_id_collection = {
+          enabled: true,
         };
       }
       if (promotion_code) {
@@ -172,6 +197,7 @@ exports.createCheckoutSession = functions.firestore
       await snap.ref.set(
         {
           sessionId: session.id,
+          url: session.url,
           created: admin.firestore.Timestamp.now(),
         },
         { merge: true }
@@ -245,6 +271,7 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
     role: firebaseRole ?? null,
     images: product.images,
     metadata: product.metadata,
+    tax_code: product.tax_code ?? null,
     ...prefixMetadata(rawMetadata),
   };
   await admin
@@ -277,6 +304,7 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
     interval_count: price.recurring?.interval_count ?? null,
     trial_period_days: price.recurring?.trial_period_days ?? null,
     transform_quantity: price.transform_quantity,
+    tax_behavior: price.tax_behavior ?? null,
     metadata: price.metadata,
     ...prefixMetadata(price.metadata),
   };
@@ -601,6 +629,19 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
                 paymentIntentId
               );
               await insertPaymentRecord(paymentIntent, checkoutSession);
+            }
+            if (checkoutSession.tax_id_collection.enabled) {
+              const customersSnap = await admin
+                .firestore()
+                .collection(config.customersCollectionPath)
+                .where('stripeId', '==', checkoutSession.customer as string)
+                .get();
+              if (customersSnap.size === 1) {
+                customersSnap.docs[0].ref.set(
+                  checkoutSession.customer_details,
+                  { merge: true }
+                );
+              }
             }
             break;
           case 'invoice.paid':

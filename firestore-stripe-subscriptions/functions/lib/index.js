@@ -60,7 +60,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.13',
+        version: '0.1.14',
     },
 });
 admin.initializeApp();
@@ -110,7 +110,7 @@ exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
     var _a, _b;
-    const { mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, tax_rates = [], allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
+    const { mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -152,7 +152,31 @@ exports.createCheckoutSession = functions.firestore
             sessionCreateParams.subscription_data = {
                 trial_from_plan,
                 metadata,
-                default_tax_rates: tax_rates,
+            };
+            if (!automatic_tax) {
+                sessionCreateParams.subscription_data.default_tax_rates = tax_rates;
+            }
+        }
+        else if (mode === 'payment') {
+            sessionCreateParams.payment_intent_data = {
+                metadata,
+            };
+        }
+        if (automatic_tax) {
+            sessionCreateParams.automatic_tax = {
+                enabled: true,
+            };
+            sessionCreateParams.customer_update = {
+                name: 'auto',
+                address: 'auto',
+            };
+            if (shippingCountries.length) {
+                sessionCreateParams.customer_update.shipping = 'auto';
+            }
+        }
+        if (tax_id_collection) {
+            sessionCreateParams.tax_id_collection = {
+                enabled: true,
             };
         }
         if (promotion_code) {
@@ -166,6 +190,7 @@ exports.createCheckoutSession = functions.firestore
         const session = await stripe.checkout.sessions.create(sessionCreateParams, { idempotencyKey: context.params.id });
         await snap.ref.set({
             sessionId: session.id,
+            url: session.url,
             created: admin.firestore.Timestamp.now(),
         }, { merge: true });
         logs.checkoutSessionCreated(context.params.id);
@@ -219,8 +244,9 @@ const prefixMetadata = (metadata) => Object.keys(metadata).reduce((prefixedMetad
  * Create a Product record in Firestore based on a Stripe Product object.
  */
 const createProductRecord = async (product) => {
-    const _a = product.metadata, { firebaseRole } = _a, rawMetadata = __rest(_a, ["firebaseRole"]);
-    const productData = Object.assign({ active: product.active, name: product.name, description: product.description, role: firebaseRole !== null && firebaseRole !== void 0 ? firebaseRole : null, images: product.images, metadata: product.metadata }, prefixMetadata(rawMetadata));
+    var _a;
+    const _b = product.metadata, { firebaseRole } = _b, rawMetadata = __rest(_b, ["firebaseRole"]);
+    const productData = Object.assign({ active: product.active, name: product.name, description: product.description, role: firebaseRole !== null && firebaseRole !== void 0 ? firebaseRole : null, images: product.images, metadata: product.metadata, tax_code: (_a = product.tax_code) !== null && _a !== void 0 ? _a : null }, prefixMetadata(rawMetadata));
     await admin
         .firestore()
         .collection(config_1.default.productsCollectionPath)
@@ -232,11 +258,11 @@ const createProductRecord = async (product) => {
  * Create a price (billing price plan) and insert it into a subcollection in Products.
  */
 const insertPriceRecord = async (price) => {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     if (price.billing_scheme === 'tiered')
         // Tiers aren't included by default, we need to retireve and expand.
         price = await stripe.prices.retrieve(price.id, { expand: ['tiers'] });
-    const priceData = Object.assign({ active: price.active, billing_scheme: price.billing_scheme, tiers_mode: price.tiers_mode, tiers: (_a = price.tiers) !== null && _a !== void 0 ? _a : null, currency: price.currency, description: price.nickname, type: price.type, unit_amount: price.unit_amount, recurring: price.recurring, interval: (_c = (_b = price.recurring) === null || _b === void 0 ? void 0 : _b.interval) !== null && _c !== void 0 ? _c : null, interval_count: (_e = (_d = price.recurring) === null || _d === void 0 ? void 0 : _d.interval_count) !== null && _e !== void 0 ? _e : null, trial_period_days: (_g = (_f = price.recurring) === null || _f === void 0 ? void 0 : _f.trial_period_days) !== null && _g !== void 0 ? _g : null, transform_quantity: price.transform_quantity, metadata: price.metadata }, prefixMetadata(price.metadata));
+    const priceData = Object.assign({ active: price.active, billing_scheme: price.billing_scheme, tiers_mode: price.tiers_mode, tiers: (_a = price.tiers) !== null && _a !== void 0 ? _a : null, currency: price.currency, description: price.nickname, type: price.type, unit_amount: price.unit_amount, recurring: price.recurring, interval: (_c = (_b = price.recurring) === null || _b === void 0 ? void 0 : _b.interval) !== null && _c !== void 0 ? _c : null, interval_count: (_e = (_d = price.recurring) === null || _d === void 0 ? void 0 : _d.interval_count) !== null && _e !== void 0 ? _e : null, trial_period_days: (_g = (_f = price.recurring) === null || _f === void 0 ? void 0 : _f.trial_period_days) !== null && _g !== void 0 ? _g : null, transform_quantity: price.transform_quantity, tax_behavior: (_h = price.tax_behavior) !== null && _h !== void 0 ? _h : null, metadata: price.metadata }, prefixMetadata(price.metadata));
     const dbRef = admin
         .firestore()
         .collection(config_1.default.productsCollectionPath)
@@ -511,6 +537,16 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
                         const paymentIntentId = checkoutSession.payment_intent;
                         const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
                         await insertPaymentRecord(paymentIntent, checkoutSession);
+                    }
+                    if (checkoutSession.tax_id_collection.enabled) {
+                        const customersSnap = await admin
+                            .firestore()
+                            .collection(config_1.default.customersCollectionPath)
+                            .where('stripeId', '==', checkoutSession.customer)
+                            .get();
+                        if (customersSnap.size === 1) {
+                            customersSnap.docs[0].ref.set(checkoutSession.customer_details, { merge: true });
+                        }
                     }
                     break;
                 case 'invoice.paid':
