@@ -16,6 +16,7 @@
 
 export interface InvoicePayload {
   email?: string;
+  description?: string;
   uid?: string;
   items: [OrderItem];
   daysUntilDue?: number;

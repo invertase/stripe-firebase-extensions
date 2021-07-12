@@ -37,12 +37,14 @@ admin.initializeApp();
 const createInvoice = async function ({
   customer,
   orderItems,
+  description,
   daysUntilDue,
   idempotencyKey,
   default_tax_rates = [],
   transfer_data,
 }: {
   customer: Stripe.Customer;
+  description: string;
   orderItems: Array<OrderItem>;
   daysUntilDue: number;
   idempotencyKey: string;
@@ -76,6 +78,7 @@ const createInvoice = async function ({
     const invoiceCreateParams: Stripe.InvoiceCreateParams = {
       customer: customer.id,
       collection_method: 'send_invoice',
+      description: description,
       days_until_due: daysUntilDue,
       auto_advance: true,
       default_tax_rates,
@@ -99,6 +102,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
     try {
       const payload = snap.data() as InvoicePayload;
       const daysUntilDue = payload.daysUntilDue || config.daysUntilDue;
+      const description = payload.description;
 
       if (
         (payload.email && payload.uid) ||
@@ -165,6 +169,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
 
       const invoice: Stripe.Invoice = await createInvoice({
         customer,
+        description,
         orderItems: payload.items,
         daysUntilDue,
         idempotencyKey: eventId,

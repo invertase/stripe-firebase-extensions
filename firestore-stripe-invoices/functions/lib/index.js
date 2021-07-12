@@ -54,7 +54,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
 });
 admin.initializeApp();
 /* Creates a new invoice using Stripe */
-const createInvoice = async function ({ customer, orderItems, daysUntilDue, idempotencyKey, default_tax_rates = [], transfer_data, }) {
+const createInvoice = async function ({ customer, orderItems, description, daysUntilDue, idempotencyKey, default_tax_rates = [], transfer_data, }) {
     try {
         // Create an invoice item for each item in the document
         const itemPromises = orderItems.map((item, index) => {
@@ -73,6 +73,7 @@ const createInvoice = async function ({ customer, orderItems, daysUntilDue, idem
         const invoiceCreateParams = {
             customer: customer.id,
             collection_method: 'send_invoice',
+            description: description,
             days_until_due: daysUntilDue,
             auto_advance: true,
             default_tax_rates,
@@ -93,6 +94,7 @@ exports.sendInvoice = functions.handler.firestore.document.onCreate(async (snap,
     try {
         const payload = snap.data();
         const daysUntilDue = payload.daysUntilDue || config_1.default.daysUntilDue;
+        const description = payload.description;
         if ((payload.email && payload.uid) ||
             !(payload.email || payload.uid) ||
             !payload.items.length) {
@@ -141,6 +143,7 @@ exports.sendInvoice = functions.handler.firestore.document.onCreate(async (snap,
         }
         const invoice = await createInvoice({
             customer,
+            description,
             orderItems: payload.items,
             daysUntilDue,
             idempotencyKey: eventId,
