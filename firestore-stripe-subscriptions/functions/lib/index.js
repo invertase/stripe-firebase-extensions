@@ -110,7 +110,7 @@ exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
     var _a, _b;
-    const { mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
+    const { mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, trial_end = null, trial_period_days = null, line_items, billing_address_collection = 'required', collect_shipping_address = false, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -179,6 +179,16 @@ exports.createCheckoutSession = functions.firestore
             sessionCreateParams.tax_id_collection = {
                 enabled: true,
             };
+            if (trial_period_days) {
+                sessionCreateParams.subscription_data.trial_period_days = trial_period_days;
+                delete sessionCreateParams.subscription_data.trial_end;
+                delete sessionCreateParams.subscription_data.trial_from_plan;
+            }
+            if (trial_end) {
+                sessionCreateParams.subscription_data.trial_end = trial_end;
+                delete sessionCreateParams.subscription_data.trial_period_days;
+                delete sessionCreateParams.subscription_data.trial_from_plan;
+            }
         }
         if (promotion_code) {
             sessionCreateParams.discounts = [{ promotion_code }];

@@ -106,6 +106,8 @@ exports.createCheckoutSession = functions.firestore
       tax_id_collection = false,
       allow_promotion_codes = false,
       trial_from_plan = true,
+      trial_end = null,
+      trial_period_days = null,
       line_items,
       billing_address_collection = 'required',
       collect_shipping_address = false,
@@ -183,6 +185,16 @@ exports.createCheckoutSession = functions.firestore
         sessionCreateParams.tax_id_collection = {
           enabled: true,
         };
+        if (trial_period_days) {
+          sessionCreateParams.subscription_data.trial_period_days = trial_period_days;
+          delete sessionCreateParams.subscription_data.trial_end;
+          delete sessionCreateParams.subscription_data.trial_from_plan;
+        }
+        if (trial_end) {
+          sessionCreateParams.subscription_data.trial_end = trial_end;
+          delete sessionCreateParams.subscription_data.trial_period_days;
+          delete sessionCreateParams.subscription_data.trial_from_plan;
+        }
       }
       if (promotion_code) {
         sessionCreateParams.discounts = [{ promotion_code }];
