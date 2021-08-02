@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { logger } from "firebase-functions";
+import { logger } from 'firebase-functions';
 
 export const creatingCustomer = (uid: string) => {
   logger.log(`⚙️ Creating customer object for [${uid}].`);

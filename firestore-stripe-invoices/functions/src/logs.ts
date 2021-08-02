@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { logger } from "firebase-functions";
+import { logger } from 'firebase-functions';
 import Stripe from 'stripe';
 import { InvoicePayload } from './interfaces';
 
@@ -23,9 +23,7 @@ export function startInvoiceCreate() {
 }
 
 export function startInvoiceUpdate(eventType: string) {
-  logger.log(
-    `🙂 Received new invoice event ${eventType}, starting processing`
-  );
+  logger.log(`🙂 Received new invoice event ${eventType}, starting processing`);
 }
 
 export function incorrectPayload(payload: InvoicePayload) {
