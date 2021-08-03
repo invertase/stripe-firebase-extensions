@@ -630,7 +630,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
               );
               await insertPaymentRecord(paymentIntent, checkoutSession);
             }
-            if (checkoutSession.tax_id_collection.enabled) {
+            if (checkoutSession.tax_id_collection?.enabled) {
               const customersSnap = await admin
                 .firestore()
                 .collection(config.customersCollectionPath)
