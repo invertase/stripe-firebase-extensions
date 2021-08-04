@@ -461,6 +461,7 @@ const insertPaymentRecord = async (payment, checkoutSession) => {
  * A webhook handler function for the relevant Stripe events.
  */
 exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp) => {
+    var _a;
     const relevantEvents = new Set([
         'product.created',
         'product.updated',
@@ -538,7 +539,7 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
                         const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
                         await insertPaymentRecord(paymentIntent, checkoutSession);
                     }
-                    if (checkoutSession.tax_id_collection.enabled) {
+                    if ((_a = checkoutSession.tax_id_collection) === null || _a === void 0 ? void 0 : _a.enabled) {
                         const customersSnap = await admin
                             .firestore()
                             .collection(config_1.default.customersCollectionPath)
