@@ -180,7 +180,6 @@ exports.createCheckoutSession = functions.firestore
             };
             sessionCreateParams.customer_update = {
                 name: 'auto',
-                address: 'auto',
             };
         }
         if (promotion_code) {
