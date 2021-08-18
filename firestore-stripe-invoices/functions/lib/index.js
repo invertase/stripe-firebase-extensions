@@ -147,6 +147,7 @@ exports.sendInvoice = functions.handler.firestore.document.onCreate(async (snap,
             idempotencyKey: eventId,
             default_tax_rates: payload.default_tax_rates,
             transfer_data: payload.transfer_data,
+            description: payload.description
         });
         if (invoice) {
             // Email the invoice to the customer
