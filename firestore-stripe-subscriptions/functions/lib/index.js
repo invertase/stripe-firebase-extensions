@@ -220,7 +220,7 @@ exports.createPortalLink = functions.https.onCall(async (data, context) => {
     try {
         if (!uid)
             throw new Error('Not authenticated!');
-        const return_url = data.returnUrl;
+        const { returnUrl: return_url, locale = 'auto' } = data;
         // Get stripe customer id
         const customer = (await admin
             .firestore()
@@ -230,6 +230,7 @@ exports.createPortalLink = functions.https.onCall(async (data, context) => {
         const session = await stripe.billingPortal.sessions.create({
             customer,
             return_url,
+            locale,
         });
         logs.createdBillingPortalLink(uid);
         return session;
