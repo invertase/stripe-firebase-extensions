@@ -1,3 +1,5 @@
+## Version 0.1.15 - 2021-08-26
+
 ## Version 0.1.14 - 2021-07-08
 
 [feat] Automatic tax calculation with [Stripe Tax](https://stripe.com/tax)
