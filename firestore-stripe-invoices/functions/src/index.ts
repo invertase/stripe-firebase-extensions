@@ -41,6 +41,7 @@ const createInvoice = async function ({
   idempotencyKey,
   default_tax_rates = [],
   transfer_data,
+  description = '',
 }: {
   customer: Stripe.Customer;
   orderItems: Array<OrderItem>;
@@ -51,6 +52,7 @@ const createInvoice = async function ({
     destination: string;
     amount?: number;
   };
+  description?: string;
 }) {
   try {
     // Create an invoice item for each item in the document
@@ -79,6 +81,7 @@ const createInvoice = async function ({
       days_until_due: daysUntilDue,
       auto_advance: true,
       default_tax_rates,
+      description,
     };
     if (transfer_data) invoiceCreateParams.transfer_data = transfer_data;
     const invoice: Stripe.Invoice = await stripe.invoices.create(
@@ -170,6 +173,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
         idempotencyKey: eventId,
         default_tax_rates: payload.default_tax_rates,
         transfer_data: payload.transfer_data,
+        description: payload.description
       });
 
       if (invoice) {
