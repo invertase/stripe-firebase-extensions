@@ -182,6 +182,9 @@ exports.createCheckoutSession = functions.firestore
         sessionCreateParams.tax_id_collection = {
           enabled: true,
         };
+        sessionCreateParams.customer_update = {
+          name: 'auto',
+        };
       }
       if (promotion_code) {
         sessionCreateParams.discounts = [{ promotion_code }];
