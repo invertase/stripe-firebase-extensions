@@ -235,7 +235,7 @@ exports.createPortalLink = functions.https.onCall(async (data, context) => {
   const uid = context.auth.uid;
   try {
     if (!uid) throw new Error('Not authenticated!');
-    const { returnUrl: return_url, locale = 'auto' } = data;
+    const { returnUrl: return_url, locale = 'auto', configuration } = data;
     // Get stripe customer id
     const customer = (
       await admin
@@ -244,11 +244,15 @@ exports.createPortalLink = functions.https.onCall(async (data, context) => {
         .doc(uid)
         .get()
     ).data().stripeId;
-    const session = await stripe.billingPortal.sessions.create({
+    const params: Stripe.BillingPortal.SessionCreateParams = {
       customer,
       return_url,
       locale,
-    });
+    };
+    if (configuration) {
+      params.configuration = configuration;
+    }
+    const session = await stripe.billingPortal.sessions.create(params);
     logs.createdBillingPortalLink(uid);
     return session;
   } catch (error) {
