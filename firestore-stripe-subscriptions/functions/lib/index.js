@@ -60,7 +60,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.14',
+        version: '0.1.15',
     },
 });
 admin.initializeApp();
@@ -110,7 +110,7 @@ exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
     var _a, _b;
-    const { mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
+    const { mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, customer_update = {}, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -135,6 +135,7 @@ exports.createCheckoutSession = functions.firestore
             shipping_address_collection: { allowed_countries: shippingCountries },
             payment_method_types,
             customer,
+            customer_update,
             line_items: line_items
                 ? line_items
                 : [
@@ -166,21 +167,17 @@ exports.createCheckoutSession = functions.firestore
             sessionCreateParams.automatic_tax = {
                 enabled: true,
             };
-            sessionCreateParams.customer_update = {
-                name: 'auto',
-                address: 'auto',
-            };
-            if (shippingCountries.length) {
-                sessionCreateParams.customer_update.shipping = 'auto';
-            }
+            sessionCreateParams.customer_update.name = 'auto';
+            sessionCreateParams.customer_update.address = 'auto';
+            sessionCreateParams.customer_update.shipping = 'auto';
         }
         if (tax_id_collection) {
             sessionCreateParams.tax_id_collection = {
                 enabled: true,
             };
-            sessionCreateParams.customer_update = {
-                name: 'auto',
-            };
+            sessionCreateParams.customer_update.name = 'auto';
+            sessionCreateParams.customer_update.address = 'auto';
+            sessionCreateParams.customer_update.shipping = 'auto';
         }
         if (promotion_code) {
             sessionCreateParams.discounts = [{ promotion_code }];
@@ -217,17 +214,22 @@ exports.createPortalLink = functions.https.onCall(async (data, context) => {
     try {
         if (!uid)
             throw new Error('Not authenticated!');
-        const return_url = data.returnUrl;
+        const { returnUrl: return_url, locale = 'auto', configuration } = data;
         // Get stripe customer id
         const customer = (await admin
             .firestore()
             .collection(config_1.default.customersCollectionPath)
             .doc(uid)
             .get()).data().stripeId;
-        const session = await stripe.billingPortal.sessions.create({
+        const params = {
             customer,
             return_url,
-        });
+            locale,
+        };
+        if (configuration) {
+            params.configuration = configuration;
+        }
+        const session = await stripe.billingPortal.sessions.create(params);
         logs.createdBillingPortalLink(uid);
         return session;
     }
