@@ -1,3 +1,24 @@
+## Version 0.1.15 - 2021-08-26
+
+[feat] Programmatically set locale for customer portal session. (#131)
+
+[feat] Optionally set ID for a customer portal [configuration](https://stripe.com/docs/api/customer_portal/configuration) (#234)
+
+```js
+const functionRef = firebase
+  .app()
+  .functions(functionLocation)
+  .httpsCallable("ext-firestore-stripe-subscriptions-createPortalLink");
+const { data } = await functionRef({
+  returnUrl: window.location.origin,
+  locale: "auto", // Optional, defaults to "auto"
+  configuration: "bpc_1JSEAKHYgolSBA358VNoc2Hs", // Optional ID of a portal configuration: https://stripe.com/docs/api/customer_portal/configuration
+});
+window.location.assign(data.url);
+```
+
+[feat] Support setting of [`customer_update` object](https://stripe.com/docs/api/checkout/sessions/create#create_checkout_session-customer_update) on checkout session doc creation (#219)
+
 ## Version 0.1.14 - 2021-07-08
 
 [feat] Automatic tax calculation with [Stripe Tax](https://stripe.com/tax)

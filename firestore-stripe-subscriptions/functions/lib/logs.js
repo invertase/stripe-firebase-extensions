@@ -16,69 +16,70 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.webhookHandlerError = exports.webhookHandlerSucceeded = exports.startWebhookEventProcessing = exports.badWebhookSecret = exports.userCustomClaimSet = exports.firestoreDocDeleted = exports.firestoreDocCreated = exports.billingPortalLinkCreationError = exports.createdBillingPortalLink = exports.checkoutSessionCreationError = exports.checkoutSessionCreated = exports.creatingCheckoutSession = exports.customerDeleted = exports.customerCreated = exports.customerDeletionError = exports.customerCreationError = exports.creatingCustomer = void 0;
+const firebase_functions_1 = require("firebase-functions");
 exports.creatingCustomer = (uid) => {
-    console.log(`⚙️ Creating customer object for [${uid}].`);
+    firebase_functions_1.logger.log(`⚙️ Creating customer object for [${uid}].`);
 };
 exports.customerCreationError = (error, uid) => {
-    console.error(`❗️[Error]: Failed to create customer for [${uid}]:`, error.message);
+    firebase_functions_1.logger.error(`❗️[Error]: Failed to create customer for [${uid}]:`, error.message);
 };
 exports.customerDeletionError = (error, uid) => {
-    console.error(`❗️[Error]: Failed to delete customer for [${uid}]:`, error.message);
+    firebase_functions_1.logger.error(`❗️[Error]: Failed to delete customer for [${uid}]:`, error.message);
 };
 function customerCreated(id, livemode) {
-    console.log(`✅Created a new customer: https://dashboard.stripe.com${livemode ? '' : '/test'}/customers/${id}.`);
+    firebase_functions_1.logger.log(`✅Created a new customer: https://dashboard.stripe.com${livemode ? '' : '/test'}/customers/${id}.`);
 }
 exports.customerCreated = customerCreated;
 function customerDeleted(id) {
-    console.log(`🗑Deleted Stripe customer [${id}]`);
+    firebase_functions_1.logger.log(`🗑Deleted Stripe customer [${id}]`);
 }
 exports.customerDeleted = customerDeleted;
 function creatingCheckoutSession(docId) {
-    console.log(`⚙️ Creating checkout session for doc [${docId}].`);
+    firebase_functions_1.logger.log(`⚙️ Creating checkout session for doc [${docId}].`);
 }
 exports.creatingCheckoutSession = creatingCheckoutSession;
 function checkoutSessionCreated(docId) {
-    console.log(`✅Checkout session created for doc [${docId}].`);
+    firebase_functions_1.logger.log(`✅Checkout session created for doc [${docId}].`);
 }
 exports.checkoutSessionCreated = checkoutSessionCreated;
 function checkoutSessionCreationError(docId, error) {
-    console.error(`❗️[Error]: Checkout session creation failed for doc [${docId}]:`, error.message);
+    firebase_functions_1.logger.error(`❗️[Error]: Checkout session creation failed for doc [${docId}]:`, error.message);
 }
 exports.checkoutSessionCreationError = checkoutSessionCreationError;
 function createdBillingPortalLink(uid) {
-    console.log(`✅Created billing portal link for user [${uid}].`);
+    firebase_functions_1.logger.log(`✅Created billing portal link for user [${uid}].`);
 }
 exports.createdBillingPortalLink = createdBillingPortalLink;
 function billingPortalLinkCreationError(uid, error) {
-    console.error(`❗️[Error]: Customer portal link creation failed for user [${uid}]:`, error.message);
+    firebase_functions_1.logger.error(`❗️[Error]: Customer portal link creation failed for user [${uid}]:`, error.message);
 }
 exports.billingPortalLinkCreationError = billingPortalLinkCreationError;
 function firestoreDocCreated(collection, docId) {
-    console.log(`🔥📄 Added doc [${docId}] to collection [${collection}] in Firestore.`);
+    firebase_functions_1.logger.log(`🔥📄 Added doc [${docId}] to collection [${collection}] in Firestore.`);
 }
 exports.firestoreDocCreated = firestoreDocCreated;
 function firestoreDocDeleted(collection, docId) {
-    console.log(`🗑🔥📄 Deleted doc [${docId}] from collection [${collection}] in Firestore.`);
+    firebase_functions_1.logger.log(`🗑🔥📄 Deleted doc [${docId}] from collection [${collection}] in Firestore.`);
 }
 exports.firestoreDocDeleted = firestoreDocDeleted;
 function userCustomClaimSet(uid, claimKey, claimValue) {
-    console.log(`🚦 Added custom claim [${claimKey}: ${claimValue}] for user [${uid}].`);
+    firebase_functions_1.logger.log(`🚦 Added custom claim [${claimKey}: ${claimValue}] for user [${uid}].`);
 }
 exports.userCustomClaimSet = userCustomClaimSet;
 function badWebhookSecret(error) {
-    console.error('❗️[Error]: Webhook signature verification failed. Is your Stripe webhook secret parameter configured correctly?', error.message);
+    firebase_functions_1.logger.error('❗️[Error]: Webhook signature verification failed. Is your Stripe webhook secret parameter configured correctly?', error.message);
 }
 exports.badWebhookSecret = badWebhookSecret;
 function startWebhookEventProcessing(id, type) {
-    console.log(`⚙️ Handling Stripe event [${id}] of type [${type}].`);
+    firebase_functions_1.logger.log(`⚙️ Handling Stripe event [${id}] of type [${type}].`);
 }
 exports.startWebhookEventProcessing = startWebhookEventProcessing;
 function webhookHandlerSucceeded(id, type) {
-    console.log(`✅Successfully handled Stripe event [${id}] of type [${type}].`);
+    firebase_functions_1.logger.log(`✅Successfully handled Stripe event [${id}] of type [${type}].`);
 }
 exports.webhookHandlerSucceeded = webhookHandlerSucceeded;
 function webhookHandlerError(error, id, type) {
-    console.error(`❗️[Error]: Webhook handler for  Stripe event [${id}] of type [${type}] failed:`, error.message);
+    firebase_functions_1.logger.error(`❗️[Error]: Webhook handler for  Stripe event [${id}] of type [${type}] failed:`, error.message);
 }
 exports.webhookHandlerError = webhookHandlerError;
 //# sourceMappingURL=logs.js.map

@@ -33,7 +33,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-subscriptions',
-    version: '0.1.14',
+    version: '0.1.15',
   },
 });
 
@@ -109,6 +109,7 @@ exports.createCheckoutSession = functions.firestore
       line_items,
       billing_address_collection = 'required',
       collect_shipping_address = false,
+      customer_update = {},
       locale = 'auto',
       promotion_code,
       client_reference_id,
@@ -140,6 +141,7 @@ exports.createCheckoutSession = functions.firestore
         shipping_address_collection: { allowed_countries: shippingCountries },
         payment_method_types,
         customer,
+        customer_update,
         line_items: line_items
           ? line_items
           : [
@@ -170,18 +172,17 @@ exports.createCheckoutSession = functions.firestore
         sessionCreateParams.automatic_tax = {
           enabled: true,
         };
-        sessionCreateParams.customer_update = {
-          name: 'auto',
-          address: 'auto',
-        };
-        if (shippingCountries.length) {
-          sessionCreateParams.customer_update.shipping = 'auto';
-        }
+        sessionCreateParams.customer_update.name = 'auto';
+        sessionCreateParams.customer_update.address = 'auto';
+        sessionCreateParams.customer_update.shipping = 'auto';
       }
       if (tax_id_collection) {
         sessionCreateParams.tax_id_collection = {
           enabled: true,
         };
+        sessionCreateParams.customer_update.name = 'auto';
+        sessionCreateParams.customer_update.address = 'auto';
+        sessionCreateParams.customer_update.shipping = 'auto';
       }
       if (promotion_code) {
         sessionCreateParams.discounts = [{ promotion_code }];
@@ -228,7 +229,7 @@ exports.createPortalLink = functions.https.onCall(async (data, context) => {
   const uid = context.auth.uid;
   try {
     if (!uid) throw new Error('Not authenticated!');
-    const return_url = data.returnUrl;
+    const { returnUrl: return_url, locale = 'auto', configuration } = data;
     // Get stripe customer id
     const customer = (
       await admin
@@ -237,10 +238,15 @@ exports.createPortalLink = functions.https.onCall(async (data, context) => {
         .doc(uid)
         .get()
     ).data().stripeId;
-    const session = await stripe.billingPortal.sessions.create({
+    const params: Stripe.BillingPortal.SessionCreateParams = {
       customer,
       return_url,
-    });
+      locale,
+    };
+    if (configuration) {
+      params.configuration = configuration;
+    }
+    const session = await stripe.billingPortal.sessions.create(params);
     logs.createdBillingPortalLink(uid);
     return session;
   } catch (error) {
@@ -630,7 +636,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
               );
               await insertPaymentRecord(paymentIntent, checkoutSession);
             }
-            if (checkoutSession.tax_id_collection.enabled) {
+            if (checkoutSession.tax_id_collection?.enabled) {
               const customersSnap = await admin
                 .firestore()
                 .collection(config.customersCollectionPath)
