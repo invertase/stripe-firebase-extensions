@@ -436,7 +436,11 @@ const functionRef = firebase
   .app()
   .functions('${param:LOCATION}')
   .httpsCallable('${function:createPortalLink.name}');
-const { data } = await functionRef({ returnUrl: window.location.origin });
+const { data } = await functionRef({
+  returnUrl: window.location.origin,
+  locale: "auto", // Optional, defaults to "auto"
+  configuration: "bpc_1JSEAKHYgolSBA358VNoc2Hs", // Optional ID of a portal configuration: https://stripe.com/docs/api/customer_portal/configuration
+});
 window.location.assign(data.url);
 ```
 
