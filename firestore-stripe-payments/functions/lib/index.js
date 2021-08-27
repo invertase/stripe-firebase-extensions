@@ -59,8 +59,8 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // Register extension as a Stripe plugin
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
-        name: 'Firebase firestore-stripe-subscriptions',
-        version: '0.1.15',
+        name: 'Firebase firestore-stripe-payments',
+        version: '0.2.0',
     },
 });
 admin.initializeApp();

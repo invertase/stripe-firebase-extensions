@@ -1,3 +1,7 @@
+## Version 0.2.0 - TBD
+
+[RENAME] The extension has been renamed from `firestore-stripe-subscriptions` to `firestore-stripe-payments` to better reflect the support for both one time, and recurring payments.
+
 ## Version 0.1.15 - 2021-08-26
 
 [feat] Programmatically set locale for customer portal session. (#131)
@@ -8,7 +12,7 @@
 const functionRef = firebase
   .app()
   .functions(functionLocation)
-  .httpsCallable("ext-firestore-stripe-subscriptions-createPortalLink");
+  .httpsCallable("ext-firestore-stripe-payments-createPortalLink");
 const { data } = await functionRef({
   returnUrl: window.location.origin,
   locale: "auto", // Optional, defaults to "auto"
