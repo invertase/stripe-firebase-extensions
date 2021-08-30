@@ -54,8 +54,9 @@ const functions = __importStar(require("firebase-functions"));
 const stripe_1 = __importDefault(require("stripe"));
 const logs = __importStar(require("./logs"));
 const config_1 = __importDefault(require("./config"));
+const apiVersion = '2020-08-27';
 const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
-    apiVersion: '2020-08-27',
+    apiVersion,
     // Register extension as a Stripe plugin
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
@@ -104,13 +105,13 @@ exports.createCustomer = functions.auth.user().onCreate(async (user) => {
     await createCustomerRecord({ email, uid });
 });
 /**
- * Create a CheckoutSession for the customer so they can sign up for the subscription.
+ * Create a CheckoutSession or PaymentIntent based on which client is being used.
  */
 exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
     var _a, _b;
-    const { mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, customer_update = {}, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
+    const { client = 'web', amount, currency, mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, customer_update = {}, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -123,76 +124,118 @@ exports.createCheckoutSession = functions.firestore
             });
         }
         const customer = customerRecord.stripeId;
-        // Get shipping countries
-        const shippingCountries = collect_shipping_address
-            ? (_b = (_a = (await admin
-                .firestore()
-                .collection(config_1.default.productsCollectionPath)
-                .doc('shipping_countries')
-                .get()).data()) === null || _a === void 0 ? void 0 : _a['allowed_countries']) !== null && _b !== void 0 ? _b : [] : [];
-        const sessionCreateParams = {
-            billing_address_collection,
-            shipping_address_collection: { allowed_countries: shippingCountries },
-            payment_method_types,
-            customer,
-            customer_update,
-            line_items: line_items
-                ? line_items
-                : [
-                    {
-                        price,
-                        quantity,
-                    },
-                ],
-            mode,
-            success_url,
-            cancel_url,
-            locale,
-        };
-        if (mode === 'subscription') {
-            sessionCreateParams.subscription_data = {
-                trial_from_plan,
-                metadata,
+        if (client === 'web') {
+            // Get shipping countries
+            const shippingCountries = collect_shipping_address
+                ? (_b = (_a = (await admin
+                    .firestore()
+                    .collection(config_1.default.productsCollectionPath)
+                    .doc('shipping_countries')
+                    .get()).data()) === null || _a === void 0 ? void 0 : _a['allowed_countries']) !== null && _b !== void 0 ? _b : [] : [];
+            const sessionCreateParams = {
+                billing_address_collection,
+                shipping_address_collection: { allowed_countries: shippingCountries },
+                payment_method_types,
+                customer,
+                customer_update,
+                line_items: line_items
+                    ? line_items
+                    : [
+                        {
+                            price,
+                            quantity,
+                        },
+                    ],
+                mode,
+                success_url,
+                cancel_url,
+                locale,
             };
-            if (!automatic_tax) {
-                sessionCreateParams.subscription_data.default_tax_rates = tax_rates;
+            if (mode === 'subscription') {
+                sessionCreateParams.subscription_data = {
+                    trial_from_plan,
+                    metadata,
+                };
+                if (!automatic_tax) {
+                    sessionCreateParams.subscription_data.default_tax_rates = tax_rates;
+                }
             }
+            else if (mode === 'payment') {
+                sessionCreateParams.payment_intent_data = {
+                    metadata,
+                };
+            }
+            if (automatic_tax) {
+                sessionCreateParams.automatic_tax = {
+                    enabled: true,
+                };
+                sessionCreateParams.customer_update.name = 'auto';
+                sessionCreateParams.customer_update.address = 'auto';
+                sessionCreateParams.customer_update.shipping = 'auto';
+            }
+            if (tax_id_collection) {
+                sessionCreateParams.tax_id_collection = {
+                    enabled: true,
+                };
+                sessionCreateParams.customer_update.name = 'auto';
+                sessionCreateParams.customer_update.address = 'auto';
+                sessionCreateParams.customer_update.shipping = 'auto';
+            }
+            if (promotion_code) {
+                sessionCreateParams.discounts = [{ promotion_code }];
+            }
+            else {
+                sessionCreateParams.allow_promotion_codes = allow_promotion_codes;
+            }
+            if (client_reference_id)
+                sessionCreateParams.client_reference_id = client_reference_id;
+            const session = await stripe.checkout.sessions.create(sessionCreateParams, { idempotencyKey: context.params.id });
+            await snap.ref.set({
+                client,
+                mode,
+                sessionId: session.id,
+                url: session.url,
+                created: admin.firestore.Timestamp.now(),
+            }, { merge: true });
         }
-        else if (mode === 'payment') {
-            sessionCreateParams.payment_intent_data = {
-                metadata,
-            };
-        }
-        if (automatic_tax) {
-            sessionCreateParams.automatic_tax = {
-                enabled: true,
-            };
-            sessionCreateParams.customer_update.name = 'auto';
-            sessionCreateParams.customer_update.address = 'auto';
-            sessionCreateParams.customer_update.shipping = 'auto';
-        }
-        if (tax_id_collection) {
-            sessionCreateParams.tax_id_collection = {
-                enabled: true,
-            };
-            sessionCreateParams.customer_update.name = 'auto';
-            sessionCreateParams.customer_update.address = 'auto';
-            sessionCreateParams.customer_update.shipping = 'auto';
-        }
-        if (promotion_code) {
-            sessionCreateParams.discounts = [{ promotion_code }];
+        else if (client === 'mobile') {
+            let paymentIntentClientSecret = null;
+            let setupIntentClientSecret = null;
+            if (mode === 'payment') {
+                if (!amount || !currency) {
+                    throw new Error(`When using 'client:mobile' and 'mode:payment' you must specify amount and currency!`);
+                }
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount,
+                    currency,
+                    customer,
+                    metadata,
+                });
+                paymentIntentClientSecret = paymentIntent.client_secret;
+            }
+            else if (mode === 'setup') {
+                const setupIntent = await stripe.setupIntents.create({
+                    customer,
+                    metadata,
+                });
+                setupIntentClientSecret = setupIntent.client_secret;
+            }
+            else {
+                throw new Error(`Mode '${mode} is not supported for 'client:mobile'!`);
+            }
+            const ephemeralKey = await stripe.ephemeralKeys.create({ customer }, { apiVersion });
+            await snap.ref.set({
+                client,
+                mode,
+                created: admin.firestore.Timestamp.now(),
+                ephemeralKeySecret: ephemeralKey.secret,
+                paymentIntentClientSecret,
+                setupIntentClientSecret,
+            }, { merge: true });
         }
         else {
-            sessionCreateParams.allow_promotion_codes = allow_promotion_codes;
+            throw new Error(`Client ${client} is not supported. Only 'web' or ' mobile' is supported!`);
         }
-        if (client_reference_id)
-            sessionCreateParams.client_reference_id = client_reference_id;
-        const session = await stripe.checkout.sessions.create(sessionCreateParams, { idempotencyKey: context.params.id });
-        await snap.ref.set({
-            sessionId: session.id,
-            url: session.url,
-            created: admin.firestore.Timestamp.now(),
-        }, { merge: true });
         logs.checkoutSessionCreated(context.params.id);
         return;
     }
