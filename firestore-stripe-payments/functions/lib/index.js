@@ -227,6 +227,7 @@ exports.createCheckoutSession = functions.firestore
             await snap.ref.set({
                 client,
                 mode,
+                customer,
                 created: admin.firestore.Timestamp.now(),
                 ephemeralKeySecret: ephemeralKey.secret,
                 paymentIntentClientSecret,

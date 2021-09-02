@@ -245,6 +245,7 @@ exports.createCheckoutSession = functions.firestore
           {
             client,
             mode,
+            customer,
             created: admin.firestore.Timestamp.now(),
             ephemeralKeySecret: ephemeralKey.secret,
             paymentIntentClientSecret,
