@@ -111,7 +111,7 @@ exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
     var _a, _b;
-    const { client = 'web', amount, currency, mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], metadata = {}, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, customer_update = {}, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
+    const { client = 'web', amount, currency, mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], shipping_rates = [], metadata = {}, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, customer_update = {}, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -135,6 +135,7 @@ exports.createCheckoutSession = functions.firestore
             const sessionCreateParams = {
                 billing_address_collection,
                 shipping_address_collection: { allowed_countries: shippingCountries },
+                shipping_rates,
                 payment_method_types,
                 customer,
                 customer_update,

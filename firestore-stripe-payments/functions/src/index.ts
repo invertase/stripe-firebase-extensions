@@ -104,6 +104,7 @@ exports.createCheckoutSession = functions.firestore
       cancel_url,
       quantity = 1,
       payment_method_types = ['card'],
+      shipping_rates = [],
       metadata = {},
       automatic_tax = false,
       tax_rates = [],
@@ -144,6 +145,7 @@ exports.createCheckoutSession = functions.firestore
         const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
           billing_address_collection,
           shipping_address_collection: { allowed_countries: shippingCountries },
+          shipping_rates,
           payment_method_types,
           customer,
           customer_update,
