@@ -24,6 +24,9 @@ service cloud.firestore {
       match /subscriptions/{id} {
         allow read: if request.auth.uid == uid;
       }
+      match /payments/{id} {
+        allow read: if request.auth.uid == uid;
+      }
     }
 
     match /${param:PRODUCTS_COLLECTION}/{id} {
@@ -65,6 +68,10 @@ Here's how to set up the webhook and configure your extension to use it:
    - `customer.subscription.created`
    - `customer.subscription.updated`
    - `customer.subscription.deleted`
+   - `payment_intent.processing`
+   - `payment_intent.succeeded`
+   - `payment_intent.canceled`
+   - `payment_intent.payment_failed`
    - `tax_rate.created` (optional)
    - `tax_rate.updated` (optional)
    - `invoice.paid` (optional, will sync invoices to Cloud Firestore)
@@ -76,7 +83,7 @@ Here's how to set up the webhook and configure your extension to use it:
 
 1. Using the Firebase console or Firebase CLI, [reconfigure](https://console.firebase.google.com/project/${param:PROJECT_ID}/extensions/instances/${param:EXT_INSTANCE_ID}?tab=config) your extension with your webhook’s signing secret (such as, `whsec_12345678`). Enter the value in the parameter called `Stripe webhook secret`.
 
-#### Create product and pricing information
+#### Create product and pricing information (only required when building on the web platform)
 
 For Stripe to automatically bill your users for recurring payments, you need to create your product and pricing information in the [Stripe Dashboard](https://dashboard.stripe.com/test/products). When you create or update your product and price information in the Stripe Dashboard these details are automatically synced with your Cloud Firestore, as long as the webhook is configured correctly as described above.
 
@@ -97,7 +104,7 @@ For example, this extension works well for business models with different access
   - Price 4: 160 GBP per year
   - [...]: additional currency and interval combinations
 
-#### Assign custom claim roles to products
+#### Assign custom claim roles to products (only used for subscriptions)
 
 If you want users to get assigned a [custom claim role](https://firebase.google.com/docs/auth/admin/custom-claims) to give them access to certain data when subscribed to a specific product, you can set a `firebaseRole` metadata value on the Stripe product ([see screenshot](https://www.gstatic.com/mobilesdk/200710_mobilesdk/ext_stripe_subscription_post_install.png)).
 
@@ -135,7 +142,7 @@ async function getCustomClaimRole() {
 }
 ```
 
-#### Configure the Stripe customer portal
+#### Configure the Stripe customer portal (only used for subscriptions)
 
 1. Set your custom branding in the [settings](https://dashboard.stripe.com/settings/branding).
 1. Configure the Customer Portal [settings](https://dashboard.stripe.com/test/settings/billing/portal).
@@ -147,7 +154,7 @@ async function getCustomClaimRole() {
 
 ### Using the extension
 
-Once you've configured the extension you can add subscription payments and access control to your websites fully client-side with the [Firebase JavaScript SDK](https://firebase.google.com/docs/web/setup). You can experience a demo application at [https://stripe-subs-ext.web.app](https://stripe-subs-ext.web.app/) and find the demo source code on [GitHub](https://github.com/stripe-samples/firebase-subscription-payments);
+Once you've configured the extension you can add payments and access control to your websites and mobile apps fully client-side with the corresponding Firebase SDKs. You can experience a subscriptions demo application at [https://stripe-subs-ext.web.app](https://stripe-subs-ext.web.app/) and find the demo source code on [GitHub](https://github.com/stripe-samples/firebase-subscription-payments);
 
 #### Sign-up users with Firebase Authentication
 
@@ -171,6 +178,49 @@ db.collection('${param:PRODUCTS_COLLECTION}')
     });
   });
 ```
+
+### One-time payments on the web
+
+You can create Checkout Sessions for one-time payments when referencing a one-time price ID. One-time payments will be synced to Cloud Firestore into a payments collection for the relevant customer doc if you update your webhook handler in the Stripe dashboard to include the following events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `payment_intent.processing`.
+
+To create a Checkout Session ID for a one-time payment, pass `mode: 'payment` to the Checkout Session doc creation:
+
+```js
+const docRef = await db
+  .collection('${param:CUSTOMERS_COLLECTION}')
+  .doc(currentUser.uid)
+  .collection("checkout_sessions")
+  .add({
+    mode: "payment",
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl", // One-time price created in Stripe
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
+```
+
+### Mobile payments (with the mobile payment sheet on iOS and Android)
+
+#### One-time payments
+
+To create a one time payment in your mobile application, create a new doc in your `${param:CUSTOMERS_COLLECTION}/{uid}/checkout_sessions` collection with the following parameters:
+
+- client: 'mobile'
+- mode: 'payment'
+- amount: [{payment amount}](https://stripe.com/docs/api/payment_intents/object#payment_intent_object-amount)
+- currency: [{currency code}](https://stripe.com/docs/api/payment_intents/object#payment_intent_object-currency)
+
+Then listen for the extension to append `paymentIntentClientSecret`, `ephemeralKeySecret`, and `customer` to the doc and use these to [integrate the mobile payment sheet](https://stripe.com/docs/payments/accept-a-payment?platform=ios&ui=payment-sheet#integrate-payment-sheet).
+
+#### Set up a payment method for future usage
+
+You can collect a payment method from your customer to charge it at a later point in time. To do so create a new doc in your `${param:CUSTOMERS_COLLECTION}/{uid}/checkout_sessions` collection with the following parameters:
+
+- client: 'mobile'
+- mode: 'setup'
+
+Then listen for the extension to append `setupIntentClientSecret`, `ephemeralKeySecret`, and `customer` to the doc and use these to [integrate the mobile payment sheet](https://stripe.com/docs/payments/accept-a-payment?platform=ios&ui=payment-sheet#integrate-payment-sheet).
+
+### Subscription payments (web only)
 
 #### Start a subscription with Stripe Checkout
 
@@ -385,25 +435,6 @@ const docRef = await db
 **_NOTE_**: If you specify more than one recurring price in the `line_items` array, the subscription object in Cloud Firestore will list all recurring prices in the `prices` array. The `price` attribute on the subscription in Cloud Firestore will be equal to the first item in the `prices` array: `price === prices[0]`.
 
 Note that the Stripe customer portal currently does not support changing subscriptions with multiple recurring prices. In this case the portal will only offer the option to cancel the subscription.
-
-#### Collecting one-time payments without a subscription
-
-You can also create Checkout Sessions for one-time payments when referencing a one-time price ID. One-time payments will be synced to Cloud Firestore into a payments collection for the relevant customer doc if you update your webhook handler in the Stripe dashboard to include the following events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `payment_intent.processing`.
-
-To create a Checkout Session ID for a one-time payment, pass `mode: 'payment` to the Checkout Session doc creation:
-
-```js
-const docRef = await db
-  .collection("customers")
-  .doc(currentUser.uid)
-  .collection("checkout_sessions")
-  .add({
-    mode: "payment",
-    price: "price_1GqIC8HYgolSBA35zoTTN2Zl", // One-time price created in Stripe
-    success_url: window.location.origin,
-    cancel_url: window.location.origin,
-  });
-```
 
 #### Start a subscription via the Stripe Dashboard or API
 
