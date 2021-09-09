@@ -173,7 +173,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
         idempotencyKey: eventId,
         default_tax_rates: payload.default_tax_rates,
         transfer_data: payload.transfer_data,
-        description: payload.description
+        description: payload.description,
       });
 
       if (invoice) {

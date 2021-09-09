@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp } from "@firebase/app";
 
 /**
  * Serves as the main entry point to this library. Initializes the client SDK,
@@ -24,7 +24,10 @@ import { FirebaseApp } from '@firebase/app';
  * @param options - Configuration options for the SDK.
  * @returns An instance of the StripePayments class.
  */
-export function getStripePayments(app: FirebaseApp, options: StripePaymentsOptions): StripePayments {
+export function getStripePayments(
+  app: FirebaseApp,
+  options: StripePaymentsOptions
+): StripePayments {
   return new StripePayments(app);
 }
 
@@ -42,6 +45,5 @@ export interface StripePaymentsOptions {
  * constructor. Use the {@link getStripePayments} function to obtain an instance.
  */
 export class StripePayments {
-
-  constructor(readonly app: FirebaseApp) { }
+  constructor(readonly app: FirebaseApp) {}
 }

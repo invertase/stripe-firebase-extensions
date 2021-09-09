@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
-import { expect } from 'chai';
-import { getStripePayments, StripePayments } from '../src/index';
+import { FirebaseApp } from "@firebase/app";
+import { expect } from "chai";
+import { getStripePayments, StripePayments } from "../src/index";
 
 const app: FirebaseApp = {
-  name: 'mock',
+  name: "mock",
   options: {},
   automaticDataCollectionEnabled: false,
-}
+};
 
-describe('getStripePayments()', () => {
-  it('should return a new instance or StripePayments', () => {
+describe("getStripePayments()", () => {
+  it("should return a new instance or StripePayments", () => {
     const payments: StripePayments = getStripePayments(app, {
-      customersCollection: 'customers',
-      productsCollection: 'products',
+      customersCollection: "customers",
+      productsCollection: "products",
     });
 
     expect(payments).to.be.instanceOf(StripePayments);

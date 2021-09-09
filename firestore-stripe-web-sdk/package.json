@@ -8,9 +8,6 @@
     "api-extractor:local": "npm run build && api-extractor run --local --verbose",
     "api-extractor": "api-extractor run --verbose",
     "build": "tsc",
-    "lint": "npm run lint:src && npm run lint:test",
-    "lint:src": "eslint src/ --ext .ts",
-    "lint:test": "eslint test/ --ext .ts",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' mocha -r ts-node/register test/**/*.spec.ts"
   },
   "keywords": [

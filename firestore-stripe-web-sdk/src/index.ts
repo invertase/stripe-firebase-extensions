@@ -18,4 +18,4 @@ export {
   StripePayments,
   StripePaymentsOptions,
   getStripePayments,
-} from './init';
+} from "./init";
