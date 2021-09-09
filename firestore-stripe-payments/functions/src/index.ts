@@ -34,7 +34,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-payments',
-    version: '0.2.0',
+    version: '0.2.1',
   },
 });
 
@@ -103,7 +103,7 @@ exports.createCheckoutSession = functions.firestore
       success_url,
       cancel_url,
       quantity = 1,
-      payment_method_types = ['card'],
+      payment_method_types,
       shipping_rates = [],
       metadata = {},
       automatic_tax = false,
@@ -146,7 +146,6 @@ exports.createCheckoutSession = functions.firestore
           billing_address_collection,
           shipping_address_collection: { allowed_countries: shippingCountries },
           shipping_rates,
-          payment_method_types,
           customer,
           customer_update,
           line_items: line_items
@@ -162,6 +161,9 @@ exports.createCheckoutSession = functions.firestore
           cancel_url,
           locale,
         };
+        if (payment_method_types) {
+          sessionCreateParams.payment_method_types = payment_method_types;
+        }
         if (mode === 'subscription') {
           sessionCreateParams.subscription_data = {
             trial_from_plan,
@@ -226,6 +228,7 @@ exports.createCheckoutSession = functions.firestore
             currency,
             customer,
             metadata,
+            payment_method_types: payment_method_types ?? ['card'],
           });
           paymentIntentClientSecret = paymentIntent.client_secret;
         } else if (mode === 'setup') {
@@ -610,6 +613,8 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
       'price.updated',
       'price.deleted',
       'checkout.session.completed',
+      'checkout.session.async_payment_succeeded',
+      'checkout.session.async_payment_failed',
       'customer.subscription.created',
       'customer.subscription.updated',
       'customer.subscription.deleted',
@@ -677,6 +682,8 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
             );
             break;
           case 'checkout.session.completed':
+          case 'checkout.session.async_payment_succeeded':
+          case 'checkout.session.async_payment_failed':
             const checkoutSession = event.data
               .object as Stripe.Checkout.Session;
             if (checkoutSession.mode === 'subscription') {
