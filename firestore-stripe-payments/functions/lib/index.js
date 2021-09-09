@@ -221,6 +221,7 @@ exports.createCheckoutSession = functions.firestore
                 const setupIntent = await stripe.setupIntents.create({
                     customer,
                     metadata,
+                    payment_method_types: payment_method_types !== null && payment_method_types !== void 0 ? payment_method_types : ['card'],
                 });
                 setupIntentClientSecret = setupIntent.client_secret;
             }
