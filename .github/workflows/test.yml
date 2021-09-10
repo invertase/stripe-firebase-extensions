@@ -10,9 +10,6 @@ on:
 jobs:
   testing:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: firestore-stripe-web-sdk
     steps:
       - uses: actions/checkout@v1
       - name: NPM Install
@@ -20,4 +17,4 @@ jobs:
       - name: NPM Build
         run: npm run build
       - name: Unit Test
-        run: lerna run --scope firestore-stripe-payments test
+        run: lerna run --scope firestore-stripe-payments-js test
