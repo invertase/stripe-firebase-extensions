@@ -25,7 +25,7 @@ const app: FirebaseApp = {
 };
 
 describe("getStripePayments()", () => {
-  it("should return a new instance or StripePayments", () => {
+  it("should return a new instance of StripePayments", () => {
     const payments: StripePayments = getStripePayments(app, {
       customersCollection: "customers",
       productsCollection: "products",
