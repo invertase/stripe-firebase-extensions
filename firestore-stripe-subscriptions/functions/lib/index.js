@@ -127,7 +127,8 @@ exports.createCheckoutSession = functions.firestore
         const shippingCountries = collect_shipping_address
             ? (_b = (_a = (await admin
                 .firestore()
-                .collection(config_1.default.productsCollectionPath)
+                .collection(config_1.default.stripeConfigCollectionPath ||
+                config_1.default.productsCollectionPath)
                 .doc('shipping_countries')
                 .get()).data()) === null || _a === void 0 ? void 0 : _a['allowed_countries']) !== null && _b !== void 0 ? _b : [] : [];
         const sessionCreateParams = {

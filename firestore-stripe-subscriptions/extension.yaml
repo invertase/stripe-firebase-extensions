@@ -180,6 +180,15 @@ params:
     validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
     required: true
 
+  - param: STRIPE_CONFIG_COLLECTION
+    label: Stripe configuration collection
+    description: >-
+      What is the path to the Cloud Firestore collection where the extension should store Stripe configuration?
+    default: configuration
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
+    required: false
+
   - param: SYNC_USERS_ON_CREATE
     label: Sync new users to Stripe customers and Cloud Firestore
     description: >-
