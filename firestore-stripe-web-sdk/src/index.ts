@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Stripe, Inc.
+ * Copyright 2021 Stripe, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,8 @@
  * limitations under the License.
  */
 
-export interface InvoicePayload {
-  email?: string;
-  uid?: string;
-  items: [OrderItem];
-  daysUntilDue?: number;
-  default_tax_rates?: string[];
-  transfer_data?: {
-    destination: string;
-    amount?: number;
-  };
-  description?: string;
-}
-
-export interface OrderItem {
-  amount: number;
-  currency: string;
-  quantity?: number;
-  description: string;
-  tax_rates?: string[];
-}
+export {
+  StripePayments,
+  StripePaymentsOptions,
+  getStripePayments,
+} from "./init";
