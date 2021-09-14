@@ -16,6 +16,10 @@
 
 export {
   StripePayments,
+  StripePaymentsError,
+  StripePaymentsErrorCode,
   StripePaymentsOptions,
   getStripePayments,
 } from "./init";
+
+export { Product, Price, getProduct } from "./product";
