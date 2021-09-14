@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from "@firebase/app";
 import { expect, use } from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import * as sinon from "sinon";
+import { deleteApp, FirebaseApp, initializeApp } from "@firebase/app";
+import {
+  connectFirestoreEmulator,
+  doc,
+  getFirestore,
+  setDoc,
+} from "@firebase/firestore";
 import {
   getProduct,
   getStripePayments,
@@ -29,31 +35,26 @@ import { ProductDAO, setProductDAO } from "../src/product";
 
 use(chaiAsPromised);
 
-const app: FirebaseApp = {
-  name: "mock",
-  options: {},
-  automaticDataCollectionEnabled: false,
-};
-
-const payments: StripePayments = getStripePayments(app, {
-  customersCollection: "customers",
-  productsCollection: "products",
-});
-
 const testProduct: Product = {
   id: "product1",
+  prices: [],
   active: true,
   name: "Product name",
   description: "Product description",
   role: "Role",
   images: [],
   metadata: {},
-  prices: [],
 };
 
 describe("getProduct()", () => {
-  afterEach(() => {
-    sinon.restore();
+  const app: FirebaseApp = {
+    name: "mock",
+    options: {},
+    automaticDataCollectionEnabled: false,
+  };
+  const payments: StripePayments = getStripePayments(app, {
+    customersCollection: "customers",
+    productsCollection: "products",
   });
 
   [null, [], {}, true, 1, 0, NaN, "payments"].forEach(
@@ -82,32 +83,66 @@ describe("getProduct()", () => {
 
   it("should return Product with the specified ID", async () => {
     const fake = sinon.fake.resolves(testProduct);
-    setProductDAO(payments, testProductDAO('getProduct', fake));
+    setProductDAO(payments, testProductDAO("getProduct", fake));
 
     const product: Product = await getProduct(payments, "product1");
 
     expect(product).to.eql(testProduct);
-    expect(fake.callCount).to.equal(1);
-    expect(fake.calledWithExactly("product1")).to.be.ok;
+    expect(fake.calledOnceWithExactly("product1")).to.be.ok;
   });
 
-  it("should reject when the data access object encounters an error", async () => {
-    const error: StripePaymentsError = new StripePaymentsError(
-      "not-found",
-      "no such product"
-    );
+  it("should reject when the data access object throws", async () => {
+    const error = new StripePaymentsError("not-found", "no such product");
     const fake = sinon.fake.rejects(error);
-    setProductDAO(payments, testProductDAO('getProduct', fake));
+    setProductDAO(payments, testProductDAO("getProduct", fake));
 
     await expect(getProduct(payments, "product1")).to.be.rejectedWith(error);
 
-    expect(fake.callCount).to.equal(1);
-    expect(fake.calledWithExactly("product1")).to.be.ok;
+    expect(fake.calledOnceWithExactly("product1")).to.be.ok;
+  });
+
+  describe("FirestoreProductDAO", () => {
+    const emulatedApp: FirebaseApp = initializeApp({
+      projectId: "fake-project-id",
+    });
+
+    const payments: StripePayments = getStripePayments(emulatedApp, {
+      customersCollection: "customers",
+      productsCollection: "products",
+    });
+
+    before(async () => {
+      const db = getFirestore(emulatedApp);
+      connectFirestoreEmulator(db, "localhost", 8080);
+      const docRef = doc(db, payments.productsCollection, "product1");
+      const { id, prices, ...rest } = testProduct;
+      await setDoc(docRef, rest);
+    });
+
+    after(async () => {
+      await deleteApp(emulatedApp);
+    });
+
+    it("should return Product with the specified ID", async () => {
+      const product: Product = await getProduct(payments, "product1");
+
+      expect(product).to.eql(testProduct);
+    });
+
+    it("should reject with not-found error when the specified product does not exist", async () => {
+      const err: any = await expect(
+        getProduct(payments, "product2")
+      ).to.be.rejectedWith("no such productId");
+
+      expect(err).to.be.instanceOf(StripePaymentsError);
+      expect(err.code).to.equal("not-found");
+      expect(err.cause).to.be.undefined;
+    });
   });
 });
 
 function testProductDAO(name: string, fake: sinon.SinonSpy): ProductDAO {
-  return {
+  return ({
     [name]: fake,
-  } as unknown as ProductDAO;
+  } as unknown) as ProductDAO;
 }

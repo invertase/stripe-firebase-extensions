@@ -15,7 +15,12 @@
  */
 
 import { FirebaseApp } from "@firebase/app";
-import { doc, getDoc, getFirestore } from "@firebase/firestore";
+import {
+  doc,
+  DocumentSnapshot,
+  getDoc,
+  getFirestore,
+} from "@firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
 import { checkNonEmptyString, checkStripePayments } from "./utils";
 
@@ -113,7 +118,10 @@ export async function getProduct(
  * @internal
  */
 export interface ProductDAO {
-  getProduct(productId: string, options?: {includePrices?: boolean}): Promise<Product>;
+  getProduct(
+    productId: string,
+    options?: { includePrices?: boolean }
+  ): Promise<Product>;
 }
 
 class FirestoreProductDAO implements ProductDAO {
@@ -123,15 +131,19 @@ class FirestoreProductDAO implements ProductDAO {
   ) {}
 
   public async getProduct(productId: string): Promise<Product> {
+    const productSnap = await this.queryProduct(productId);
+    if (productSnap.exists()) {
+      return { ...(productSnap.data() as Product), id: productId, prices: [] };
+    }
+
+    throw new StripePaymentsError("not-found", "no such productId");
+  }
+
+  private async queryProduct(productId: string): Promise<DocumentSnapshot> {
     const firestore = getFirestore(this.app);
     const productRef = doc(firestore, this.productsCollection, productId);
     try {
-      const productSnap = await getDoc(productRef);
-      if (productSnap.exists()) {
-        return {...productSnap.data() as Product, id: productId, prices: []};
-      }
-
-      throw new StripePaymentsError("not-found", "no such productId");
+      return await getDoc(productRef);
     } catch (error) {
       throw new StripePaymentsError(
         "internal",

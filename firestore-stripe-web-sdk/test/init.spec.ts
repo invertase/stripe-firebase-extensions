@@ -16,7 +16,11 @@
 
 import { FirebaseApp } from "@firebase/app";
 import { expect } from "chai";
-import { getStripePayments, StripePayments, StripePaymentsError } from "../src/index";
+import {
+  getStripePayments,
+  StripePayments,
+  StripePaymentsError,
+} from "../src/index";
 
 const app: FirebaseApp = {
   name: "mock",
@@ -61,7 +65,7 @@ describe("StripePayments", () => {
 
     it("should return the requested component when available", () => {
       const component: any = {};
-      payments.setComponent("test-component", component)
+      payments.setComponent("test-component", component);
 
       expect(payments.getComponent("test-component")).to.equal(component);
     });
@@ -70,32 +74,32 @@ describe("StripePayments", () => {
   describe("setComponent()", () => {
     it("should overwrite the existing component", () => {
       const component: any = {};
-      const otherComponent: any = {other: true};
+      const otherComponent: any = { other: true };
 
-      payments.setComponent("test-component", component)
+      payments.setComponent("test-component", component);
       expect(payments.getComponent("test-component")).to.equal(component);
 
-      payments.setComponent("test-component", otherComponent)
+      payments.setComponent("test-component", otherComponent);
       expect(payments.getComponent("test-component")).to.equal(otherComponent);
     });
   });
 });
 
-describe('StripePaymentsError', () => {
-  it('should be able to create an error with code and message', () => {
-    const error = new StripePaymentsError('not-found', 'test message');
+describe("StripePaymentsError", () => {
+  it("should be able to create an error with code and message", () => {
+    const error = new StripePaymentsError("not-found", "test message");
 
-    expect(error.code).to.equal('not-found');
-    expect(error.message).to.equal('test message');
+    expect(error.code).to.equal("not-found");
+    expect(error.message).to.equal("test message");
     expect(error.cause).to.be.undefined;
   });
 
-  it('should be able to create an error with code, message and cause', () => {
-    const cause = new Error('root cause');
-    const error = new StripePaymentsError('not-found', 'test message', cause);
+  it("should be able to create an error with code, message and cause", () => {
+    const cause = new Error("root cause");
+    const error = new StripePaymentsError("not-found", "test message", cause);
 
-    expect(error.code).to.equal('not-found');
-    expect(error.message).to.equal('test message');
+    expect(error.code).to.equal("not-found");
+    expect(error.message).to.equal("test message");
     expect(error.cause).to.equal(cause);
   });
 });
