@@ -136,7 +136,10 @@ class FirestoreProductDAO implements ProductDAO {
       return { ...(productSnap.data() as Product), id: productId, prices: [] };
     }
 
-    throw new StripePaymentsError("not-found", `No product found with the ID: ${productId}`);
+    throw new StripePaymentsError(
+      "not-found",
+      `No product found with the ID: ${productId}`
+    );
   }
 
   private async queryProduct(productId: string): Promise<DocumentSnapshot> {
