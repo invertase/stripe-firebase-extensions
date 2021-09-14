@@ -136,7 +136,7 @@ class FirestoreProductDAO implements ProductDAO {
       return { ...(productSnap.data() as Product), id: productId, prices: [] };
     }
 
-    throw new StripePaymentsError("not-found", "no such productId");
+    throw new StripePaymentsError("not-found", `No product found with the ID: ${productId}`);
   }
 
   private async queryProduct(productId: string): Promise<DocumentSnapshot> {
@@ -147,7 +147,7 @@ class FirestoreProductDAO implements ProductDAO {
     } catch (error) {
       throw new StripePaymentsError(
         "internal",
-        "error while querying Firestore",
+        "Unexpected error while querying Firestore",
         error
       );
     }

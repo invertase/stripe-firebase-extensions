@@ -41,9 +41,11 @@ const testProduct: Product = {
   active: true,
   name: "Product name",
   description: "Product description",
-  role: "Role",
+  role: "moderator",
   images: [],
-  metadata: {},
+  metadata: {
+    firebaseRole: "moderator",
+  },
 };
 
 describe("getProduct()", () => {
@@ -132,7 +134,7 @@ describe("getProduct()", () => {
     it("should reject with not-found error when the specified product does not exist", async () => {
       const err: any = await expect(
         getProduct(payments, "product2")
-      ).to.be.rejectedWith("no such productId");
+      ).to.be.rejectedWith("No product found with the ID: product2");
 
       expect(err).to.be.instanceOf(StripePaymentsError);
       expect(err.code).to.equal("not-found");
