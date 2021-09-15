@@ -16,26 +16,16 @@ export function getStripePayments(app: FirebaseApp, options: StripePaymentsOptio
 export interface Price {
     // (undocumented)
     readonly [propName: string]: any;
-    // (undocumented)
     readonly active: boolean;
-    // (undocumented)
     readonly currency: string;
-    // (undocumented)
     readonly description: string | null;
-    // (undocumented)
     readonly id: string;
-    // (undocumented)
     readonly interval: "day" | "month" | "week" | "year" | null;
-    // (undocumented)
     readonly intervalCount: number | null;
-    // (undocumented)
     readonly productId: string;
-    // (undocumented)
     readonly trialPeriodDays: number | null;
-    // (undocumented)
     readonly type: "one_time" | "recurring";
-    // (undocumented)
-    readonly unitAmount: number;
+    readonly unitAmount: number | null;
 }
 
 // @public

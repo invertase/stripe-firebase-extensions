@@ -76,19 +76,63 @@ export interface Product {
 }
 
 /**
- * Interface of a Stripe Price stored in the app database.
+ * Interface of a Stripe Price object stored in the app database.
  */
 export interface Price {
+  /**
+   * Unique Stripe price ID.
+   */
   readonly id: string;
+
+  /**
+   * ID of the Stripe product to which this price is related.
+   */
   readonly productId: string;
+
+  /**
+   * Whether the price can be used for new purchases.
+   */
   readonly active: boolean;
+
+  /**
+   * Three-letter ISO currency code.
+   */
   readonly currency: string;
-  readonly unitAmount: number;
+
+  /**
+   * The unit amount in cents to be charged, represented as a whole integer if possible.
+   */
+  readonly unitAmount: number | null;
+
+  /**
+   * A brief description of the price.
+   */
   readonly description: string | null;
+
+  /**
+   * One of `one_time` or `recurring` depending on whether the price is for a one-time purchase
+   * or a recurring (subscription) purchase.
+   */
   readonly type: "one_time" | "recurring";
+
+  /**
+   * The frequency at which a subscription is billed. One of `day`, `week`, `month` or `year`.
+   */
   readonly interval: "day" | "month" | "week" | "year" | null;
+
+  /**
+   * The number of intervals (specified in the {@link Price.interval} attribute) between
+   * subscription billings. For example, `interval=month` and `interval_count=3` bills every
+   * 3 months.
+   */
   readonly intervalCount: number | null;
+
+  /**
+   * Default number of trial days when subscribing a customer to this price using
+   * {@link https://stripe.com/docs/api#create_subscription-trial_from_plan | trial_from_plan}.
+   */
   readonly trialPeriodDays: number | null;
+
   readonly [propName: string]: any;
 }
 
@@ -109,19 +153,18 @@ export async function getProduct(
     "payments must be a valid StripePayments instance."
   );
   checkNonEmptyString(productId, "productId must be a non-empty string.");
-
   const dao: ProductDAO = getOrInitProductDAO(payments);
   return await dao.getProduct(productId);
 }
 
 /**
+ * Internal interface for all database interactions pertaining to Stripe products. Exported
+ * for testing.
+ *
  * @internal
  */
 export interface ProductDAO {
-  getProduct(
-    productId: string,
-    options?: { includePrices?: boolean }
-  ): Promise<Product>;
+  getProduct(productId: string): Promise<Product>;
 }
 
 class FirestoreProductDAO implements ProductDAO {
@@ -172,6 +215,9 @@ function getOrInitProductDAO(payments: StripePayments): ProductDAO {
 }
 
 /**
+ * Internal API registering a {@link ProductDAO} instance with {@link StripePayments}. Exported
+ * for testing.
+ *
  * @internal
  */
 export function setProductDAO(payments: StripePayments, dao: ProductDAO): void {
