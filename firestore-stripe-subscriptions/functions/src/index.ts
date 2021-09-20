@@ -86,8 +86,12 @@ const createCustomerRecord = async ({
 exports.createCustomer = functions.auth.user().onCreate(
   async (user): Promise<void> => {
     if (!config.syncUsersOnCreate) return;
-    const { email, uid } = user;
-    await createCustomerRecord({ email, uid });
+    const { email, uid, phoneNumber } = user;
+    await createCustomerRecord({
+      email,
+      uid,
+      phone: phoneNumber
+    });
   }
 );
 
