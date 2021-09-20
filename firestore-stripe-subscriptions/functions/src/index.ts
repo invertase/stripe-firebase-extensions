@@ -45,8 +45,10 @@ admin.initializeApp();
 const createCustomerRecord = async ({
   email,
   uid,
+  phone,
 }: {
   email?: string;
+  phone?: string;
   uid: string;
 }) => {
   try {
@@ -57,6 +59,7 @@ const createCustomerRecord = async ({
       },
     };
     if (email) customerData.email = email;
+    if (phone) customerData.phone = phone;
     const customer = await stripe.customers.create(customerData);
     // Add a mapping record in Cloud Firestore.
     const customerRecord = {
@@ -66,6 +69,7 @@ const createCustomerRecord = async ({
         customer.livemode ? '' : '/test'
       }/customers/${customer.id}`,
     };
+    if (phone) (customerRecord as any).phone = phone;
     await admin
       .firestore()
       .collection(config.customersCollectionPath)
@@ -119,10 +123,11 @@ exports.createCheckoutSession = functions.firestore
       // Get stripe customer id
       let customerRecord = (await snap.ref.parent.parent.get()).data();
       if (!customerRecord?.stripeId) {
-        const { email } = await admin.auth().getUser(context.params.uid);
+        const { email, phoneNumber } = await admin.auth().getUser(context.params.uid);
         customerRecord = await createCustomerRecord({
           uid: context.params.uid,
           email,
+          phone: phoneNumber
         });
       }
       const customer = customerRecord.stripeId;
