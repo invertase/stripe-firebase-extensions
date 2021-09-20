@@ -102,38 +102,46 @@ describe("getProduct()", () => {
 
     expect(fake.calledOnceWithExactly("product1")).to.be.ok;
   });
+});
 
-  describe("FirestoreProductDAO", () => {
-    const emulatedApp: FirebaseApp = initializeApp({
-      projectId: "fake-project-id",
-    });
+function testProductDAO(name: string, fake: sinon.SinonSpy): ProductDAO {
+  return ({
+    [name]: fake,
+  } as unknown) as ProductDAO;
+}
 
-    const payments: StripePayments = getStripePayments(emulatedApp, {
-      customersCollection: "customers",
-      productsCollection: "products",
-    });
+describe("Product emulator tests", () => {
+  const emulatedApp: FirebaseApp = initializeApp({
+    projectId: "fake-project-id",
+  });
 
-    before(async () => {
-      const db = getFirestore(emulatedApp);
-      connectFirestoreEmulator(db, "localhost", 8080);
-      const docRef = doc(db, payments.productsCollection, "product1");
-      const { id, prices, ...rest } = testProduct;
-      await setDoc(docRef, rest);
-    });
+  const emulatedPayments: StripePayments = getStripePayments(emulatedApp, {
+    customersCollection: "customers",
+    productsCollection: "products",
+  });
 
-    after(async () => {
-      await deleteApp(emulatedApp);
-    });
+  before(async () => {
+    const db = getFirestore(emulatedApp);
+    connectFirestoreEmulator(db, "localhost", 8080);
+    const docRef = doc(db, emulatedPayments.productsCollection, "product1");
+    const { id, prices, ...rest } = testProduct;
+    await setDoc(docRef, rest);
+  });
 
+  after(async () => {
+    await deleteApp(emulatedApp);
+  });
+
+  describe("getProduct()", () => {
     it("should return Product with the specified ID", async () => {
-      const product: Product = await getProduct(payments, "product1");
+      const product: Product = await getProduct(emulatedPayments, "product1");
 
       expect(product).to.eql(testProduct);
     });
 
     it("should reject with not-found error when the specified product does not exist", async () => {
       const err: any = await expect(
-        getProduct(payments, "product2")
+        getProduct(emulatedPayments, "product2")
       ).to.be.rejectedWith("No product found with the ID: product2");
 
       expect(err).to.be.instanceOf(StripePaymentsError);
@@ -142,9 +150,3 @@ describe("getProduct()", () => {
     });
   });
 });
-
-function testProductDAO(name: string, fake: sinon.SinonSpy): ProductDAO {
-  return ({
-    [name]: fake,
-  } as unknown) as ProductDAO;
-}

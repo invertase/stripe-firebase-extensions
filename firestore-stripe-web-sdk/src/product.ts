@@ -17,9 +17,13 @@
 import { FirebaseApp } from "@firebase/app";
 import {
   doc,
+  DocumentReference,
   DocumentSnapshot,
+  Firestore,
+  FirestoreDataConverter,
   getDoc,
   getFirestore,
+  QueryDocumentSnapshot,
 } from "@firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
 import { checkNonEmptyString, checkStripePayments } from "./utils";
@@ -167,6 +171,19 @@ export interface ProductDAO {
   getProduct(productId: string): Promise<Product>;
 }
 
+const PRODUCT_CONVERTER: FirestoreDataConverter<Product> = {
+  toFirestore: () => {
+    throw new Error("Not implemented for readonly Product type.");
+  },
+  fromFirestore: (snapshot: QueryDocumentSnapshot): Product => {
+    return {
+      ...(snapshot.data() as Product),
+      id: snapshot.id,
+      prices: [],
+    };
+  },
+};
+
 class FirestoreProductDAO implements ProductDAO {
   constructor(
     private readonly app: FirebaseApp,
@@ -174,9 +191,11 @@ class FirestoreProductDAO implements ProductDAO {
   ) {}
 
   public async getProduct(productId: string): Promise<Product> {
-    const productSnap = await this.queryProduct(productId);
+    const productSnap: DocumentSnapshot<Product> = await this.queryProduct(
+      productId
+    );
     if (productSnap.exists()) {
-      return { ...(productSnap.data() as Product), id: productId, prices: [] };
+      return productSnap.data();
     }
 
     throw new StripePaymentsError(
@@ -185,9 +204,15 @@ class FirestoreProductDAO implements ProductDAO {
     );
   }
 
-  private async queryProduct(productId: string): Promise<DocumentSnapshot> {
-    const firestore = getFirestore(this.app);
-    const productRef = doc(firestore, this.productsCollection, productId);
+  private async queryProduct(
+    productId: string
+  ): Promise<DocumentSnapshot<Product>> {
+    const firestore: Firestore = getFirestore(this.app);
+    const productRef: DocumentReference<Product> = doc(
+      firestore,
+      this.productsCollection,
+      productId
+    ).withConverter(PRODUCT_CONVERTER);
     try {
       return await getDoc(productRef);
     } catch (error) {
