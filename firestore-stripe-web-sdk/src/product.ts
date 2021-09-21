@@ -27,7 +27,7 @@ import {
   QueryDocumentSnapshot,
 } from "@firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
-import { checkNonEmptyString, checkStripePayments } from "./utils";
+import { checkNonEmptyString } from "./utils";
 
 /**
  * Interface of a Stripe Product stored in the app database.
@@ -149,17 +149,13 @@ export interface Price {
  * @returns Resolves with a Stripe Product object if found. Rejects if the specified product ID
  *  does not exist.
  */
-export async function getProduct(
+export function getProduct(
   payments: StripePayments,
   productId: string
 ): Promise<Product> {
-  checkStripePayments(
-    payments,
-    "payments must be a valid StripePayments instance."
-  );
   checkNonEmptyString(productId, "productId must be a non-empty string.");
   const dao: ProductDAO = getOrInitProductDAO(payments);
-  return await dao.getProduct(productId);
+  return dao.getProduct(productId);
 }
 
 /**
@@ -171,19 +167,15 @@ export async function getProduct(
  * @returns Resolves with a Stripe Price object if found. Rejects if the specified
  *   product ID or the price ID does not exist.
  */
-export async function getPrice(
+export function getPrice(
   payments: StripePayments,
   productId: string,
   priceId: string
 ): Promise<Price> {
-  checkStripePayments(
-    payments,
-    "payments must be a valid StripePayments instance."
-  );
   checkNonEmptyString(productId, "productId must be a non-empty string.");
   checkNonEmptyString(priceId, "priceId must be a non-empty string.");
   const dao: ProductDAO = getOrInitProductDAO(payments);
-  return await dao.getPrice(productId, priceId);
+  return dao.getPrice(productId, priceId);
 }
 
 /**

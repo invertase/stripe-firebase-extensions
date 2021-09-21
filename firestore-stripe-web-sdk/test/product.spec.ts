@@ -78,25 +78,11 @@ const payments: StripePayments = getStripePayments(app, {
 });
 
 describe("getProduct()", () => {
-  [null, [], {}, true, 1, 0, NaN, "payments"].forEach(
-    (invalidPayments: any) => {
-      it(`should reject given invalid StripePayments: ${JSON.stringify(
-        invalidPayments
-      )}`, async () => {
-        await expect(
-          getProduct(invalidPayments, "productId")
-        ).to.be.rejectedWith(
-          "payments must be a valid StripePayments instance."
-        );
-      });
-    }
-  );
-
   [null, [], {}, true, 1, 0, NaN, ""].forEach((invalidProductId: any) => {
-    it(`should reject given invalid productId: ${JSON.stringify(
+    it(`should throw given invalid productId: ${JSON.stringify(
       invalidProductId
-    )}`, async () => {
-      await expect(getProduct(payments, invalidProductId)).to.be.rejectedWith(
+    )}`, () => {
+      expect(() => getProduct(payments, invalidProductId)).to.throw(
         "productId must be a non-empty string."
       );
     });
@@ -124,37 +110,23 @@ describe("getProduct()", () => {
 });
 
 describe("getPrice()", () => {
-  [null, [], {}, true, 1, 0, NaN, "payments"].forEach(
-    (invalidPayments: any) => {
-      it(`should reject given invalid StripePayments: ${JSON.stringify(
-        invalidPayments
-      )}`, async () => {
-        await expect(
-          getPrice(invalidPayments, "productId", "priceId")
-        ).to.be.rejectedWith(
-          "payments must be a valid StripePayments instance."
-        );
-      });
-    }
-  );
-
   [null, [], {}, true, 1, 0, NaN, ""].forEach((invalidProductId: any) => {
-    it(`should reject given invalid productId: ${JSON.stringify(
+    it(`should throw given invalid productId: ${JSON.stringify(
       invalidProductId
-    )}`, async () => {
-      await expect(
-        getPrice(payments, invalidProductId, "priceId")
-      ).to.be.rejectedWith("productId must be a non-empty string.");
+    )}`, () => {
+      expect(() => getPrice(payments, invalidProductId, "priceId")).to.throw(
+        "productId must be a non-empty string."
+      );
     });
   });
 
   [null, [], {}, true, 1, 0, NaN, ""].forEach((invalidPriceId: any) => {
-    it(`should reject given invalid priceId: ${JSON.stringify(
+    it(`should throw given invalid priceId: ${JSON.stringify(
       invalidPriceId
-    )}`, async () => {
-      await expect(
-        getPrice(payments, "productId", invalidPriceId)
-      ).to.be.rejectedWith("priceId must be a non-empty string.");
+    )}`, () => {
+      expect(() => getPrice(payments, "productId", invalidPriceId)).to.throw(
+        "priceId must be a non-empty string."
+      );
     });
   });
 
