@@ -7,6 +7,9 @@
 import { FirebaseApp } from '@firebase/app';
 
 // @public
+export function getPrice(payments: StripePayments, productId: string, priceId: string): Promise<Price>;
+
+// @public
 export function getProduct(payments: StripePayments, productId: string): Promise<Product>;
 
 // @public
