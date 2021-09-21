@@ -253,7 +253,7 @@ describe("Product emulator tests", () => {
     it("should return Product with the specified ID", async () => {
       const product: Product = await getProduct(emulatedPayments, "premium");
 
-      expect(product).to.deep.include(premiumPlan);
+      expect(product).to.eql(premiumPlan);
     });
 
     it("should reject with not-found error when the specified product does not exist", async () => {
