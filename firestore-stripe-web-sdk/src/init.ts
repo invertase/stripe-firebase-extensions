@@ -28,7 +28,7 @@ export function getStripePayments(
   app: FirebaseApp,
   options: StripePaymentsOptions
 ): StripePayments {
-  return new StripePayments(app);
+  return StripePayments.create(app, options);
 }
 
 /**
@@ -39,11 +39,82 @@ export interface StripePaymentsOptions {
   productsCollection: string;
 }
 
+type Components = Record<string, unknown>;
+
 /**
  * Holds the configuration and other state information of the SDK. An instance of this class
  * must be passed to almost all the other APIs of this library. Do not directly call the
  * constructor. Use the {@link getStripePayments} function to obtain an instance.
  */
 export class StripePayments {
-  constructor(readonly app: FirebaseApp) {}
+  private readonly components: Components = {};
+
+  private constructor(
+    readonly app: FirebaseApp,
+    private readonly options: StripePaymentsOptions
+  ) {}
+
+  /**
+   * @internal
+   */
+  static create(
+    app: FirebaseApp,
+    options: StripePaymentsOptions
+  ): StripePayments {
+    return new StripePayments(app, options);
+  }
+
+  /**
+   * Name of the customers collection as configured in the extension.
+   */
+  get customersCollection(): string {
+    return this.options.customersCollection;
+  }
+
+  /**
+   * Name of the products collection as configured in the extension.
+   */
+  get productsCollection(): string {
+    return this.options.productsCollection;
+  }
+
+  /**
+   * @internal
+   */
+  getComponent<T>(key: string): T | null {
+    let dao = this.components[key];
+    if (dao) {
+      return dao as T;
+    }
+
+    return null;
+  }
+
+  /**
+   * @internal
+   */
+  setComponent<T>(key: string, dao: T) {
+    this.components[key] = dao;
+  }
+}
+
+/**
+ * Union of possible error codes.
+ */
+export type StripePaymentsErrorCode =
+  | "not-found"
+  | "permission-denied"
+  | "internal";
+
+/**
+ * An error thrown by this SDK.
+ */
+export class StripePaymentsError extends Error {
+  constructor(
+    readonly code: StripePaymentsErrorCode,
+    readonly message: string,
+    readonly cause?: any
+  ) {
+    super(message);
+  }
 }

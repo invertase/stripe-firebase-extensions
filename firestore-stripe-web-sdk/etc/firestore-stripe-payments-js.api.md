@@ -7,14 +7,64 @@
 import { FirebaseApp } from '@firebase/app';
 
 // @public
+export function getProduct(payments: StripePayments, productId: string): Promise<Product>;
+
+// @public
 export function getStripePayments(app: FirebaseApp, options: StripePaymentsOptions): StripePayments;
 
 // @public
+export interface Price {
+    // (undocumented)
+    readonly [propName: string]: any;
+    readonly active: boolean;
+    readonly currency: string;
+    readonly description: string | null;
+    readonly id: string;
+    readonly interval: "day" | "month" | "week" | "year" | null;
+    readonly intervalCount: number | null;
+    readonly productId: string;
+    readonly trialPeriodDays: number | null;
+    readonly type: "one_time" | "recurring";
+    readonly unitAmount: number | null;
+}
+
+// @public
+export interface Product {
+    // (undocumented)
+    readonly [propName: string]: any;
+    readonly active: boolean;
+    readonly description: string | null;
+    readonly id: string;
+    readonly images: string[];
+    readonly metadata: {
+        [key: string]: string | number | null;
+    };
+    readonly name: string;
+    readonly prices: Price[];
+    readonly role: string | null;
+}
+
+// @public
 export class StripePayments {
-    constructor(app: FirebaseApp);
     // (undocumented)
     readonly app: FirebaseApp;
+    get customersCollection(): string;
+    get productsCollection(): string;
 }
+
+// @public
+export class StripePaymentsError extends Error {
+    constructor(code: StripePaymentsErrorCode, message: string, cause?: any);
+    // (undocumented)
+    readonly cause?: any;
+    // (undocumented)
+    readonly code: StripePaymentsErrorCode;
+    // (undocumented)
+    readonly message: string;
+}
+
+// @public
+export type StripePaymentsErrorCode = "not-found" | "permission-denied" | "internal";
 
 // @public
 export interface StripePaymentsOptions {
