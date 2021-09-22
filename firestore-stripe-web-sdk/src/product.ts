@@ -17,6 +17,7 @@
 import { FirebaseApp } from "@firebase/app";
 import {
   doc,
+  DocumentData,
   DocumentReference,
   DocumentSnapshot,
   Firestore,
@@ -26,7 +27,7 @@ import {
   QueryDocumentSnapshot,
 } from "@firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
-import { checkNonEmptyString, checkStripePayments } from "./utils";
+import { checkNonEmptyString } from "./utils";
 
 /**
  * Interface of a Stripe Product stored in the app database.
@@ -148,17 +149,33 @@ export interface Price {
  * @returns Resolves with a Stripe Product object if found. Rejects if the specified product ID
  *  does not exist.
  */
-export async function getProduct(
+export function getProduct(
   payments: StripePayments,
   productId: string
 ): Promise<Product> {
-  checkStripePayments(
-    payments,
-    "payments must be a valid StripePayments instance."
-  );
   checkNonEmptyString(productId, "productId must be a non-empty string.");
   const dao: ProductDAO = getOrInitProductDAO(payments);
-  return await dao.getProduct(productId);
+  return dao.getProduct(productId);
+}
+
+/**
+ * Retrieves a Stripe price from the database.
+ *
+ * @param payments - A valid {@link StripePayments} object.
+ * @param productId - ID of the product to which the price belongs.
+ * @param priceId - ID of the price to retrieve.
+ * @returns Resolves with a Stripe Price object if found. Rejects if the specified
+ *   product ID or the price ID does not exist.
+ */
+export function getPrice(
+  payments: StripePayments,
+  productId: string,
+  priceId: string
+): Promise<Price> {
+  checkNonEmptyString(productId, "productId must be a non-empty string.");
+  checkNonEmptyString(priceId, "priceId must be a non-empty string.");
+  const dao: ProductDAO = getOrInitProductDAO(payments);
+  return dao.getPrice(productId, priceId);
 }
 
 /**
@@ -169,6 +186,7 @@ export async function getProduct(
  */
 export interface ProductDAO {
   getProduct(productId: string): Promise<Product>;
+  getPrice(productId: string, priceId: string): Promise<Price>;
 }
 
 const PRODUCT_CONVERTER: FirestoreDataConverter<Product> = {
@@ -184,37 +202,93 @@ const PRODUCT_CONVERTER: FirestoreDataConverter<Product> = {
   },
 };
 
+const PRICE_CONVERTER: FirestoreDataConverter<Price> = {
+  toFirestore: () => {
+    throw new Error("Not implemented for readonly Price type.");
+  },
+  fromFirestore: (snapshot: QueryDocumentSnapshot): Price => {
+    const data: DocumentData = snapshot.data();
+    return {
+      ...(data as Price),
+      id: snapshot.id,
+      productId: snapshot.ref.parent.parent!.id,
+      intervalCount: data.interval_count,
+      trialPeriodDays: data.trial_period_days,
+      unitAmount: data.unit_amount,
+    };
+  },
+};
+
 class FirestoreProductDAO implements ProductDAO {
-  constructor(
-    private readonly app: FirebaseApp,
-    private readonly productsCollection: string
-  ) {}
+  private readonly firestore: Firestore;
 
-  public async getProduct(productId: string): Promise<Product> {
-    const productSnap: DocumentSnapshot<Product> = await this.queryProduct(
-      productId
-    );
-    if (productSnap.exists()) {
-      return productSnap.data();
-    }
-
-    throw new StripePaymentsError(
-      "not-found",
-      `No product found with the ID: ${productId}`
-    );
+  constructor(app: FirebaseApp, private readonly productsCollection: string) {
+    this.firestore = getFirestore(app);
   }
 
-  private async queryProduct(
+  public async getProduct(productId: string): Promise<Product> {
+    const snap: QueryDocumentSnapshot<Product> = await this.getProductSnapshotIfExists(
+      productId
+    );
+    return snap.data();
+  }
+
+  public async getPrice(productId: string, priceId: string): Promise<Price> {
+    const snap: QueryDocumentSnapshot<Price> = await this.getPriceSnapshotIfExists(
+      productId,
+      priceId
+    );
+    return snap.data();
+  }
+
+  private async getProductSnapshotIfExists(
     productId: string
-  ): Promise<DocumentSnapshot<Product>> {
-    const firestore: Firestore = getFirestore(this.app);
+  ): Promise<QueryDocumentSnapshot<Product>> {
     const productRef: DocumentReference<Product> = doc(
-      firestore,
+      this.firestore,
       this.productsCollection,
       productId
     ).withConverter(PRODUCT_CONVERTER);
+    const snapshot: DocumentSnapshot<Product> = await this.queryFirestore(() =>
+      getDoc(productRef)
+    );
+    if (!snapshot.exists()) {
+      throw new StripePaymentsError(
+        "not-found",
+        `No product found with the ID: ${productId}`
+      );
+    }
+
+    return snapshot;
+  }
+
+  private async getPriceSnapshotIfExists(
+    productId: string,
+    priceId: string
+  ): Promise<QueryDocumentSnapshot<Price>> {
+    const priceRef: DocumentReference<Price> = doc(
+      this.firestore,
+      this.productsCollection,
+      productId,
+      "prices",
+      priceId
+    ).withConverter(PRICE_CONVERTER);
+    const snapshot: DocumentSnapshot<Price> = await this.queryFirestore(() =>
+      getDoc(priceRef)
+    );
+    if (!snapshot.exists()) {
+      throw new StripePaymentsError(
+        "not-found",
+        `No price found with the product ID: ${productId} and price ID: ${priceId}`
+      );
+    }
+
+    return snapshot;
+  }
+
+  private async queryFirestore<T>(fn: () => Promise<T>): Promise<T> {
     try {
-      return await getDoc(productRef);
+      return await fn();
     } catch (error) {
       throw new StripePaymentsError(
         "internal",
