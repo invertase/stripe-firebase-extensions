@@ -16,6 +16,8 @@
 
 import { FirebaseApp } from "@firebase/app";
 import {
+  collection,
+  CollectionReference,
   doc,
   DocumentData,
   DocumentReference,
@@ -23,8 +25,10 @@ import {
   Firestore,
   FirestoreDataConverter,
   getDoc,
+  getDocs,
   getFirestore,
   QueryDocumentSnapshot,
+  QuerySnapshot,
 } from "@firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
 import { checkNonEmptyString } from "./utils";
@@ -146,16 +150,34 @@ export interface Price {
  *
  * @param payments - A valid {@link StripePayments} object.
  * @param productId - ID of the product to retrieve.
+ * @param options - A set of options to customize the behavior. Set `includePrices` to true to
+ *   fetch the prices along with the product. If not set, {@link Product.prices} field is
+ *   empty in the result.
  * @returns Resolves with a Stripe Product object if found. Rejects if the specified product ID
  *  does not exist.
  */
 export function getProduct(
   payments: StripePayments,
-  productId: string
+  productId: string,
+  options?: { includePrices?: boolean }
 ): Promise<Product> {
   checkNonEmptyString(productId, "productId must be a non-empty string.");
   const dao: ProductDAO = getOrInitProductDAO(payments);
-  return dao.getProduct(productId);
+  return dao.getProduct(productId).then((product: Product) => {
+    if (options?.includePrices) {
+      return getProductWithPrices(dao, product);
+    }
+
+    return product;
+  });
+}
+
+async function getProductWithPrices(
+  dao: ProductDAO,
+  product: Product
+): Promise<Product> {
+  const prices: Price[] = await dao.getPrices(product.id);
+  return { ...product, prices };
 }
 
 /**
@@ -179,6 +201,24 @@ export function getPrice(
 }
 
 /**
+ * Retrieves all Stripe prices associated with the specified product.
+ *
+ * @param payments - A valid {@link StripePayments} object.
+ * @param productId - ID of the product to which the prices belong.
+ * @returns Resolves with an array of Stripe Price objects. Rejects if the specified
+ *   product ID does not exist. If the product exists, but doesn't have any prices, resolves
+ *   with the empty array.
+ */
+export function getPrices(
+  payments: StripePayments,
+  productId: string
+): Promise<Price[]> {
+  checkNonEmptyString(productId, "productId must be a non-empty string.");
+  const dao: ProductDAO = getOrInitProductDAO(payments);
+  return dao.getPrices(productId, { assertProduct: true });
+}
+
+/**
  * Internal interface for all database interactions pertaining to Stripe products. Exported
  * for testing.
  *
@@ -187,6 +227,10 @@ export function getPrice(
 export interface ProductDAO {
   getProduct(productId: string): Promise<Product>;
   getPrice(productId: string, priceId: string): Promise<Price>;
+  getPrices(
+    productId: string,
+    options?: { assertProduct?: boolean }
+  ): Promise<Price[]>;
 }
 
 const PRODUCT_CONVERTER: FirestoreDataConverter<Product> = {
@@ -241,6 +285,25 @@ class FirestoreProductDAO implements ProductDAO {
     return snap.data();
   }
 
+  public async getPrices(
+    productId: string,
+    options?: { assertProduct?: boolean | undefined }
+  ): Promise<Price[]> {
+    if (options?.assertProduct) {
+      await this.getProductSnapshotIfExists(productId);
+    }
+
+    const querySnap: QuerySnapshot<Price> = await this.getPriceSnapshots(
+      productId
+    );
+    const prices: Price[] = [];
+    querySnap.forEach((snap: QueryDocumentSnapshot<Price>) => {
+      prices.push(snap.data());
+    });
+
+    return prices;
+  }
+
   private async getProductSnapshotIfExists(
     productId: string
   ): Promise<QueryDocumentSnapshot<Product>> {
@@ -284,6 +347,18 @@ class FirestoreProductDAO implements ProductDAO {
     }
 
     return snapshot;
+  }
+
+  private async getPriceSnapshots(
+    productId: string
+  ): Promise<QuerySnapshot<Price>> {
+    const pricesCollection: CollectionReference<Price> = collection(
+      this.firestore,
+      this.productsCollection,
+      productId,
+      "prices"
+    ).withConverter(PRICE_CONVERTER);
+    return await this.queryFirestore(() => getDocs(pricesCollection));
   }
 
   private async queryFirestore<T>(fn: () => Promise<T>): Promise<T> {
