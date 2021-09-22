@@ -146,20 +146,29 @@ export interface Price {
 }
 
 /**
+ * Optional parameters for the {@link getProduct} function.
+ */
+export interface GetProductOptions {
+  /**
+   * Set to `true` to retrieve the prices along with a product. If not set, the product is
+   * returned with no prices (i.e. {@link Product.prices} field will be empty).
+   */
+  includePrices?: boolean;
+}
+
+/**
  * Retrieves a Stripe product from the database.
  *
  * @param payments - A valid {@link StripePayments} object.
  * @param productId - ID of the product to retrieve.
- * @param options - A set of options to customize the behavior. Set `includePrices` to true to
- *   fetch the prices along with the product. If not set, {@link Product.prices} field is
- *   empty in the result.
+ * @param options - A set of options to customize the behavior.
  * @returns Resolves with a Stripe Product object if found. Rejects if the specified product ID
  *  does not exist.
  */
 export function getProduct(
   payments: StripePayments,
   productId: string,
-  options?: { includePrices?: boolean }
+  options?: GetProductOptions
 ): Promise<Product> {
   checkNonEmptyString(productId, "productId must be a non-empty string.");
   const dao: ProductDAO = getOrInitProductDAO(payments);
