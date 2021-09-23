@@ -27,6 +27,7 @@ import {
   getPrice,
   getPrices,
   getProduct,
+  getProducts,
   getStripePayments,
   Price,
   Product,
@@ -34,10 +35,12 @@ import {
   StripePaymentsError,
 } from "../src/index";
 import {
+  economyPlan,
   premiumPlan,
   premiumPlanPrice,
   ProductData,
   rawProductData,
+  standardPlan,
   standardPlanPrice1,
   standardPlanPrice2,
 } from "./testdata";
@@ -91,6 +94,46 @@ describe("Product emulator tests", () => {
       expect(err).to.be.instanceOf(StripePaymentsError);
       expect(err.code).to.equal("not-found");
       expect(err.cause).to.be.undefined;
+    });
+  });
+
+  describe("getProducts()", () => {
+    it("should return all products when called without options", async () => {
+      const products: Product[] = await getProducts(payments);
+
+      expect(products).to.eql([economyPlan, premiumPlan, standardPlan]);
+    });
+
+    it("should only return active products when activeOnly is set", async () => {
+      const products: Product[] = await getProducts(payments, {activeOnly: true});
+
+      expect(products).to.eql([premiumPlan, standardPlan]);
+    });
+
+    it("should return products with prices when includePrices is set", async () => {
+      const products: Product[] = await getProducts(payments, {
+        includePrices: true,
+      });
+
+      const expected: Product[] = [
+        economyPlan,
+        { ...premiumPlan, prices: [premiumPlanPrice] },
+        { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2]},
+      ];
+      expect(products).to.be.an("array").of.length(3).and.to.be.like(expected);
+    });
+
+    it("should return active products with prices when activeOnly and includePrices are set", async () => {
+      const products: Product[] = await getProducts(payments, {
+        activeOnly: true,
+        includePrices: true,
+      });
+
+      const expected: Product[] = [
+        { ...premiumPlan, prices: [premiumPlanPrice] },
+        { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2]},
+      ];
+      expect(products).to.be.an("array").of.length(2).and.be.like(expected);
     });
   });
 
