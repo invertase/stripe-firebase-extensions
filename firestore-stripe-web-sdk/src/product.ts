@@ -218,8 +218,11 @@ export function getProducts(
   const activeOnly: boolean = options?.activeOnly ?? false;
   return dao.getProducts({ activeOnly }).then((products: Product[]) => {
     if (options?.includePrices) {
-      const productsWithPrices: Promise<Product>[] = products.map(
-        (product: Product) => getProductWithPrices(dao, product));
+      const productsWithPrices: Promise<
+        Product
+      >[] = products.map((product: Product) =>
+        getProductWithPrices(dao, product)
+      );
       return Promise.all(productsWithPrices);
     }
 
@@ -281,7 +284,7 @@ export function getPrices(
  */
 export interface ProductDAO {
   getProduct(productId: string): Promise<Product>;
-  getProducts(options?: {activeOnly?: boolean}): Promise<Product[]>;
+  getProducts(options?: { activeOnly?: boolean }): Promise<Product[]>;
   getPrice(productId: string, priceId: string): Promise<Price>;
   getPrices(
     productId: string,
@@ -333,7 +336,9 @@ class FirestoreProductDAO implements ProductDAO {
     return snap.data();
   }
 
-  public async getProducts(options?: {activeOnly?: boolean}): Promise<Product[]> {
+  public async getProducts(options?: {
+    activeOnly?: boolean;
+  }): Promise<Product[]> {
     const querySnap: QuerySnapshot<Product> = await this.getProductSnapshots(
       options?.activeOnly
     );
@@ -398,7 +403,7 @@ class FirestoreProductDAO implements ProductDAO {
   ): Promise<QuerySnapshot<Product>> {
     let productsQuery: Query<Product> = collection(
       this.firestore,
-      this.productsCollection,
+      this.productsCollection
     ).withConverter(PRODUCT_CONVERTER);
     if (activeOnly) {
       productsQuery = query(productsQuery, where("active", "==", true));

@@ -126,13 +126,17 @@ describe("getProduct()", () => {
 
 describe("getProducts()", () => {
   it("should return all products when called without options", async () => {
-    const fake: SinonSpy = sinonFake.resolves([economyPlan, premiumPlan, standardPlan]);
+    const fake: SinonSpy = sinonFake.resolves([
+      economyPlan,
+      premiumPlan,
+      standardPlan,
+    ]);
     setProductDAO(payments, testProductDAO("getProducts", fake));
 
     const products: Product[] = await getProducts(payments);
 
     expect(products).to.eql([economyPlan, premiumPlan, standardPlan]);
-    expect(fake).to.have.been.calledOnceWithExactly({activeOnly: false});
+    expect(fake).to.have.been.calledOnceWithExactly({ activeOnly: false });
   });
 
   it("should return empty array if no products are available", async () => {
@@ -142,17 +146,19 @@ describe("getProducts()", () => {
     const products: Product[] = await getProducts(payments);
 
     expect(products).to.be.an("array").and.be.empty;
-    expect(fake).to.have.been.calledOnceWithExactly({activeOnly: false});
+    expect(fake).to.have.been.calledOnceWithExactly({ activeOnly: false });
   });
 
   it("should only return active products when activeOnly is set", async () => {
     const fake: SinonSpy = sinonFake.resolves([premiumPlan, standardPlan]);
     setProductDAO(payments, testProductDAO("getProducts", fake));
 
-    const products: Product[] = await getProducts(payments, {activeOnly: true});
+    const products: Product[] = await getProducts(payments, {
+      activeOnly: true,
+    });
 
     expect(products).to.eql([premiumPlan, standardPlan]);
-    expect(fake).to.have.been.calledOnceWithExactly({activeOnly: true});
+    expect(fake).to.have.been.calledOnceWithExactly({ activeOnly: true });
   });
 
   it("should return products with prices when includePrices is set", async () => {
@@ -169,16 +175,21 @@ describe("getProducts()", () => {
     const expected: Product[] = [
       economyPlan,
       { ...premiumPlan, prices: [premiumPlanPrice] },
-      { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2]},
+      { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2] },
     ];
     expect(products).to.eql(expected);
-    expect(fakes.getProducts).to.have.been.calledOnceWithExactly({activeOnly: false});
-    expect(fakes.getPrices)
-      .to.have.been.calledAfter(fakes.getProducts)
-      .and.calledThrice;
+    expect(fakes.getProducts).to.have.been.calledOnceWithExactly({
+      activeOnly: false,
+    });
+    expect(fakes.getPrices).to.have.been.calledAfter(fakes.getProducts).and
+      .calledThrice;
     expect(fakes.getPrices.firstCall).to.have.been.calledWithExactly("economy");
-    expect(fakes.getPrices.secondCall).to.have.been.calledWithExactly("premium");
-    expect(fakes.getPrices.thirdCall).to.have.been.calledWithExactly("standard");
+    expect(fakes.getPrices.secondCall).to.have.been.calledWithExactly(
+      "premium"
+    );
+    expect(fakes.getPrices.thirdCall).to.have.been.calledWithExactly(
+      "standard"
+    );
   });
 
   it("should return active products with prices when activeOnly and includePrices are set", async () => {
@@ -195,15 +206,18 @@ describe("getProducts()", () => {
 
     const expected: Product[] = [
       { ...premiumPlan, prices: [premiumPlanPrice] },
-      { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2]},
+      { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2] },
     ];
     expect(products).to.eql(expected);
-    expect(fakes.getProducts).to.have.been.calledOnceWithExactly({activeOnly: true});
-    expect(fakes.getPrices)
-      .to.have.been.calledAfter(fakes.getProducts)
-      .and.calledTwice;
+    expect(fakes.getProducts).to.have.been.calledOnceWithExactly({
+      activeOnly: true,
+    });
+    expect(fakes.getPrices).to.have.been.calledAfter(fakes.getProducts).and
+      .calledTwice;
     expect(fakes.getPrices.firstCall).to.have.been.calledWithExactly("premium");
-    expect(fakes.getPrices.secondCall).to.have.been.calledWithExactly("standard");
+    expect(fakes.getPrices.secondCall).to.have.been.calledWithExactly(
+      "standard"
+    );
   });
 
   it("should reject when the data access object throws", async () => {
@@ -216,7 +230,7 @@ describe("getProducts()", () => {
 
     await expect(getProducts(payments)).to.be.rejectedWith(error);
 
-    expect(fake).to.have.been.calledOnceWithExactly({activeOnly: false});
+    expect(fake).to.have.been.calledOnceWithExactly({ activeOnly: false });
   });
 
   function getPricesForTest(productId: string): Promise<Price[]> {

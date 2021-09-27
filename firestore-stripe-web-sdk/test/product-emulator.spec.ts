@@ -105,7 +105,9 @@ describe("Product emulator tests", () => {
     });
 
     it("should only return active products when activeOnly is set", async () => {
-      const products: Product[] = await getProducts(payments, {activeOnly: true});
+      const products: Product[] = await getProducts(payments, {
+        activeOnly: true,
+      });
 
       expect(products).to.eql([premiumPlan, standardPlan]);
     });
@@ -118,7 +120,7 @@ describe("Product emulator tests", () => {
       const expected: Product[] = [
         economyPlan,
         { ...premiumPlan, prices: [premiumPlanPrice] },
-        { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2]},
+        { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2] },
       ];
       expect(products).to.be.an("array").of.length(3).and.to.be.like(expected);
     });
@@ -131,7 +133,7 @@ describe("Product emulator tests", () => {
 
       const expected: Product[] = [
         { ...premiumPlan, prices: [premiumPlanPrice] },
-        { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2]},
+        { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2] },
       ];
       expect(products).to.be.an("array").of.length(2).and.be.like(expected);
     });
