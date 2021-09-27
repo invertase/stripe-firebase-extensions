@@ -10,7 +10,15 @@ import { FirebaseApp } from '@firebase/app';
 export function getPrice(payments: StripePayments, productId: string, priceId: string): Promise<Price>;
 
 // @public
-export function getProduct(payments: StripePayments, productId: string): Promise<Product>;
+export function getPrices(payments: StripePayments, productId: string): Promise<Price[]>;
+
+// @public
+export function getProduct(payments: StripePayments, productId: string, options?: GetProductOptions): Promise<Product>;
+
+// @public
+export interface GetProductOptions {
+    includePrices?: boolean;
+}
 
 // @public
 export function getStripePayments(app: FirebaseApp, options: StripePaymentsOptions): StripePayments;

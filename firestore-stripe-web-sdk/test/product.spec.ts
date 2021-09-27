@@ -15,18 +15,11 @@
  */
 
 import { expect, use } from "chai";
-import * as chaiAsPromised from "chai-as-promised";
-import * as sinon from "sinon";
-import { deleteApp, FirebaseApp, initializeApp } from "@firebase/app";
-import {
-  connectFirestoreEmulator,
-  doc,
-  Firestore,
-  getFirestore,
-  setDoc,
-} from "@firebase/firestore";
+import { fake as sinonFake, SinonSpy } from "sinon";
+import { FirebaseApp } from "@firebase/app";
 import {
   getPrice,
+  getPrices,
   getProduct,
   getStripePayments,
   Price,
@@ -35,36 +28,15 @@ import {
   StripePaymentsError,
 } from "../src/index";
 import { ProductDAO, setProductDAO } from "../src/product";
+import {
+  premiumPlan,
+  premiumPlanPrice,
+  standardPlanPrice1,
+  standardPlanPrice2,
+} from "./testdata";
 
-use(chaiAsPromised);
-
-const premiumPlan: Product = {
-  active: true,
-  customProperty: "customValue",
-  description: "Product description",
-  id: "premium",
-  images: [],
-  metadata: {
-    firebaseRole: "moderator",
-  },
-  name: "Product name",
-  prices: [],
-  role: "moderator",
-};
-
-const premiumPlanPrice: Price = {
-  active: true,
-  customProperty: "customValue",
-  currency: "usd",
-  description: "Test price 1",
-  id: "price1",
-  interval: "month",
-  intervalCount: null,
-  productId: "premium",
-  trialPeriodDays: null,
-  type: "recurring",
-  unitAmount: 999,
-};
+use(require("chai-as-promised"));
+use(require("sinon-chai"));
 
 const app: FirebaseApp = {
   name: "mock",
@@ -88,24 +60,66 @@ describe("getProduct()", () => {
     });
   });
 
-  it("should return Product with the specified ID", async () => {
-    const fake = sinon.fake.resolves(premiumPlan);
+  it("should return product with the specified ID", async () => {
+    const fake: SinonSpy = sinonFake.resolves(premiumPlan);
     setProductDAO(payments, testProductDAO("getProduct", fake));
 
-    const product: Product = await getProduct(payments, "product1");
+    const product: Product = await getProduct(payments, "premium");
 
     expect(product).to.eql(premiumPlan);
-    expect(fake.calledOnceWithExactly("product1")).to.be.ok;
+    expect(fake).to.have.been.calledOnceWithExactly("premium");
   });
 
   it("should reject when the data access object throws", async () => {
-    const error = new StripePaymentsError("not-found", "no such product");
-    const fake = sinon.fake.rejects(error);
+    const error: StripePaymentsError = new StripePaymentsError(
+      "not-found",
+      "no such product"
+    );
+    const fake: SinonSpy = sinonFake.rejects(error);
     setProductDAO(payments, testProductDAO("getProduct", fake));
 
     await expect(getProduct(payments, "product1")).to.be.rejectedWith(error);
 
-    expect(fake.calledOnceWithExactly("product1")).to.be.ok;
+    expect(fake).to.have.been.calledOnceWithExactly("product1");
+  });
+
+  context("when includePrices is set", () => {
+    it("should return product with prices", async () => {
+      const fakes: Record<string, SinonSpy> = {
+        getProduct: sinonFake.resolves(premiumPlan),
+        getPrices: sinonFake.resolves([premiumPlanPrice]),
+      };
+      setProductDAO(payments, testProductDAO(fakes));
+
+      const product: Product = await getProduct(payments, "premium", {
+        includePrices: true,
+      });
+
+      const expected: Product = { ...premiumPlan, prices: [premiumPlanPrice] };
+      expect(product).to.eql(expected);
+      expect(fakes.getProduct).to.have.been.calledOnceWithExactly("premium");
+      expect(fakes.getPrices)
+        .to.have.been.calledAfter(fakes.getProduct)
+        .and.calledOnceWithExactly("premium");
+    });
+
+    it("should return product with empty prices if the product does not have prices", async () => {
+      const fakes: Record<string, SinonSpy> = {
+        getProduct: sinonFake.resolves(premiumPlan),
+        getPrices: sinonFake.resolves([]),
+      };
+      setProductDAO(payments, testProductDAO(fakes));
+
+      const product: Product = await getProduct(payments, "premium", {
+        includePrices: true,
+      });
+
+      expect(product).to.eql(premiumPlan);
+      expect(fakes.getProduct).to.have.been.calledOnceWithExactly("premium");
+      expect(fakes.getPrices)
+        .to.have.been.calledAfter(fakes.getProduct)
+        .and.calledOnceWithExactly("premium");
+    });
   });
 });
 
@@ -130,162 +144,95 @@ describe("getPrice()", () => {
     });
   });
 
-  it("should return Price with the specified ID", async () => {
-    const fake = sinon.fake.resolves(premiumPlanPrice);
+  it("should return price with the specified ID", async () => {
+    const fake: SinonSpy = sinonFake.resolves(premiumPlanPrice);
     setProductDAO(payments, testProductDAO("getPrice", fake));
 
-    const price: Price = await getPrice(payments, "product1", "price1");
+    const price: Price = await getPrice(payments, "premium", "price1");
 
     expect(price).to.eql(premiumPlanPrice);
-    expect(fake.calledOnceWithExactly("product1", "price1")).to.be.ok;
+    expect(fake).to.have.been.calledOnceWithExactly("premium", "price1");
   });
 
   it("should reject when the data access object throws", async () => {
-    const error = new StripePaymentsError("not-found", "no such product");
-    const fake = sinon.fake.rejects(error);
+    const error: StripePaymentsError = new StripePaymentsError(
+      "not-found",
+      "no such product"
+    );
+    const fake: SinonSpy = sinonFake.rejects(error);
     setProductDAO(payments, testProductDAO("getPrice", fake));
 
-    await expect(getPrice(payments, "product1", "price1")).to.be.rejectedWith(
+    await expect(getPrice(payments, "premium", "price1")).to.be.rejectedWith(
       error
     );
 
-    expect(fake.calledOnceWithExactly("product1", "price1")).to.be.ok;
+    expect(fake).to.have.been.calledOnceWithExactly("premium", "price1");
   });
 });
 
-function testProductDAO(name: string, fake: sinon.SinonSpy): ProductDAO {
-  return ({
-    [name]: fake,
-  } as unknown) as ProductDAO;
-}
-
-/**
- * An interface for raw product data stored in Firestore. Each product is saved as a separate
- * document in the `productsCollection`. Each product can have 0 or more prices stored in
- * the `prices` subcollection.
- */
-interface ProductData {
-  product: Record<string, any>;
-  prices: Record<string, Record<string, any>>;
-}
-
-const rawTestData: Record<string, ProductData> = {
-  premium: {
-    product: {
-      active: true,
-      customProperty: "customValue",
-      description: "Product description",
-      images: [],
-      metadata: {
-        firebaseRole: "moderator",
-      },
-      name: "Product name",
-      role: "moderator",
-    },
-    prices: {
-      price1: {
-        active: true,
-        customProperty: "customValue",
-        currency: "usd",
-        description: "Test price 1",
-        interval: "month",
-        interval_count: null,
-        trial_period_days: null,
-        type: "recurring",
-        unit_amount: 999,
-      },
-    },
-  },
-};
-
-describe("Product emulator tests", () => {
-  const emulatedApp: FirebaseApp = initializeApp({
-    projectId: "fake-project-id",
-  });
-
-  const emulatedPayments: StripePayments = getStripePayments(emulatedApp, {
-    customersCollection: "customers",
-    productsCollection: "products",
-  });
-
-  before(async () => {
-    const db = getFirestore(emulatedApp);
-    connectFirestoreEmulator(db, "localhost", 8080);
-
-    for (const [productId, data] of Object.entries(rawTestData)) {
-      await addProductData(db, productId, data);
-    }
-  });
-
-  after(async () => {
-    await deleteApp(emulatedApp);
-  });
-
-  describe("getProduct()", () => {
-    it("should return Product with the specified ID", async () => {
-      const product: Product = await getProduct(emulatedPayments, "premium");
-
-      expect(product).to.eql(premiumPlan);
-    });
-
-    it("should reject with not-found error when the specified product does not exist", async () => {
-      const err: any = await expect(
-        getProduct(emulatedPayments, "product2")
-      ).to.be.rejectedWith("No product found with the ID: product2");
-
-      expect(err).to.be.instanceOf(StripePaymentsError);
-      expect(err.code).to.equal("not-found");
-      expect(err.cause).to.be.undefined;
-    });
-  });
-
-  describe("getPrice()", () => {
-    it("should return Price for the specified product and price ID", async () => {
-      const price: Price = await getPrice(
-        emulatedPayments,
-        "premium",
-        "price1"
+describe("getPrices()", () => {
+  [null, [], {}, true, 1, 0, NaN, ""].forEach((invalidProductId: any) => {
+    it(`should throw given invalid productId: ${JSON.stringify(
+      invalidProductId
+    )}`, () => {
+      expect(() => getPrices(payments, invalidProductId)).to.throw(
+        "productId must be a non-empty string."
       );
-
-      expect(price).to.include(premiumPlanPrice);
-    });
-
-    it("should reject with not-found when the specified product does not exist", async () => {
-      const err: any = await expect(
-        getPrice(emulatedPayments, "unavailable", "price1")
-      ).to.be.rejectedWith(
-        "No price found with the product ID: unavailable and price ID: price1"
-      );
-
-      expect(err).to.be.instanceOf(StripePaymentsError);
-      expect(err.code).to.equal("not-found");
-      expect(err.cause).to.be.undefined;
-    });
-
-    it("should reject with not-found when the specified price does not exist", async () => {
-      const err: any = await expect(
-        getPrice(emulatedPayments, "premium", "unavailable")
-      ).to.be.rejectedWith(
-        "No price found with the product ID: premium and price ID: unavailable"
-      );
-
-      expect(err).to.be.instanceOf(StripePaymentsError);
-      expect(err.code).to.equal("not-found");
-      expect(err.cause).to.be.undefined;
     });
   });
 
-  async function addProductData(
-    db: Firestore,
-    productId: string,
-    data: ProductData
-  ): Promise<void> {
-    await setDoc(doc(db, payments.productsCollection, productId), data.product);
-    for (const [priceId, price] of Object.entries(data.prices)) {
-      await setDoc(
-        doc(db, payments.productsCollection, productId, "prices", priceId),
-        price
-      );
-    }
+  it("should return prices as an array for the specified product ID", async () => {
+    const expected: Price[] = [standardPlanPrice1, standardPlanPrice2];
+    const fake: SinonSpy = sinonFake.resolves(expected);
+    setProductDAO(payments, testProductDAO("getPrices", fake));
+
+    const prices: Price[] = await getPrices(payments, "premium");
+
+    expect(prices).to.eql(expected);
+    expect(fake).to.have.been.calledOnceWithExactly("premium", {
+      assertProduct: true,
+    });
+  });
+
+  it("should return empty array for existing product with no prices", async () => {
+    const fake: SinonSpy = sinonFake.resolves([]);
+    setProductDAO(payments, testProductDAO("getPrices", fake));
+
+    const prices: Price[] = await getPrices(payments, "premium");
+
+    expect(prices).to.be.an("array").and.be.empty;
+    expect(fake).to.have.been.calledOnceWithExactly("premium", {
+      assertProduct: true,
+    });
+  });
+
+  it("should reject when the data access object throws", async () => {
+    const error: StripePaymentsError = new StripePaymentsError(
+      "not-found",
+      "no such product"
+    );
+    const fake: SinonSpy = sinonFake.rejects(error);
+    setProductDAO(payments, testProductDAO("getPrices", fake));
+
+    await expect(getPrices(payments, "product1")).to.be.rejectedWith(error);
+
+    expect(fake).to.have.been.calledOnceWithExactly("product1", {
+      assertProduct: true,
+    });
+  });
+});
+
+function testProductDAO(fakes: Record<string, SinonSpy>): ProductDAO;
+function testProductDAO(name: string, fake: SinonSpy): ProductDAO;
+function testProductDAO(
+  nameOrFakes: string | Record<string, SinonSpy>,
+  fake?: SinonSpy
+): ProductDAO {
+  if (typeof nameOrFakes === "string") {
+    return ({
+      [nameOrFakes]: fake,
+    } as unknown) as ProductDAO;
   }
-});
+
+  return (nameOrFakes as unknown) as ProductDAO;
+}
