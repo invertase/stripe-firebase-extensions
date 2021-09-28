@@ -16,6 +16,17 @@
 
 import { Price, Product } from "../src/index";
 
+export const economyPlan: Product = {
+  active: false,
+  description: "Access to old content with ads",
+  id: "economy",
+  images: [],
+  metadata: {},
+  name: "Economy plan",
+  prices: [],
+  role: null,
+};
+
 export const premiumPlan: Product = {
   active: true,
   customProperty: "customValue",
@@ -28,6 +39,17 @@ export const premiumPlan: Product = {
   name: "Premium plan",
   prices: [],
   role: "moderator",
+};
+
+export const standardPlan: Product = {
+  active: true,
+  description: "Access to only regional content",
+  id: "standard",
+  images: [],
+  metadata: {},
+  name: "Standard plan",
+  prices: [],
+  role: null,
 };
 
 export const premiumPlanPrice: Price = {

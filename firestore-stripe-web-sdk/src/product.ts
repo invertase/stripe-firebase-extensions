@@ -27,8 +27,11 @@ import {
   getDoc,
   getDocs,
   getFirestore,
+  query,
+  Query,
   QueryDocumentSnapshot,
   QuerySnapshot,
+  where,
 } from "@firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
 import { checkNonEmptyString } from "./utils";
@@ -181,6 +184,52 @@ export function getProduct(
   });
 }
 
+/**
+ * Optional parameters for the {@link getProducts} function.
+ */
+export interface GetProductsOptions {
+  /**
+   * Set to `true` to retrieve only the currently active set of Stripe products. If not set,
+   * returns all available products.
+   */
+  activeOnly?: boolean;
+
+  /**
+   * Set to `true` to retrieve the prices along with a product. If not set, the product is
+   * returned with no prices (i.e. {@link Product.prices} field will be empty).
+   */
+  includePrices?: boolean;
+}
+
+/**
+ * Retrieves a Stripe product from the database.
+ *
+ * @param payments - A valid {@link StripePayments} object.
+ * @param productId - ID of the product to retrieve.
+ * @param options - A set of options to customize the behavior.
+ * @returns Resolves with a Stripe Product object if found. Rejects if the specified product ID
+ *  does not exist.
+ */
+export function getProducts(
+  payments: StripePayments,
+  options?: GetProductsOptions
+): Promise<Product[]> {
+  const dao: ProductDAO = getOrInitProductDAO(payments);
+  const activeOnly: boolean = options?.activeOnly ?? false;
+  return dao.getProducts({ activeOnly }).then((products: Product[]) => {
+    if (options?.includePrices) {
+      const productsWithPrices: Promise<
+        Product
+      >[] = products.map((product: Product) =>
+        getProductWithPrices(dao, product)
+      );
+      return Promise.all(productsWithPrices);
+    }
+
+    return products;
+  });
+}
+
 async function getProductWithPrices(
   dao: ProductDAO,
   product: Product
@@ -235,6 +284,7 @@ export function getPrices(
  */
 export interface ProductDAO {
   getProduct(productId: string): Promise<Product>;
+  getProducts(options?: { activeOnly?: boolean }): Promise<Product[]>;
   getPrice(productId: string, priceId: string): Promise<Price>;
   getPrices(
     productId: string,
@@ -286,6 +336,20 @@ class FirestoreProductDAO implements ProductDAO {
     return snap.data();
   }
 
+  public async getProducts(options?: {
+    activeOnly?: boolean;
+  }): Promise<Product[]> {
+    const querySnap: QuerySnapshot<Product> = await this.getProductSnapshots(
+      options?.activeOnly
+    );
+    const products: Product[] = [];
+    querySnap.forEach((snap: QueryDocumentSnapshot<Product>) => {
+      products.push(snap.data());
+    });
+
+    return products;
+  }
+
   public async getPrice(productId: string, priceId: string): Promise<Price> {
     const snap: QueryDocumentSnapshot<Price> = await this.getPriceSnapshotIfExists(
       productId,
@@ -332,6 +396,20 @@ class FirestoreProductDAO implements ProductDAO {
     }
 
     return snapshot;
+  }
+
+  private async getProductSnapshots(
+    activeOnly?: boolean
+  ): Promise<QuerySnapshot<Product>> {
+    let productsQuery: Query<Product> = collection(
+      this.firestore,
+      this.productsCollection
+    ).withConverter(PRODUCT_CONVERTER);
+    if (activeOnly) {
+      productsQuery = query(productsQuery, where("active", "==", true));
+    }
+
+    return await this.queryFirestore(() => getDocs(productsQuery));
   }
 
   private async getPriceSnapshotIfExists(

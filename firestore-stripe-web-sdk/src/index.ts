@@ -24,9 +24,11 @@ export {
 
 export {
   GetProductOptions,
+  GetProductsOptions,
   Price,
   Product,
   getPrice,
   getPrices,
   getProduct,
+  getProducts,
 } from "./product";

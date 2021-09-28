@@ -21,6 +21,15 @@ export interface GetProductOptions {
 }
 
 // @public
+export function getProducts(payments: StripePayments, options?: GetProductsOptions): Promise<Product[]>;
+
+// @public
+export interface GetProductsOptions {
+    activeOnly?: boolean;
+    includePrices?: boolean;
+}
+
+// @public
 export function getStripePayments(app: FirebaseApp, options: StripePaymentsOptions): StripePayments;
 
 // @public
