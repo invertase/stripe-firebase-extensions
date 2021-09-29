@@ -24,6 +24,9 @@ export interface CreateCheckoutSessionOptions {
     timeoutMillis?: number;
 }
 
+// @public (undocumented)
+export function getCurrentUserSubscription(payments: StripePayments, subscriptionId: string): Promise<Subscription>;
+
 // @public
 export function getPrice(payments: StripePayments, productId: string, priceId: string): Promise<Price>;
 
@@ -132,6 +135,58 @@ export interface StripePaymentsOptions {
     // (undocumented)
     productsCollection: string;
 }
+
+// @public (undocumented)
+export interface Subscription {
+    // (undocumented)
+    readonly [propName: string]: any;
+    // (undocumented)
+    readonly cancelAt: string | null;
+    // (undocumented)
+    readonly cancelAtPeriodEnd: boolean;
+    // (undocumented)
+    readonly canceledAt: string | null;
+    // (undocumented)
+    readonly created: string;
+    // (undocumented)
+    readonly currentPeriodEnd: string;
+    // (undocumented)
+    readonly currentPeriodStart: string;
+    // (undocumented)
+    readonly endedAt: string | null;
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly metadata: {
+        [name: string]: string;
+    };
+    // (undocumented)
+    readonly priceId: string;
+    // (undocumented)
+    readonly prices: Array<{
+        productId: string;
+        priceId: string;
+    }>;
+    // (undocumented)
+    readonly productId: string;
+    // (undocumented)
+    readonly quantity: number | null;
+    // (undocumented)
+    readonly role: string | null;
+    // (undocumented)
+    readonly status: SubscriptionState;
+    // (undocumented)
+    readonly stripeLink: string;
+    // (undocumented)
+    readonly trialEnd: string | null;
+    // (undocumented)
+    readonly trialStart: string | null;
+    // (undocumented)
+    readonly uid: string;
+}
+
+// @public (undocumented)
+export type SubscriptionState = "active" | "canceled" | "incomplete" | "incomplete_expired" | "past_due" | "trialing" | "unpaid";
 
 // (No @packageDocumentation comment for this package)
 
