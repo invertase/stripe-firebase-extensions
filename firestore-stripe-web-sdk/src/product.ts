@@ -476,7 +476,7 @@ function getOrInitProductDAO(payments: StripePayments): ProductDAO {
 }
 
 /**
- * Internal API registering a {@link ProductDAO} instance with {@link StripePayments}. Exported
+ * Internal API for registering a {@link ProductDAO} instance with {@link StripePayments}. Exported
  * for testing.
  *
  * @internal

@@ -17,13 +17,23 @@
 import { expect, use } from "chai";
 import { deleteApp, FirebaseApp, initializeApp } from "@firebase/app";
 import {
+  collectionGroup,
   connectFirestoreEmulator,
+  deleteDoc,
   doc,
+  DocumentChange,
+  DocumentData,
   Firestore,
   getFirestore,
+  onSnapshot,
+  Query,
   setDoc,
+  setLogLevel,
+  Timestamp,
+  Unsubscribe,
 } from "@firebase/firestore";
 import {
+  createCheckoutSession,
   getPrice,
   getPrices,
   getProduct,
@@ -44,11 +54,19 @@ import {
   standardPlanPrice1,
   standardPlanPrice2,
 } from "./testdata";
+import {
+  Auth,
+  connectAuthEmulator,
+  getAuth,
+  signInAnonymously,
+  signOut,
+} from "@firebase/auth";
 
 use(require("chai-like"));
 
-describe("Product emulator tests", () => {
+describe("Emulator tests", () => {
   const app: FirebaseApp = initializeApp({
+    apiKey: "fake-api-key",
     projectId: "fake-project-id",
   });
 
@@ -68,6 +86,108 @@ describe("Product emulator tests", () => {
 
   after(async () => {
     await deleteApp(app);
+  });
+
+  describe("createCheckoutSession()", () => {
+    let backend: ExtensionBackend;
+    let currentUser: string = "";
+
+    beforeEach(() => {
+      backend = new ExtensionBackend(payments);
+    });
+
+    afterEach(async () => {
+      await backend.tearDown();
+    });
+
+    context("without user signed in", () => {
+      it("rejects when creating a new session", async () => {
+        const err: any = await expect(
+          createCheckoutSession(payments, {
+            priceId: "foo",
+          })
+        ).to.be.rejectedWith(
+          "Failed to determine currently signed in user. User not signed in."
+        );
+
+        expect(err).to.be.instanceOf(StripePaymentsError);
+        expect(err.code).to.equal("unauthenticated");
+        expect(err.cause).to.be.undefined;
+      });
+    });
+
+    context("with user signed in", () => {
+      const auth: Auth = getAuth(app);
+
+      before(async () => {
+        connectAuthEmulator(auth, "http://localhost:9099", {
+          disableWarnings: true,
+        });
+        currentUser = (await signInAnonymously(auth)).user.uid;
+
+        const db = getFirestore(app);
+        await addUserData(db, currentUser);
+      });
+
+      after(async () => {
+        await signOut(auth);
+      });
+
+      it("creates a session with defaults when only the priceId is specified", async () => {
+        const session = await createCheckoutSession(payments, {
+          priceId: "foo",
+        });
+
+        expect(backend.events).to.have.length(1);
+        const { uid, docId, data, timestamp } = backend.events[0];
+        expect(session).to.eql({
+          cancelUrl: window.location.href,
+          createdAt: timestamp.toDate().toUTCString(),
+          id: `test_session_${docId}`,
+          mode: "subscription",
+          priceId: "foo",
+          successUrl: window.location.href,
+          url: `https://example.stripe.com/session/${docId}`,
+        });
+        expect(uid).to.equal(currentUser);
+        expect(data).to.eql({
+          cancel_url: window.location.href,
+          mode: "subscription",
+          price: "foo",
+          success_url: window.location.href,
+        });
+      });
+
+      it("creates a session with all the given parameters", async () => {
+        const session = await createCheckoutSession(payments, {
+          cancelUrl: "https://example.com/cancel",
+          priceId: "foo",
+          quantity: 5,
+          successUrl: "https://example.com/success",
+        });
+
+        expect(backend.events).to.have.length(1);
+        const { uid, docId, data, timestamp } = backend.events[0];
+        expect(session).to.eql({
+          cancelUrl: "https://example.com/cancel",
+          createdAt: timestamp.toDate().toUTCString(),
+          id: `test_session_${docId}`,
+          mode: "subscription",
+          priceId: "foo",
+          quantity: 5,
+          successUrl: "https://example.com/success",
+          url: `https://example.stripe.com/session/${docId}`,
+        });
+        expect(uid).to.equal(currentUser);
+        expect(data).to.eql({
+          cancel_url: "https://example.com/cancel",
+          mode: "subscription",
+          price: "foo",
+          quantity: 5,
+          success_url: "https://example.com/success",
+        });
+      });
+    });
   });
 
   describe("getProduct()", () => {
@@ -220,4 +340,74 @@ describe("Product emulator tests", () => {
       );
     }
   }
+
+  async function addUserData(db: Firestore, uid: string): Promise<void> {
+    await setDoc(doc(db, payments.customersCollection, uid), { uid });
+  }
 });
+
+interface Event {
+  readonly uid: string;
+  readonly docId: string;
+  readonly data: DocumentData;
+  readonly timestamp: Timestamp;
+}
+
+class ExtensionBackend {
+  public readonly events: Event[] = [];
+  private readonly cancel: Unsubscribe;
+
+  constructor(private readonly payments: StripePayments) {
+    this.cancel = this.initCreateCheckoutSessionTrigger();
+  }
+
+  public async tearDown(): Promise<void> {
+    this.cancel();
+    const db: Firestore = getFirestore(this.payments.app);
+    for (const event of this.events) {
+      const docRef = doc(
+        db,
+        this.payments.customersCollection,
+        event.uid,
+        "checkout_sessions",
+        event.docId
+      );
+      await deleteDoc(docRef);
+    }
+  }
+
+  private initCreateCheckoutSessionTrigger(): Unsubscribe {
+    const db: Firestore = getFirestore(this.payments.app);
+    const sessions: Query = collectionGroup(db, "checkout_sessions");
+    return onSnapshot(sessions, async (snap) => {
+      const promises: Promise<void>[] = [];
+      snap.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          promises.push(this.onSessionCreate(change));
+        }
+      });
+
+      await Promise.all(promises);
+    });
+  }
+
+  private async onSessionCreate(change: DocumentChange): Promise<void> {
+    const timestamp: Timestamp = Timestamp.now();
+    const docId = change.doc.id;
+    this.events.push({
+      uid: change.doc.ref.parent.parent!.id,
+      docId,
+      data: change.doc.data(),
+      timestamp,
+    });
+    await setDoc(
+      change.doc.ref,
+      {
+        sessionId: `test_session_${docId}`,
+        url: `https://example.stripe.com/session/${docId}`,
+        created: timestamp,
+      },
+      { merge: true }
+    );
+  }
+}

@@ -104,6 +104,7 @@ export class StripePayments {
 export type StripePaymentsErrorCode =
   | "not-found"
   | "permission-denied"
+  | "unauthenticated"
   | "internal";
 
 /**

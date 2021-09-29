@@ -7,6 +7,16 @@
 import { FirebaseApp } from '@firebase/app';
 
 // @public
+export interface CommonSessionCreateParams {
+    cancelUrl?: string;
+    mode?: "subscription" | "payment";
+    successUrl?: string;
+}
+
+// @public
+export function createCheckoutSession(payments: StripePayments, params: SessionCreateParams): Promise<Session>;
+
+// @public
 export function getPrice(payments: StripePayments, productId: string, priceId: string): Promise<Price>;
 
 // @public
@@ -49,6 +59,12 @@ export interface Price {
 }
 
 // @public
+export interface PriceIdSessionCreateParams extends CommonSessionCreateParams {
+    priceId: string;
+    quantity?: number;
+}
+
+// @public
 export interface Product {
     // (undocumented)
     readonly [propName: string]: any;
@@ -63,6 +79,21 @@ export interface Product {
     readonly prices: Price[];
     readonly role: string | null;
 }
+
+// @public
+export interface Session {
+    readonly cancelUrl: string;
+    readonly createdAt: string;
+    readonly id: string;
+    readonly mode: "subscription" | "payment";
+    readonly priceId?: string;
+    readonly quantity?: number;
+    readonly successUrl: string;
+    readonly url: string;
+}
+
+// @public
+export type SessionCreateParams = PriceIdSessionCreateParams;
 
 // @public
 export class StripePayments {
@@ -84,7 +115,7 @@ export class StripePaymentsError extends Error {
 }
 
 // @public
-export type StripePaymentsErrorCode = "not-found" | "permission-denied" | "internal";
+export type StripePaymentsErrorCode = "not-found" | "permission-denied" | "unauthenticated" | "internal";
 
 // @public
 export interface StripePaymentsOptions {
