@@ -26,6 +26,7 @@ import {
   StripePaymentsError,
 } from "../src/index";
 import { SessionDAO, setSessionDAO } from "../src/session";
+import { setUserDAO, UserDAO } from "../src/user";
 
 use(require("chai-as-promised"));
 use(require("sinon-chai"));
@@ -90,23 +91,28 @@ describe("createCheckoutSession()", () => {
   it("should return a session when called with minimum valid parameters", async () => {
     const fake: SinonSpy = sinonFake.resolves(testSession);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
+    const userFake: SinonSpy = sinonFake.resolves("alice");
+    setUserDAO(payments, testUserDAO(userFake));
 
     const session: Session = await createCheckoutSession(payments, {
       priceId: "price1",
     });
 
     expect(session).to.eql(testSession);
-    expect(fake).to.have.been.calledOnceWithExactly({
+    expect(fake).to.have.been.calledOnceWithExactly("alice", {
       cancelUrl: window.location.href,
       mode: "subscription",
       priceId: "price1",
       successUrl: window.location.href,
     });
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
   });
 
   it("should return a session when called with all valid parameters", async () => {
     const fake: SinonSpy = sinonFake.resolves(testSession);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
+    const userFake: SinonSpy = sinonFake.resolves("alice");
+    setUserDAO(payments, testUserDAO(userFake));
     const params: SessionCreateParams = {
       cancelUrl: "https://example.com/cancel",
       mode: "subscription",
@@ -118,22 +124,41 @@ describe("createCheckoutSession()", () => {
     const session: Session = await createCheckoutSession(payments, params);
 
     expect(session).to.eql(testSession);
-    expect(fake).to.have.been.calledOnceWithExactly(params);
+    expect(fake).to.have.been.calledOnceWithExactly("alice", params);
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
   });
 
-  it("should reject when the data access object throws", async () => {
+  it("should reject when the session data access object throws", async () => {
     const error: StripePaymentsError = new StripePaymentsError(
       "internal",
       "failed to create session"
     );
     const fake: SinonSpy = sinonFake.rejects(error);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
+    const userFake: SinonSpy = sinonFake.resolves("alice");
+    setUserDAO(payments, testUserDAO(userFake));
 
     await expect(
       createCheckoutSession(payments, { priceId: "price1" })
     ).to.be.rejectedWith(error);
 
     expect(fake).to.have.been.calledOnce;
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+  });
+
+  it("should reject when the user data access object throws", async () => {
+    const error: StripePaymentsError = new StripePaymentsError(
+      "unauthenticated",
+      "user not signed in"
+    );
+    const userFake: SinonSpy = sinonFake.rejects(error);
+    setUserDAO(payments, testUserDAO(userFake));
+
+    await expect(
+      createCheckoutSession(payments, { priceId: "price1" })
+    ).to.be.rejectedWith(error);
+
+    expect(userFake).to.have.been.calledOnce;
   });
 });
 
@@ -141,4 +166,10 @@ function testSessionDAO(name: string, fake: SinonSpy): SessionDAO {
   return {
     [name]: fake,
   } as unknown as SessionDAO;
+}
+
+function testUserDAO(fake: SinonSpy): UserDAO {
+  return {
+    getCurrentUser: fake,
+  } as UserDAO;
 }

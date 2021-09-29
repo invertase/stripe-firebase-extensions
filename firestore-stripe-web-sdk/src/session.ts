@@ -15,7 +15,6 @@
  */
 
 import { FirebaseApp } from "@firebase/app";
-import { Auth, getAuth } from "@firebase/auth";
 import {
   addDoc,
   collection,
@@ -32,7 +31,8 @@ import {
   Timestamp,
   Unsubscribe,
 } from "@firebase/firestore";
-import { StripePayments, StripePaymentsError } from "./index";
+import { StripePayments, StripePaymentsError } from "./init";
+import { getCurrentUser } from "./user";
 import { checkNonEmptyString, checkPositiveNumber } from "./utils";
 
 /**
@@ -125,6 +125,7 @@ export interface Session {
 /**
  * Creates a new Stripe checkout session with the given parameters. Returned session contains a
  * session ID and a session URL that can be used to redirect the user to complete the checkout.
+ * User must be currently signed in with Firebase Auth to call this API.
  *
  * @param payments - A valid {@link StripePayments} object.
  * @param params - Parameters of the checkout session.
@@ -137,8 +138,10 @@ export function createCheckoutSession(
   params = { ...params };
   checkAndUpdateCommonParams(params);
   checkAndUpdatePriceIdParams(params);
-  const dao: SessionDAO = getOrInitSessionDAO(payments);
-  return dao.createCheckoutSession(params);
+  return getCurrentUser(payments).then((uid: string) => {
+    const dao: SessionDAO = getOrInitSessionDAO(payments);
+    return dao.createCheckoutSession(uid, params);
+  });
 }
 
 function checkAndUpdateCommonParams(params: SessionCreateParams): void {
@@ -172,37 +175,37 @@ function checkAndUpdatePriceIdParams(params: PriceIdSessionCreateParams): void {
   }
 }
 
+/**
+ * Internal interface for all database interactions pertaining to Stripe sessions. Exported
+ * for testing.
+ *
+ * @internal
+ */
 export interface SessionDAO {
-  createCheckoutSession(params: SessionCreateParams): Promise<Session>;
+  createCheckoutSession(
+    uid: string,
+    params: SessionCreateParams
+  ): Promise<Session>;
 }
 
 type Mutable<T> = { -readonly [P in keyof T]: T[P] };
 type MutableSession = Mutable<Partial<Session>>;
 
 class FirestoreSessionDAO implements SessionDAO {
-  private readonly auth: Auth;
   private readonly firestore: Firestore;
 
   constructor(app: FirebaseApp, private readonly customersCollection: string) {
-    this.auth = getAuth(app);
     this.firestore = getFirestore(app);
   }
 
   public async createCheckoutSession(
+    uid: string,
     params: SessionCreateParams
   ): Promise<Session> {
-    const currentUser: string | undefined = this.auth.currentUser?.uid;
-    if (!currentUser) {
-      throw new StripePaymentsError(
-        "unauthenticated",
-        "Failed to determine currently signed in user. User not signed in."
-      );
-    }
-
     const sessions: CollectionReference<MutableSession> = collection(
       this.firestore,
       this.customersCollection,
-      currentUser,
+      uid,
       "checkout_sessions"
     ).withConverter(SESSION_CONVERTER);
     try {
