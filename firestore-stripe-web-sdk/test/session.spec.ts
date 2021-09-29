@@ -96,7 +96,12 @@ describe("createCheckoutSession()", () => {
     });
 
     expect(session).to.eql(testSession);
-    expect(fake).to.have.been.calledOnceWithExactly({ priceId: "price1" });
+    expect(fake).to.have.been.calledOnceWithExactly({
+      cancelUrl: window.location.href,
+      mode: "subscription",
+      priceId: "price1",
+      successUrl: window.location.href,
+    });
   });
 
   it("should return a session when called with all valid parameters", async () => {
@@ -128,12 +133,12 @@ describe("createCheckoutSession()", () => {
       createCheckoutSession(payments, { priceId: "price1" })
     ).to.be.rejectedWith(error);
 
-    expect(fake).to.have.been.calledOnceWithExactly({ priceId: "price1" });
+    expect(fake).to.have.been.calledOnce;
   });
 });
 
 function testSessionDAO(name: string, fake: SinonSpy): SessionDAO {
-  return ({
+  return {
     [name]: fake,
-  } as unknown) as SessionDAO;
+  } as unknown as SessionDAO;
 }

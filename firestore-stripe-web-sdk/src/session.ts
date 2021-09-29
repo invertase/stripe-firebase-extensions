@@ -32,8 +32,7 @@ import {
   Timestamp,
   Unsubscribe,
 } from "@firebase/firestore";
-import { StripePaymentsError } from ".";
-import { StripePayments } from "./init";
+import { StripePayments, StripePaymentsError } from "./index";
 import { checkNonEmptyString, checkPositiveNumber } from "./utils";
 
 /**
@@ -135,26 +134,42 @@ export function createCheckoutSession(
   payments: StripePayments,
   params: SessionCreateParams
 ): Promise<Session> {
-  checkSessionCreateParams(params);
+  params = checkAndUpdateParams(params);
   const dao: SessionDAO = getOrInitSessionDAO(payments);
   return dao.createCheckoutSession(params);
 }
 
-function checkSessionCreateParams(params: SessionCreateParams): void {
+function checkAndUpdateParams(
+  params: SessionCreateParams
+): SessionCreateParams {
+  params = { ...params };
+  checkAndUpdateCommonParams(params);
+  checkAndUpdatePriceIdParams(params);
+  return params;
+}
+
+function checkAndUpdateCommonParams(params: SessionCreateParams) {
   if (typeof params.cancelUrl !== "undefined") {
     checkNonEmptyString(
       params.cancelUrl,
       "cancelUrl must be a non-empty string."
     );
+  } else {
+    params.cancelUrl = window.location.href;
   }
 
+  params.mode ??= "subscription";
   if (typeof params.successUrl !== "undefined") {
     checkNonEmptyString(
       params.successUrl,
       "successUrl must be a non-empty string."
     );
+  } else {
+    params.successUrl = window.location.href;
   }
+}
 
+function checkAndUpdatePriceIdParams(params: PriceIdSessionCreateParams) {
   checkNonEmptyString(params.priceId, "priceId must be a non-empty string.");
   if (typeof params.quantity !== "undefined") {
     checkPositiveNumber(
@@ -240,10 +255,10 @@ function hasSessionId(session: MutableSession | undefined): session is Session {
 const SESSION_CONVERTER: FirestoreDataConverter<MutableSession> = {
   toFirestore: (session: MutableSession): DocumentData => {
     const data: DocumentData = {
-      cancel_url: session.cancelUrl ?? window.location.href,
-      mode: session.mode ?? "subscription",
+      cancel_url: session.cancelUrl,
+      mode: session.mode,
       price: session.priceId,
-      success_url: session.successUrl ?? window.location.href,
+      success_url: session.successUrl,
     };
 
     if (typeof session.quantity !== "undefined") {
@@ -257,8 +272,8 @@ const SESSION_CONVERTER: FirestoreDataConverter<MutableSession> = {
     const session: Partial<Mutable<Session>> = {
       cancelUrl: data.cancel_url,
       mode: data.mode,
-      successUrl: data.success_url,
       priceId: data.price,
+      successUrl: data.success_url,
     };
 
     if (typeof data.created !== "undefined") {
@@ -288,9 +303,8 @@ function toUTCDateString(timestamp: Timestamp): string {
 const SESSION_DAO_KEY = "checkout-session-dao" as const;
 
 function getOrInitSessionDAO(payments: StripePayments): SessionDAO {
-  let dao: SessionDAO | null = payments.getComponent<SessionDAO>(
-    SESSION_DAO_KEY
-  );
+  let dao: SessionDAO | null =
+    payments.getComponent<SessionDAO>(SESSION_DAO_KEY);
   if (!dao) {
     dao = new FirestoreSessionDAO(payments.app, payments.customersCollection);
     setSessionDAO(payments, dao);

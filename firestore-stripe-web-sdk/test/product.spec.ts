@@ -365,10 +365,10 @@ function testProductDAO(
   fake?: SinonSpy
 ): ProductDAO {
   if (typeof nameOrFakes === "string") {
-    return ({
+    return {
       [nameOrFakes]: fake,
-    } as unknown) as ProductDAO;
+    } as unknown as ProductDAO;
   }
 
-  return (nameOrFakes as unknown) as ProductDAO;
+  return nameOrFakes as unknown as ProductDAO;
 }

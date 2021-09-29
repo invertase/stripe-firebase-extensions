@@ -218,10 +218,8 @@ export function getProducts(
   const activeOnly: boolean = options?.activeOnly ?? false;
   return dao.getProducts({ activeOnly }).then((products: Product[]) => {
     if (options?.includePrices) {
-      const productsWithPrices: Promise<
-        Product
-      >[] = products.map((product: Product) =>
-        getProductWithPrices(dao, product)
+      const productsWithPrices: Promise<Product>[] = products.map(
+        (product: Product) => getProductWithPrices(dao, product)
       );
       return Promise.all(productsWithPrices);
     }
@@ -330,9 +328,8 @@ class FirestoreProductDAO implements ProductDAO {
   }
 
   public async getProduct(productId: string): Promise<Product> {
-    const snap: QueryDocumentSnapshot<Product> = await this.getProductSnapshotIfExists(
-      productId
-    );
+    const snap: QueryDocumentSnapshot<Product> =
+      await this.getProductSnapshotIfExists(productId);
     return snap.data();
   }
 
@@ -351,10 +348,8 @@ class FirestoreProductDAO implements ProductDAO {
   }
 
   public async getPrice(productId: string, priceId: string): Promise<Price> {
-    const snap: QueryDocumentSnapshot<Price> = await this.getPriceSnapshotIfExists(
-      productId,
-      priceId
-    );
+    const snap: QueryDocumentSnapshot<Price> =
+      await this.getPriceSnapshotIfExists(productId, priceId);
     return snap.data();
   }
 
@@ -464,9 +459,8 @@ class FirestoreProductDAO implements ProductDAO {
 const PRODUCT_DAO_KEY = "product-dao" as const;
 
 function getOrInitProductDAO(payments: StripePayments): ProductDAO {
-  let dao: ProductDAO | null = payments.getComponent<ProductDAO>(
-    PRODUCT_DAO_KEY
-  );
+  let dao: ProductDAO | null =
+    payments.getComponent<ProductDAO>(PRODUCT_DAO_KEY);
   if (!dao) {
     dao = new FirestoreProductDAO(payments.app, payments.productsCollection);
     setProductDAO(payments, dao);
