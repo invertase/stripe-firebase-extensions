@@ -13,8 +13,16 @@ export interface CommonSessionCreateParams {
     successUrl?: string;
 }
 
+// @public (undocumented)
+export const CREATE_SESSION_TIMEOUT_MILLIS: number;
+
 // @public
-export function createCheckoutSession(payments: StripePayments, params: SessionCreateParams): Promise<Session>;
+export function createCheckoutSession(payments: StripePayments, params: SessionCreateParams, options?: CreateCheckoutSessionOptions): Promise<Session>;
+
+// @public
+export interface CreateCheckoutSessionOptions {
+    timeoutMillis?: number;
+}
 
 // @public
 export function getPrice(payments: StripePayments, productId: string, priceId: string): Promise<Price>;
@@ -115,7 +123,7 @@ export class StripePaymentsError extends Error {
 }
 
 // @public
-export type StripePaymentsErrorCode = "not-found" | "permission-denied" | "unauthenticated" | "internal";
+export type StripePaymentsErrorCode = "deadline-exceeded" | "not-found" | "permission-denied" | "unauthenticated" | "internal";
 
 // @public
 export interface StripePaymentsOptions {

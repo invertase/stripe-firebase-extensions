@@ -18,6 +18,7 @@ import { expect, use } from "chai";
 import { fake as sinonFake, SinonSpy } from "sinon";
 import { FirebaseApp } from "@firebase/app";
 import {
+  CREATE_SESSION_TIMEOUT_MILLIS,
   createCheckoutSession,
   getStripePayments,
   Session,
@@ -88,6 +89,21 @@ describe("createCheckoutSession()", () => {
     });
   });
 
+  [null, [], {}, true, -1, 0, NaN, ""].forEach((timeoutMillis: any) => {
+    it(`should throw hen called with invalid timeoutMillis: ${timeoutMillis}`, () => {
+      expect(() =>
+        createCheckoutSession(
+          payments,
+          {
+            quantity: 1,
+            priceId: "price1",
+          },
+          { timeoutMillis }
+        )
+      ).to.throw("timeoutMillis must be a positive number.");
+    });
+  });
+
   it("should return a session when called with minimum valid parameters", async () => {
     const fake: SinonSpy = sinonFake.resolves(testSession);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
@@ -99,12 +115,16 @@ describe("createCheckoutSession()", () => {
     });
 
     expect(session).to.eql(testSession);
-    expect(fake).to.have.been.calledOnceWithExactly("alice", {
-      cancelUrl: window.location.href,
-      mode: "subscription",
-      priceId: "price1",
-      successUrl: window.location.href,
-    });
+    expect(fake).to.have.been.calledOnceWithExactly(
+      "alice",
+      {
+        cancelUrl: window.location.href,
+        mode: "subscription",
+        priceId: "price1",
+        successUrl: window.location.href,
+      },
+      CREATE_SESSION_TIMEOUT_MILLIS
+    );
     expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
   });
 
@@ -124,7 +144,39 @@ describe("createCheckoutSession()", () => {
     const session: Session = await createCheckoutSession(payments, params);
 
     expect(session).to.eql(testSession);
-    expect(fake).to.have.been.calledOnceWithExactly("alice", params);
+    expect(fake).to.have.been.calledOnceWithExactly(
+      "alice",
+      params,
+      CREATE_SESSION_TIMEOUT_MILLIS
+    );
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+  });
+
+  it("should return a session when called with valid timeout", async () => {
+    const fake: SinonSpy = sinonFake.resolves(testSession);
+    setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
+    const userFake: SinonSpy = sinonFake.resolves("alice");
+    setUserDAO(payments, testUserDAO(userFake));
+
+    const session: Session = await createCheckoutSession(
+      payments,
+      {
+        priceId: "price1",
+      },
+      { timeoutMillis: 3000 }
+    );
+
+    expect(session).to.eql(testSession);
+    expect(fake).to.have.been.calledOnceWithExactly(
+      "alice",
+      {
+        cancelUrl: window.location.href,
+        mode: "subscription",
+        priceId: "price1",
+        successUrl: window.location.href,
+      },
+      3000
+    );
     expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
   });
 
