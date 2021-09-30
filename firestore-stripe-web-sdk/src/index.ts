@@ -23,6 +23,14 @@ export {
 } from "./init";
 
 export {
+  createCheckoutSession,
+  CommonSessionCreateParams,
+  PriceIdSessionCreateParams,
+  Session,
+  SessionCreateParams,
+} from "./session";
+
+export {
   GetProductOptions,
   GetProductsOptions,
   Price,

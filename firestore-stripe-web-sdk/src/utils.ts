@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-import { StripePayments } from "./init";
-
-export function checkNonEmptyString(arg: string, message?: string): void {
+export function checkNonEmptyString(arg: unknown, message?: string): void {
   if (typeof arg !== "string" || arg === "") {
     throw new Error(message ?? "arg must be a non-empty string.");
+  }
+}
+
+export function checkPositiveNumber(arg: unknown, message?: string): void {
+  if (typeof arg !== "number" || isNaN(arg) || arg <= 0) {
+    throw new Error(message ?? "arg must be positive number.");
   }
 }
