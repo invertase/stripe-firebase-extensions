@@ -43,4 +43,8 @@ export {
   getProducts,
 } from "./product";
 
-export { getCurrentUserSubscription, Subscription, SubscriptionState } from "./subscription";
+export {
+  getCurrentUserSubscription,
+  Subscription,
+  SubscriptionState,
+} from "./subscription";

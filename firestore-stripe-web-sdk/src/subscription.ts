@@ -32,29 +32,119 @@ import { StripePayments } from "./init";
 import { getCurrentUser } from "./user";
 import { checkNonEmptyString } from "./utils";
 
+/**
+ * Interface of a Stripe Subscription stored in the app database.
+ */
 export interface Subscription {
-  readonly id: string;
-  readonly uid: string;
-  readonly metadata: { [name: string]: string };
-  readonly stripeLink: string;
-  readonly role: string | null;
-  readonly quantity: number | null;
-  readonly productId: string;
-  readonly priceId: string;
-  readonly prices: Array<{ productId: string; priceId: string }>;
-  readonly status: SubscriptionState;
-  readonly cancelAtPeriodEnd: boolean;
-  readonly created: string;
-  readonly currentPeriodStart: string;
-  readonly currentPeriodEnd: string;
-  readonly endedAt: string | null;
+  /**
+   * A future date in UTC format at which the subscription will automatically get canceled.
+   */
   readonly cancelAt: string | null;
+
+  /**
+   * If `true`, the subscription has been canceled by the user and will be deleted at the end
+   * of the billing period.
+   */
+  readonly cancelAtPeriodEnd: boolean;
+
+  /**
+   * If the subscription has been canceled, the date of that cancellation as a UTC timestamp.
+   * If the subscription was canceled with {@link Subscription.cancelAtPeriodEnd}, this field
+   * will still reflect the date of the initial cancellation request, not the end of the
+   * subscription period when the subscription is automatically moved to a canceled state.
+   */
   readonly canceledAt: string | null;
-  readonly trialStart: string | null;
+
+  /**
+   * The date when the subscription was created as a UTC timestamp.
+   */
+  readonly created: string;
+
+  /**
+   * End of the current period that the subscription has been invoiced for as a UTC timestamp.
+   * At the end of the period, a new invoice will be created.
+   */
+  readonly currentPeriodEnd: string;
+
+  /**
+   * Start of the current period that the subscription has been invoiced for as a UTC timestamp.
+   */
+  readonly currentPeriodStart: string;
+
+  /**
+   * If the subscription has ended, the date the subscription ended as a UTC timestamp.
+   */
+  readonly endedAt: string | null;
+
+  /**
+   * Unique Stripe subscription ID.
+   */
+  readonly id: string;
+
+  /**
+   * Set of extra key-value pairs attached to the subscription object.
+   */
+  readonly metadata: { [name: string]: string };
+
+  /**
+   * Stripe price ID associated with this subscription.
+   */
+  readonly priceId: string;
+
+  /**
+   * Array of product ID and price ID pairs. If multiple recurring prices were provided to the
+   * checkout session (e.g. via `lineItems`) this array holds all recurring prices for this
+   * subscription. The first element of this array always corresponds to the
+   * {@link Subscription.priceId} and {@link Subscription.productId} fields on the subscription.
+   */
+  readonly prices: Array<{ productId: string; priceId: string }>;
+
+  /**
+   * Stripe product ID associated with this subscription.
+   */
+  readonly productId: string;
+
+  /**
+   * Quantity of items purchased with this subscription.
+   */
+  readonly quantity: number | null;
+
+  /**
+   * The Firebae role that can be assigned to the user with this subscription.
+   */
+  readonly role: string | null;
+
+  /**
+   * The status of the subscription object
+   */
+  readonly status: SubscriptionState;
+
+  /**
+   * A link to the subscription in the Stripe dashboard.
+   */
+  readonly stripeLink: string;
+
+  /**
+   * If the subscription has a trial, the end date of that trial as a UTC timestamp.
+   */
   readonly trialEnd: string | null;
+
+  /**
+   * If the subscription has a trial, the start date of that trial as a UTC timestamp.
+   */
+  readonly trialStart: string | null;
+
+  /**
+   * Firebase Auth UID of the user that created the subscription.
+   */
+  readonly uid: string;
+
   readonly [propName: string]: any;
 }
 
+/**
+ * Possible states a subscription can be in.
+ */
 export type SubscriptionState =
   | "active"
   | "canceled"
@@ -64,6 +154,14 @@ export type SubscriptionState =
   | "trialing"
   | "unpaid";
 
+/**
+ * Retrieves an existing Stripe subscription for the currently signed in user from the database.
+ *
+ * @param payments - A valid {@link StripePayments} object.
+ * @param subscriptionId - ID of the subscription to retrieve.
+ * @returns Resolves with a Subscription object if found. Rejects if the specified subscription ID
+ *  does not exist, or if the user is not signed in.
+ */
 export function getCurrentUserSubscription(
   payments: StripePayments,
   subscriptionId: string
