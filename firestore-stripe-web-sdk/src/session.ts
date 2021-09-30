@@ -134,21 +134,14 @@ export function createCheckoutSession(
   payments: StripePayments,
   params: SessionCreateParams
 ): Promise<Session> {
-  params = checkAndUpdateParams(params);
+  params = { ...params };
+  checkAndUpdateCommonParams(params);
+  checkAndUpdatePriceIdParams(params);
   const dao: SessionDAO = getOrInitSessionDAO(payments);
   return dao.createCheckoutSession(params);
 }
 
-function checkAndUpdateParams(
-  params: SessionCreateParams
-): SessionCreateParams {
-  params = { ...params };
-  checkAndUpdateCommonParams(params);
-  checkAndUpdatePriceIdParams(params);
-  return params;
-}
-
-function checkAndUpdateCommonParams(params: SessionCreateParams) {
+function checkAndUpdateCommonParams(params: SessionCreateParams): void {
   if (typeof params.cancelUrl !== "undefined") {
     checkNonEmptyString(
       params.cancelUrl,
@@ -169,7 +162,7 @@ function checkAndUpdateCommonParams(params: SessionCreateParams) {
   }
 }
 
-function checkAndUpdatePriceIdParams(params: PriceIdSessionCreateParams) {
+function checkAndUpdatePriceIdParams(params: PriceIdSessionCreateParams): void {
   checkNonEmptyString(params.priceId, "priceId must be a non-empty string.");
   if (typeof params.quantity !== "undefined") {
     checkPositiveNumber(
