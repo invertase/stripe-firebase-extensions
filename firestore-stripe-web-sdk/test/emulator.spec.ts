@@ -189,7 +189,8 @@ describe("Emulator tests", () => {
       });
 
       it("rejects with deadline-exceeded when the timeout has expired", async () => {
-        // Teardown the trigger so the session will never get created.
+        // Backend trigger is already initialized above in beforeEach.
+        // Teardown it here so the session will never get created.
         await backend.tearDown();
 
         const err: any = await expect(
