@@ -15,7 +15,6 @@
  */
 
 import { FirebaseApp } from "@firebase/app";
-import { Auth, getAuth } from "@firebase/auth";
 import {
   addDoc,
   collection,
@@ -32,7 +31,8 @@ import {
   Timestamp,
   Unsubscribe,
 } from "@firebase/firestore";
-import { StripePayments, StripePaymentsError } from "./index";
+import { StripePayments, StripePaymentsError } from "./init";
+import { getCurrentUser } from "./user";
 import { checkNonEmptyString, checkPositiveNumber } from "./utils";
 
 /**
@@ -122,23 +122,44 @@ export interface Session {
   readonly quantity?: number;
 }
 
+export const CREATE_SESSION_TIMEOUT_MILLIS = 30 * 1000;
+
+/**
+ * Optional settings for the {@link createCheckoutSession} function.
+ */
+export interface CreateCheckoutSessionOptions {
+  /**
+   * Time to wait (in milliseconds) until the session is created and acknowledged by  Stripe.
+   * If not specified, defaults to {@link CREATE_SESSION_TIMEOUT_MILLIS}.
+   */
+  timeoutMillis?: number;
+}
+
 /**
  * Creates a new Stripe checkout session with the given parameters. Returned session contains a
  * session ID and a session URL that can be used to redirect the user to complete the checkout.
+ * User must be currently signed in with Firebase Auth to call this API. If a timeout occurs
+ * while waiting for the session to be created and acknowledged by Stripe, rejects with a
+ * `deadline-exceeded` error. Default timeout duration is {@link CREATE_SESSION_TIMEOUT_MILLIS}.
  *
  * @param payments - A valid {@link StripePayments} object.
  * @param params - Parameters of the checkout session.
+ * @param options - Optional settings to customize the behavior.
  * @returns Resolves with the created Stripe Session object.
  */
 export function createCheckoutSession(
   payments: StripePayments,
-  params: SessionCreateParams
+  params: SessionCreateParams,
+  options?: CreateCheckoutSessionOptions
 ): Promise<Session> {
   params = { ...params };
   checkAndUpdateCommonParams(params);
   checkAndUpdatePriceIdParams(params);
-  const dao: SessionDAO = getOrInitSessionDAO(payments);
-  return dao.createCheckoutSession(params);
+  const timeoutMillis: number = getTimeoutMillis(options?.timeoutMillis);
+  return getCurrentUser(payments).then((uid: string) => {
+    const dao: SessionDAO = getOrInitSessionDAO(payments);
+    return dao.createCheckoutSession(uid, params, timeoutMillis);
+  });
 }
 
 function checkAndUpdateCommonParams(params: SessionCreateParams): void {
@@ -172,45 +193,66 @@ function checkAndUpdatePriceIdParams(params: PriceIdSessionCreateParams): void {
   }
 }
 
+function getTimeoutMillis(timeoutMillis: number | undefined): number {
+  if (typeof timeoutMillis !== "undefined") {
+    checkPositiveNumber(
+      timeoutMillis,
+      "timeoutMillis must be a positive number."
+    );
+    return timeoutMillis;
+  }
+
+  return CREATE_SESSION_TIMEOUT_MILLIS;
+}
+
+/**
+ * Internal interface for all database interactions pertaining to Stripe sessions. Exported
+ * for testing.
+ *
+ * @internal
+ */
 export interface SessionDAO {
-  createCheckoutSession(params: SessionCreateParams): Promise<Session>;
+  createCheckoutSession(
+    uid: string,
+    params: SessionCreateParams,
+    timeoutMillis: number
+  ): Promise<Session>;
 }
 
 type Mutable<T> = { -readonly [P in keyof T]: T[P] };
 type MutableSession = Mutable<Partial<Session>>;
 
 class FirestoreSessionDAO implements SessionDAO {
-  private readonly auth: Auth;
   private readonly firestore: Firestore;
 
   constructor(app: FirebaseApp, private readonly customersCollection: string) {
-    this.auth = getAuth(app);
     this.firestore = getFirestore(app);
   }
 
   public async createCheckoutSession(
-    params: SessionCreateParams
+    uid: string,
+    params: SessionCreateParams,
+    timeoutMillis: number
   ): Promise<Session> {
-    const currentUser: string | undefined = this.auth.currentUser?.uid;
-    if (!currentUser) {
-      throw new StripePaymentsError(
-        "unauthenticated",
-        "Failed to determine currently signed in user. User not signed in."
-      );
-    }
+    const doc: DocumentReference<MutableSession> = await this.addSessionDoc(
+      uid,
+      params
+    );
+    return this.waitForSessionId(doc, timeoutMillis);
+  }
 
+  private async addSessionDoc(
+    uid: string,
+    params: SessionCreateParams
+  ): Promise<DocumentReference<MutableSession>> {
     const sessions: CollectionReference<MutableSession> = collection(
       this.firestore,
       this.customersCollection,
-      currentUser,
+      uid,
       "checkout_sessions"
     ).withConverter(SESSION_CONVERTER);
     try {
-      const doc: DocumentReference<MutableSession> = await addDoc(
-        sessions,
-        params
-      );
-      return await this.waitForSessionId(doc);
+      return await addDoc(sessions, params);
     } catch (err) {
       throw new StripePaymentsError(
         "internal",
@@ -221,20 +263,37 @@ class FirestoreSessionDAO implements SessionDAO {
   }
 
   private waitForSessionId(
-    doc: DocumentReference<MutableSession>
+    doc: DocumentReference<MutableSession>,
+    timeoutMillis: number
   ): Promise<Session> {
     let cancel: Unsubscribe;
     return new Promise<Session>((resolve, reject) => {
+      const timeout: ReturnType<typeof setTimeout> = setTimeout(() => {
+        reject(
+          new StripePaymentsError(
+            "deadline-exceeded",
+            "Timeout while waiting for session response."
+          )
+        );
+      }, timeoutMillis);
       cancel = onSnapshot(
         doc,
         (snap: DocumentSnapshot<MutableSession>) => {
           const session: MutableSession | undefined = snap.data();
           if (hasSessionId(session)) {
+            clearTimeout(timeout);
             resolve(session);
           }
         },
         (err: FirestoreError) => {
-          reject(err);
+          clearTimeout(timeout);
+          reject(
+            new StripePaymentsError(
+              "internal",
+              "Error while querying Firestore.",
+              err
+            )
+          );
         }
       );
     }).finally(() => cancel());

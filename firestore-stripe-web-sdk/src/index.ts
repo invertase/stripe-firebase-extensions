@@ -23,7 +23,9 @@ export {
 } from "./init";
 
 export {
+  CREATE_SESSION_TIMEOUT_MILLIS,
   createCheckoutSession,
+  CreateCheckoutSessionOptions,
   CommonSessionCreateParams,
   PriceIdSessionCreateParams,
   Session,

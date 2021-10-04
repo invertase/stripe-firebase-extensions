@@ -187,6 +187,24 @@ describe("Emulator tests", () => {
           success_url: "https://example.com/success",
         });
       });
+
+      it("rejects with deadline-exceeded when the timeout has expired", async () => {
+        // Backend trigger is already initialized above in beforeEach.
+        // Teardown it here so the session will never get created.
+        await backend.tearDown();
+
+        const err: any = await expect(
+          createCheckoutSession(
+            payments,
+            { priceId: "foo" },
+            { timeoutMillis: 10 }
+          )
+        ).to.be.rejectedWith("Timeout while waiting for session response.");
+
+        expect(err).to.be.instanceOf(StripePaymentsError);
+        expect(err.code).to.equal("deadline-exceeded");
+        expect(err.cause).to.be.undefined;
+      });
     });
   });
 

@@ -102,6 +102,7 @@ export class StripePayments {
  * Union of possible error codes.
  */
 export type StripePaymentsErrorCode =
+  | "deadline-exceeded"
   | "not-found"
   | "permission-denied"
   | "unauthenticated"
