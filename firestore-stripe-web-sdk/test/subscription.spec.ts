@@ -47,14 +47,14 @@ describe("getCurrentUserSubscription()", () => {
     it(`should throw when called with invalid subscriptionId: ${JSON.stringify(
       subscriptionId
     )}`, () => {
-      expect(() => getCurrentUserSubscription(payments, subscriptionId)).to.throw(
-        "subscriptionId must be a non-empty string."
-      );
+      expect(() =>
+        getCurrentUserSubscription(payments, subscriptionId)
+      ).to.throw("subscriptionId must be a non-empty string.");
     });
   });
 
   it("should return a subscription when called with a valid subscriptionId", async () => {
-    const expected: Subscription = {...subscription1, uid: "alice"};
+    const expected: Subscription = { ...subscription1, uid: "alice" };
     const fake: SinonSpy = sinonFake.resolves(expected);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscription", fake));
     const userFake: SinonSpy = sinonFake.resolves("alice");
@@ -62,7 +62,7 @@ describe("getCurrentUserSubscription()", () => {
 
     const subscription: Subscription = await getCurrentUserSubscription(
       payments,
-      "sub1",
+      "sub1"
     );
 
     expect(subscription).to.eql(expected);
