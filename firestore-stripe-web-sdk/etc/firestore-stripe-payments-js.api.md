@@ -28,6 +28,9 @@ export interface CreateCheckoutSessionOptions {
 export function getCurrentUserSubscription(payments: StripePayments, subscriptionId: string): Promise<Subscription>;
 
 // @public
+export function getCurrentUserSubscriptions(payments: StripePayments, options?: GetSubscriptionsOptions): Promise<Subscription[]>;
+
+// @public
 export function getPrice(payments: StripePayments, productId: string, priceId: string): Promise<Price>;
 
 // @public
@@ -52,6 +55,11 @@ export interface GetProductsOptions {
 
 // @public
 export function getStripePayments(app: FirebaseApp, options: StripePaymentsOptions): StripePayments;
+
+// @public
+export interface GetSubscriptionsOptions {
+    status?: SubscriptionStatus | SubscriptionStatus[];
+}
 
 // @public
 export interface Price {
@@ -159,7 +167,7 @@ export interface Subscription {
     readonly productId: string;
     readonly quantity: number | null;
     readonly role: string | null;
-    readonly status: SubscriptionState;
+    readonly status: SubscriptionStatus;
     readonly stripeLink: string;
     readonly trialEnd: string | null;
     readonly trialStart: string | null;
@@ -167,7 +175,7 @@ export interface Subscription {
 }
 
 // @public
-export type SubscriptionState = "active" | "canceled" | "incomplete" | "incomplete_expired" | "past_due" | "trialing" | "unpaid";
+export type SubscriptionStatus = "active" | "canceled" | "incomplete" | "incomplete_expired" | "past_due" | "trialing" | "unpaid";
 
 // (No @packageDocumentation comment for this package)
 

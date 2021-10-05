@@ -207,8 +207,7 @@ export interface GetProductsOptions {
  * @param payments - A valid {@link StripePayments} object.
  * @param productId - ID of the product to retrieve.
  * @param options - A set of options to customize the behavior.
- * @returns Resolves with a Stripe Product object if found. Rejects if the specified product ID
- *  does not exist.
+ * @returns Resolves with an array of Stripe Product objects. May be empty.
  */
 export function getProducts(
   payments: StripePayments,

@@ -16,6 +16,7 @@
 
 import { FirebaseApp } from "@firebase/app";
 import {
+  collection,
   doc,
   DocumentData,
   DocumentReference,
@@ -23,14 +24,18 @@ import {
   Firestore,
   FirestoreDataConverter,
   getDoc,
+  getDocs,
   getFirestore,
+  query,
+  Query,
   QueryDocumentSnapshot,
+  QuerySnapshot,
   Timestamp,
+  where,
 } from "@firebase/firestore";
-import { StripePaymentsError } from ".";
-import { StripePayments } from "./init";
+import { StripePayments, StripePaymentsError } from "./init";
 import { getCurrentUser } from "./user";
-import { checkNonEmptyString } from "./utils";
+import { checkNonEmptyArray, checkNonEmptyString } from "./utils";
 
 /**
  * Interface of a Stripe Subscription stored in the app database.
@@ -117,7 +122,7 @@ export interface Subscription {
   /**
    * The status of the subscription object
    */
-  readonly status: SubscriptionState;
+  readonly status: SubscriptionStatus;
 
   /**
    * A link to the subscription in the Stripe dashboard.
@@ -145,7 +150,7 @@ export interface Subscription {
 /**
  * Possible states a subscription can be in.
  */
-export type SubscriptionState =
+export type SubscriptionStatus =
   | "active"
   | "canceled"
   | "incomplete"
@@ -177,6 +182,55 @@ export function getCurrentUserSubscription(
 }
 
 /**
+ * Optional parameters for the {@link getCurrentUserSubscriptions} function.
+ */
+export interface GetSubscriptionsOptions {
+  /**
+   * Specify one or more subscription status values to retrieve. When set only the subscriptions
+   * with the given status are returned.
+   */
+  status?: SubscriptionStatus | SubscriptionStatus[];
+}
+
+/**
+ * Retrieves existing Stripe subscriptions for the currently signed in user from the database.
+ *
+ * @param payments - A valid {@link StripePayments} object.
+ * @param options - A set of options to customize the behavior.
+ * @returns Resolves with an array of Stripe subscriptions. May be empty.
+ */
+export function getCurrentUserSubscriptions(
+  payments: StripePayments,
+  options?: GetSubscriptionsOptions
+): Promise<Subscription[]> {
+  const queryOptions: SubscriptionsQueryOptions = asQueryOptions(options);
+  return getCurrentUser(payments).then((uid: string) => {
+    const dao: SubscriptionDAO = getOrInitSubscriptionDAO(payments);
+    return dao.getSubscriptions(uid, queryOptions);
+  });
+}
+
+interface SubscriptionsQueryOptions {
+  status?: SubscriptionStatus[];
+}
+
+function asQueryOptions(
+  options?: GetSubscriptionsOptions
+): SubscriptionsQueryOptions {
+  const result: SubscriptionsQueryOptions = {};
+  if (options) {
+    if (typeof options.status === "string") {
+      result.status = [options.status];
+    } else {
+      checkNonEmptyArray(options.status, "status must be a non-empty array.");
+      result.status = options.status;
+    }
+  }
+
+  return result;
+}
+
+/**
  * Internal interface for all database interactions pertaining to Stripe subscriptions. Exported
  * for testing.
  *
@@ -184,6 +238,10 @@ export function getCurrentUserSubscription(
  */
 export interface SubscriptionDAO {
   getSubscription(uid: string, subscriptionId: string): Promise<Subscription>;
+  getSubscriptions(
+    uid: string,
+    options?: SubscriptionsQueryOptions
+  ): Promise<Subscription[]>;
 }
 
 const SUBSCRIPTION_CONVERTER: FirestoreDataConverter<Subscription> = {
@@ -254,6 +312,20 @@ class FirestoreSubscriptionDAO implements SubscriptionDAO {
     return snap.data();
   }
 
+  public async getSubscriptions(
+    uid: string,
+    options?: SubscriptionsQueryOptions
+  ): Promise<Subscription[]> {
+    const querySnap: QuerySnapshot<Subscription> =
+      await this.getSubscriptionSnapshots(uid, options?.status);
+    const subscriptions: Subscription[] = [];
+    querySnap.forEach((snap: QueryDocumentSnapshot<Subscription>) => {
+      subscriptions.push(snap.data());
+    });
+
+    return subscriptions;
+  }
+
   private async getSubscriptionSnapshotIfExists(
     uid: string,
     subscriptionId: string
@@ -276,6 +348,26 @@ class FirestoreSubscriptionDAO implements SubscriptionDAO {
     }
 
     return snapshot;
+  }
+
+  private async getSubscriptionSnapshots(
+    uid: string,
+    status?: SubscriptionStatus[]
+  ): Promise<QuerySnapshot<Subscription>> {
+    let subscriptionsQuery: Query<Subscription> = collection(
+      this.firestore,
+      this.customersCollection,
+      uid,
+      "subscriptions"
+    ).withConverter(SUBSCRIPTION_CONVERTER);
+    if (status) {
+      subscriptionsQuery = query(
+        subscriptionsQuery,
+        where("status", "in", status)
+      );
+    }
+
+    return await this.queryFirestore(() => getDocs(subscriptionsQuery));
   }
 
   private async queryFirestore<T>(fn: () => Promise<T>): Promise<T> {

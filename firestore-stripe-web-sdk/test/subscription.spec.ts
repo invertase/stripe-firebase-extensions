@@ -19,12 +19,13 @@ import { fake as sinonFake, SinonSpy } from "sinon";
 import { FirebaseApp } from "@firebase/app";
 import {
   getCurrentUserSubscription,
+  getCurrentUserSubscriptions,
   getStripePayments,
   Subscription,
   StripePayments,
   StripePaymentsError,
 } from "../src/index";
-import { subscription1 } from "./testdata";
+import { subscription1, subscription2 } from "./testdata";
 import { setSubscriptionDAO, SubscriptionDAO } from "../src/subscription";
 import { setUserDAO, UserDAO } from "../src/user";
 
@@ -99,6 +100,120 @@ describe("getCurrentUserSubscription()", () => {
     await expect(
       getCurrentUserSubscription(payments, "subscription1")
     ).to.be.rejectedWith(error);
+
+    expect(userFake).to.have.been.calledOnce;
+  });
+});
+
+describe("getCurrentUserSubscriptions()", () => {
+  it("should return all subscriptions when called without options", async () => {
+    const fake: SinonSpy = sinonFake.resolves([subscription1, subscription2]);
+    setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
+    const userFake: SinonSpy = sinonFake.resolves("alice");
+    setUserDAO(payments, testUserDAO(userFake));
+
+    const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
+      payments
+    );
+
+    expect(subscriptions).to.eql([subscription1, subscription2]);
+    expect(fake).to.have.been.calledOnceWithExactly("alice", {});
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+  });
+
+  it("should return empty array if no subscriptions are available", async () => {
+    const fake: SinonSpy = sinonFake.resolves([]);
+    setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
+
+    const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
+      payments
+    );
+
+    expect(subscriptions).to.be.an("array").and.be.empty;
+    expect(fake).to.have.been.calledOnceWithExactly("alice", {});
+  });
+
+  it("should only return subscriptions with the given status", async () => {
+    const fake: SinonSpy = sinonFake.resolves([subscription1]);
+    setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
+    const userFake: SinonSpy = sinonFake.resolves("alice");
+    setUserDAO(payments, testUserDAO(userFake));
+
+    const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
+      payments,
+      {
+        status: "active",
+      }
+    );
+
+    expect(subscriptions).to.eql([subscription1]);
+    expect(fake).to.have.been.calledOnceWithExactly("alice", {
+      status: ["active"],
+    });
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+  });
+
+  it("should only return subscriptions with the given statuses", async () => {
+    const fake: SinonSpy = sinonFake.resolves([subscription1, subscription2]);
+    setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
+    const userFake: SinonSpy = sinonFake.resolves("alice");
+    setUserDAO(payments, testUserDAO(userFake));
+
+    const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
+      payments,
+      {
+        status: ["active", "incomplete"],
+      }
+    );
+
+    expect(subscriptions).to.eql([subscription1, subscription2]);
+    expect(fake).to.have.been.calledOnceWithExactly("alice", {
+      status: ["active", "incomplete"],
+    });
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+  });
+
+  [null, [], {}, true, 1, 0, NaN].forEach((status: any) => {
+    it(`should throw when called with invalid status option: ${JSON.stringify(
+      status
+    )}`, async () => {
+      expect(() =>
+        getCurrentUserSubscriptions(payments, {
+          status,
+        })
+      ).to.throw("status must be a non-empty array.");
+    });
+  });
+
+  it("should reject when the subscription data access object throws", async () => {
+    const error: StripePaymentsError = new StripePaymentsError(
+      "not-found",
+      "no such subscription"
+    );
+    const fake: SinonSpy = sinonFake.rejects(error);
+    setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
+    const userFake: SinonSpy = sinonFake.resolves("alice");
+    setUserDAO(payments, testUserDAO(userFake));
+
+    await expect(getCurrentUserSubscriptions(payments)).to.be.rejectedWith(
+      error
+    );
+
+    expect(fake).to.have.been.calledOnceWithExactly("alice", {});
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+  });
+
+  it("should reject when the user data access object throws", async () => {
+    const error: StripePaymentsError = new StripePaymentsError(
+      "unauthenticated",
+      "user not signed in"
+    );
+    const userFake: SinonSpy = sinonFake.rejects(error);
+    setUserDAO(payments, testUserDAO(userFake));
+
+    await expect(getCurrentUserSubscriptions(payments)).to.be.rejectedWith(
+      error
+    );
 
     expect(userFake).to.have.been.calledOnce;
   });

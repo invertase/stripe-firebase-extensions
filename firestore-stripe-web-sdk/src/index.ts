@@ -45,6 +45,8 @@ export {
 
 export {
   getCurrentUserSubscription,
+  getCurrentUserSubscriptions,
+  GetSubscriptionsOptions,
   Subscription,
-  SubscriptionState,
+  SubscriptionStatus,
 } from "./subscription";

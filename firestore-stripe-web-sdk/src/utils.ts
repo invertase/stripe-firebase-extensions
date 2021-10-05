@@ -25,3 +25,9 @@ export function checkPositiveNumber(arg: unknown, message?: string): void {
     throw new Error(message ?? "arg must be positive number.");
   }
 }
+
+export function checkNonEmptyArray(arg: unknown, message?: string): void {
+  if (!Array.isArray(arg) || arg.length === 0) {
+    throw new Error(message ?? "arg must be a non-empty array.");
+  }
+}
