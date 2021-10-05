@@ -28,12 +28,12 @@ import {
   onSnapshot,
   Query,
   setDoc,
-  setLogLevel,
   Timestamp,
   Unsubscribe,
 } from "@firebase/firestore";
 import {
   createCheckoutSession,
+  getCurrentUserSubscription,
   getPrice,
   getPrices,
   getProduct,
@@ -41,6 +41,7 @@ import {
   getStripePayments,
   Price,
   Product,
+  Subscription,
   StripePayments,
   StripePaymentsError,
 } from "../src/index";
@@ -50,9 +51,12 @@ import {
   premiumPlanPrice,
   ProductData,
   rawProductData,
+  rawSubscriptionData,
   standardPlan,
   standardPlanPrice1,
   standardPlanPrice2,
+  subscription1,
+  subscription2,
 } from "./testdata";
 import {
   Auth,
@@ -75,12 +79,17 @@ describe("Emulator tests", () => {
     productsCollection: "products",
   });
 
+  const db: Firestore = getFirestore(app);
+  const auth: Auth = getAuth(app);
+
   before(async () => {
-    const db: Firestore = getFirestore(app);
     connectFirestoreEmulator(db, "localhost", 8080);
+    connectAuthEmulator(auth, "http://localhost:9099", {
+      disableWarnings: true,
+    });
 
     for (const [productId, data] of Object.entries(rawProductData)) {
-      await addProductData(db, productId, data);
+      await addProductData(productId, data);
     }
   });
 
@@ -117,16 +126,9 @@ describe("Emulator tests", () => {
     });
 
     context("with user signed in", () => {
-      const auth: Auth = getAuth(app);
-
       before(async () => {
-        connectAuthEmulator(auth, "http://localhost:9099", {
-          disableWarnings: true,
-        });
         currentUser = (await signInAnonymously(auth)).user.uid;
-
-        const db = getFirestore(app);
-        await addUserData(db, currentUser);
+        await addUserData(currentUser);
       });
 
       after(async () => {
@@ -345,8 +347,71 @@ describe("Emulator tests", () => {
     });
   });
 
+  describe("getCurrentUserSubscription()", () => {
+    let currentUser: string = "";
+
+    context("without user signed in", () => {
+      it("rejects when fetching a subscription", async () => {
+        const err: any = await expect(
+          getCurrentUserSubscription(payments, "sub1")
+        ).to.be.rejectedWith(
+          "Failed to determine currently signed in user. User not signed in."
+        );
+
+        expect(err).to.be.instanceOf(StripePaymentsError);
+        expect(err.code).to.equal("unauthenticated");
+        expect(err.cause).to.be.undefined;
+      });
+    });
+
+    context("with user signed in", () => {
+      before(async () => {
+        currentUser = (await signInAnonymously(auth)).user.uid;
+        await addUserData(currentUser);
+        for (const [id, subscription] of Object.entries(rawSubscriptionData)) {
+          await addSubscriptionData(currentUser, id, subscription);
+        }
+      });
+
+      after(async () => {
+        await signOut(auth);
+      });
+
+      it("should return a subscription when called with a valid subscriptionId", async () => {
+        const sub: Subscription = await getCurrentUserSubscription(
+          payments,
+          "sub1"
+        );
+
+        const expected: Subscription = { ...subscription1, uid: currentUser };
+        expect(sub).to.eql(expected);
+      });
+
+      it("should return a fully populated subscription when available", async () => {
+        const sub: Subscription = await getCurrentUserSubscription(
+          payments,
+          "sub2"
+        );
+
+        const expected: Subscription = { ...subscription2, uid: currentUser };
+        expect(sub).to.eql(expected);
+      });
+
+      it("should reject with not-found error when the specified subscription does not exist", async () => {
+        const err: any = await expect(
+          getCurrentUserSubscription(payments, "unavailable")
+        ).to.be.rejectedWith(
+          `No subscription found with the ID: unavailable for user: ${currentUser}`
+        );
+
+        expect(err).to.be.instanceOf(StripePaymentsError);
+        expect(err.code).to.equal("not-found");
+        expect(err.cause).to.be.undefined;
+      });
+    });
+  });
+
   async function addProductData(
-    db: Firestore,
     productId: string,
     data: ProductData
   ): Promise<void> {
@@ -359,8 +424,33 @@ describe("Emulator tests", () => {
     }
   }
 
-  async function addUserData(db: Firestore, uid: string): Promise<void> {
+  async function addUserData(uid: string): Promise<void> {
     await setDoc(doc(db, payments.customersCollection, uid), { uid });
+  }
+
+  async function addSubscriptionData(
+    uid: string,
+    subscriptionId: string,
+    subscription: Record<string, any>
+  ): Promise<void> {
+    const productId: string = subscription.product;
+    subscription.product = doc(db, "products", productId);
+    subscription.price = doc(
+      db,
+      "products",
+      productId,
+      "prices",
+      subscription.price
+    );
+    const prices: Array<{ product: string; price: string }> =
+      subscription.prices;
+    subscription.prices = prices.map((item) =>
+      doc(db, "products", item.product, "prices", item.price)
+    );
+    await setDoc(
+      doc(db, "customers", uid, "subscriptions", subscriptionId),
+      subscription
+    );
   }
 });
 

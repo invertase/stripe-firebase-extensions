@@ -25,6 +25,9 @@ export interface CreateCheckoutSessionOptions {
 }
 
 // @public
+export function getCurrentUserSubscription(payments: StripePayments, subscriptionId: string): Promise<Subscription>;
+
+// @public
 export function getPrice(payments: StripePayments, productId: string, priceId: string): Promise<Price>;
 
 // @public
@@ -132,6 +135,39 @@ export interface StripePaymentsOptions {
     // (undocumented)
     productsCollection: string;
 }
+
+// @public
+export interface Subscription {
+    // (undocumented)
+    readonly [propName: string]: any;
+    readonly cancelAt: string | null;
+    readonly cancelAtPeriodEnd: boolean;
+    readonly canceledAt: string | null;
+    readonly created: string;
+    readonly currentPeriodEnd: string;
+    readonly currentPeriodStart: string;
+    readonly endedAt: string | null;
+    readonly id: string;
+    readonly metadata: {
+        [name: string]: string;
+    };
+    readonly priceId: string;
+    readonly prices: Array<{
+        productId: string;
+        priceId: string;
+    }>;
+    readonly productId: string;
+    readonly quantity: number | null;
+    readonly role: string | null;
+    readonly status: SubscriptionState;
+    readonly stripeLink: string;
+    readonly trialEnd: string | null;
+    readonly trialStart: string | null;
+    readonly uid: string;
+}
+
+// @public
+export type SubscriptionState = "active" | "canceled" | "incomplete" | "incomplete_expired" | "past_due" | "trialing" | "unpaid";
 
 // (No @packageDocumentation comment for this package)
 

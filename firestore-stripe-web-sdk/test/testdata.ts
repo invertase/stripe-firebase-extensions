@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { Price, Product } from "../src/index";
+import { Timestamp } from "@firebase/firestore";
+import { Price, Product, Subscription } from "../src/index";
 
 export const economyPlan: Product = {
   active: false,
@@ -171,5 +172,109 @@ export const rawProductData: Record<string, ProductData> = {
       role: null,
     },
     prices: {},
+  },
+};
+
+export interface SubscriptionData {
+  uid: string;
+  subscriptions: Record<string, Record<string, any>>;
+}
+
+export const subscription1: Subscription = {
+  cancelAt: null,
+  cancelAtPeriodEnd: true,
+  canceledAt: null,
+  created: "Wed, 29 Sep 2021 21:46:20 GMT",
+  currentPeriodEnd: "Mon, 28 Mar 2022 21:46:20 GMT",
+  currentPeriodStart: "Wed, 29 Sep 2021 21:46:20 GMT",
+  endedAt: null,
+  id: "sub1",
+  metadata: {},
+  priceId: "price1",
+  prices: [
+    {
+      productId: "premium",
+      priceId: "price1",
+    },
+  ],
+  productId: "premium",
+  quantity: null,
+  role: null,
+  status: "active",
+  stripeLink: "https://example.stripe.com/subscriptions/sub1",
+  trialEnd: null,
+  trialStart: null,
+  uid: "dynamic",
+};
+
+export const subscription2: Subscription = {
+  cancelAt: "Tue, 28 Sep 2021 21:46:20 GMT",
+  cancelAtPeriodEnd: true,
+  canceledAt: "Tue, 28 Sep 2021 21:46:20 GMT",
+  created: "Wed, 29 Sep 2021 21:46:20 GMT",
+  currentPeriodEnd: "Mon, 28 Mar 2022 21:46:20 GMT",
+  currentPeriodStart: "Wed, 29 Sep 2021 21:46:20 GMT",
+  endedAt: "Tue, 28 Sep 2021 21:46:20 GMT",
+  id: "sub2",
+  metadata: {
+    key: "value",
+  },
+  priceId: "price1",
+  prices: [
+    {
+      productId: "standard",
+      priceId: "price1",
+    },
+  ],
+  productId: "standard",
+  quantity: 1,
+  role: "moderator",
+  status: "active",
+  stripeLink: "https://example.stripe.com/subscriptions/sub1",
+  trialEnd: "Tue, 28 Sep 2021 21:46:20 GMT",
+  trialStart: "Tue, 28 Sep 2021 21:46:20 GMT",
+  uid: "dynamic",
+};
+
+export const rawSubscriptionData: Record<string, Record<string, any>> = {
+  sub1: {
+    cancel_at: null,
+    cancel_at_period_end: true,
+    canceled_at: null,
+    created: Timestamp.fromMillis(1632951980066),
+    current_period_end: Timestamp.fromMillis(1648503980066),
+    current_period_start: Timestamp.fromMillis(1632951980066),
+    ended_at: null,
+    metadata: {},
+    product: "premium",
+    price: "price1",
+    prices: [{ product: "premium", price: "price1" }],
+    quantity: null,
+    role: null,
+    status: "active",
+    stripeLink: "https://example.stripe.com/subscriptions/sub1",
+    trial_end: null,
+    trial_start: null,
+  },
+  sub2: {
+    cancel_at: Timestamp.fromMillis(1632865580066),
+    cancel_at_period_end: true,
+    created: Timestamp.fromMillis(1632951980066),
+    canceled_at: Timestamp.fromMillis(1632865580066),
+    current_period_end: Timestamp.fromMillis(1648503980066),
+    current_period_start: Timestamp.fromMillis(1632951980066),
+    ended_at: Timestamp.fromMillis(1632865580066),
+    metadata: {
+      key: "value",
+    },
+    product: "standard",
+    price: "price1",
+    prices: [{ product: "standard", price: "price1" }],
+    quantity: 1,
+    role: "moderator",
+    status: "active",
+    stripeLink: "https://example.stripe.com/subscriptions/sub1",
+    trial_end: Timestamp.fromMillis(1632865580066),
+    trial_start: Timestamp.fromMillis(1632865580066),
   },
 };
