@@ -203,31 +203,26 @@ export function getCurrentUserSubscriptions(
   payments: StripePayments,
   options?: GetSubscriptionsOptions
 ): Promise<Subscription[]> {
-  const queryOptions: SubscriptionsQueryOptions = asQueryOptions(options);
+  const queryOptions: { status?: SubscriptionStatus[] } = {};
+  if (typeof options?.status !== "undefined") {
+    queryOptions.status = getStatusAsArray(options.status);
+  }
+
   return getCurrentUser(payments).then((uid: string) => {
     const dao: SubscriptionDAO = getOrInitSubscriptionDAO(payments);
     return dao.getSubscriptions(uid, queryOptions);
   });
 }
 
-interface SubscriptionsQueryOptions {
-  status?: SubscriptionStatus[];
-}
-
-function asQueryOptions(
-  options?: GetSubscriptionsOptions
-): SubscriptionsQueryOptions {
-  const result: SubscriptionsQueryOptions = {};
-  if (options) {
-    if (typeof options.status === "string") {
-      result.status = [options.status];
-    } else {
-      checkNonEmptyArray(options.status, "status must be a non-empty array.");
-      result.status = options.status;
-    }
+function getStatusAsArray(
+  status: SubscriptionStatus | SubscriptionStatus[]
+): SubscriptionStatus[] {
+  if (typeof status === "string") {
+    return [status];
   }
 
-  return result;
+  checkNonEmptyArray(status, "status must be a non-empty array.");
+  return status;
 }
 
 /**
@@ -240,7 +235,7 @@ export interface SubscriptionDAO {
   getSubscription(uid: string, subscriptionId: string): Promise<Subscription>;
   getSubscriptions(
     uid: string,
-    options?: SubscriptionsQueryOptions
+    options?: { status?: SubscriptionStatus[] }
   ): Promise<Subscription[]>;
 }
 
@@ -314,7 +309,7 @@ class FirestoreSubscriptionDAO implements SubscriptionDAO {
 
   public async getSubscriptions(
     uid: string,
-    options?: SubscriptionsQueryOptions
+    options?: { status?: SubscriptionStatus[] }
   ): Promise<Subscription[]> {
     const querySnap: QuerySnapshot<Subscription> =
       await this.getSubscriptionSnapshots(uid, options?.status);
