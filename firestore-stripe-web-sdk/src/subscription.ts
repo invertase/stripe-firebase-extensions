@@ -218,6 +218,18 @@ export function getCurrentUserSubscriptions(
   });
 }
 
+export type SubscriptionChange = "added" | "modified" | "removed";
+
+export interface SubscriptionSnapshot {
+  subscriptions: Subscription[];
+  changes: Array<{
+    type: SubscriptionChange;
+    subscription: Subscription;
+  }>;
+  size: number;
+  empty: boolean;
+}
+
 /**
  * Registers a listener to receive subscription update events for the currently signed in
  * user. If the user is not signed in throws an `unauthenticated` error, and no listener is
@@ -239,7 +251,7 @@ export function getCurrentUserSubscriptions(
  */
 export function onCurrentUserSubscriptionUpdate(
   payments: StripePayments,
-  onUpdate: (snapshot: Subscription[]) => void,
+  onUpdate: (snapshot: SubscriptionSnapshot) => void,
   onError?: (error: StripePaymentsError) => void
 ): () => void {
   const uid: string = getCurrentUserSync(payments);
@@ -272,7 +284,7 @@ export interface SubscriptionDAO {
   ): Promise<Subscription[]>;
   onSubscriptionUpdate(
     uid: string,
-    onUpdate: (snapshot: Subscription[]) => void,
+    onUpdate: (snapshot: SubscriptionSnapshot) => void,
     onError?: (error: StripePaymentsError) => void
   ): () => void;
 }
@@ -361,7 +373,7 @@ class FirestoreSubscriptionDAO implements SubscriptionDAO {
 
   public onSubscriptionUpdate(
     uid: string,
-    onUpdate: (snapshot: Subscription[]) => void,
+    onUpdate: (snapshot: SubscriptionSnapshot) => void,
     onError?: (error: StripePaymentsError) => void
   ): () => void {
     const subscriptions: CollectionReference<Subscription> = collection(
@@ -373,10 +385,23 @@ class FirestoreSubscriptionDAO implements SubscriptionDAO {
     return onSnapshot(
       subscriptions,
       (querySnap: QuerySnapshot<Subscription>) => {
-        const args: Subscription[] = [];
+        const args: SubscriptionSnapshot = {
+          subscriptions: [],
+          changes: [],
+          size: querySnap.size,
+          empty: querySnap.empty,
+        };
         querySnap.forEach((snap: QueryDocumentSnapshot<Subscription>) => {
-          args.push(snap.data());
+          args.subscriptions.push(snap.data());
         });
+        querySnap
+          .docChanges()
+          .forEach((change: DocumentChange<Subscription>) => {
+            args.changes.push({
+              type: change.type,
+              subscription: change.doc.data(),
+            });
+          });
 
         onUpdate(args);
       },

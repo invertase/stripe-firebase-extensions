@@ -50,6 +50,7 @@ import {
   Price,
   Product,
   Subscription,
+  SubscriptionSnapshot,
   StripePayments,
   StripePaymentsError,
 } from "../src/index";
@@ -497,7 +498,7 @@ describe("Emulator tests", () => {
         expect(() =>
           onCurrentUserSubscriptionUpdate(
             payments,
-            (snap: Subscription[]) => {}
+            (snap: SubscriptionSnapshot) => {}
           )
         ).to.throw(
           "Failed to determine currently signed in user. User not signed in."
@@ -528,6 +529,10 @@ describe("Emulator tests", () => {
         });
         cancelers = [];
 
+        await deleteSubscriptions();
+      });
+
+      async function deleteSubscriptions(): Promise<void> {
         const subs = await getDocs(
           collection(db, "customers", currentUser, "subscriptions")
         );
@@ -537,36 +542,65 @@ describe("Emulator tests", () => {
         });
 
         await batch.commit();
-      });
+      }
 
       it("should fire an event with all existing subscriptions", async () => {
-        const events: Array<{ subscriptions: Subscription[] }> = [];
-        const cancel = onCurrentUserSubscriptionUpdate(
-          payments,
-          (subscriptions) => {
-            events.push({ subscriptions });
-          }
-        );
+        const events: SubscriptionSnapshot[] = [];
+        const cancel = onCurrentUserSubscriptionUpdate(payments, (snapshot) => {
+          events.push(snapshot);
+        });
         cancelers.push(cancel);
 
         await until(() => events.length > 0);
         expect(events.length).to.equal(1);
-        const expected: Subscription[] = [
-          { ...subscription1, uid: currentUser },
-          { ...subscription2, uid: currentUser },
-          { ...subscription3, uid: currentUser },
-        ];
-        expect(events[0].subscriptions).to.eql(expected);
+        expect(events[0]).to.eql({
+          subscriptions: [
+            { ...subscription1, uid: currentUser },
+            { ...subscription2, uid: currentUser },
+            { ...subscription3, uid: currentUser },
+          ],
+          changes: [
+            {
+              type: "added",
+              subscription: { ...subscription1, uid: currentUser },
+            },
+            {
+              type: "added",
+              subscription: { ...subscription2, uid: currentUser },
+            },
+            {
+              type: "added",
+              subscription: { ...subscription3, uid: currentUser },
+            },
+          ],
+          size: 3,
+          empty: false,
+        });
+      });
+
+      it("should fire an event with empty snapshot when no subscriptions are present", async () => {
+        await deleteSubscriptions();
+        const events: SubscriptionSnapshot[] = [];
+        const cancel = onCurrentUserSubscriptionUpdate(payments, (snapshot) => {
+          events.push(snapshot);
+        });
+        cancelers.push(cancel);
+
+        await until(() => events.length > 0);
+        expect(events.length).to.equal(1);
+        expect(events[0]).to.eql({
+          subscriptions: [],
+          changes: [],
+          size: 0,
+          empty: true,
+        });
       });
 
       it("should fire an event for each subscription update", async () => {
-        const events: Array<{ subscriptions: Subscription[] }> = [];
-        const cancel = onCurrentUserSubscriptionUpdate(
-          payments,
-          (subscriptions) => {
-            events.push({ subscriptions });
-          }
-        );
+        const events: SubscriptionSnapshot[] = [];
+        const cancel = onCurrentUserSubscriptionUpdate(payments, (snapshot) => {
+          events.push(snapshot);
+        });
         cancelers.push(cancel);
 
         await until(() => events.length > 0);
@@ -583,11 +617,25 @@ describe("Emulator tests", () => {
 
         await until(() => events.length > 1);
         expect(events.length).to.equal(2);
-        expect(events[1].subscriptions).to.eql([
-          { ...subscription1, uid: currentUser },
-          { ...subscription2, uid: currentUser, status: "active" },
-          { ...subscription3, uid: currentUser },
-        ]);
+        expect(events[1]).to.eql({
+          subscriptions: [
+            { ...subscription1, uid: currentUser },
+            { ...subscription2, uid: currentUser, status: "active" },
+            { ...subscription3, uid: currentUser },
+          ],
+          changes: [
+            {
+              type: "modified",
+              subscription: {
+                ...subscription2,
+                uid: currentUser,
+                status: "active",
+              },
+            },
+          ],
+          size: 3,
+          empty: false,
+        });
 
         const sub3: DocumentReference = doc(
           db,
@@ -600,21 +648,32 @@ describe("Emulator tests", () => {
 
         await until(() => events.length > 2);
         expect(events.length).to.equal(3);
-        expect(events[2].subscriptions).to.eql([
-          { ...subscription1, uid: currentUser },
-          { ...subscription2, uid: currentUser, status: "active" },
-          { ...subscription3, uid: currentUser, status: "active" },
-        ]);
+        expect(events[2]).to.eql({
+          subscriptions: [
+            { ...subscription1, uid: currentUser },
+            { ...subscription2, uid: currentUser, status: "active" },
+            { ...subscription3, uid: currentUser, status: "active" },
+          ],
+          changes: [
+            {
+              type: "modified",
+              subscription: {
+                ...subscription3,
+                uid: currentUser,
+                status: "active",
+              },
+            },
+          ],
+          size: 3,
+          empty: false,
+        });
       });
 
       it("should fire an event when a subscription is created", async () => {
-        const events: Array<{ subscriptions: Subscription[] }> = [];
-        const cancel = onCurrentUserSubscriptionUpdate(
-          payments,
-          (subscriptions) => {
-            events.push({ subscriptions });
-          }
-        );
+        const events: SubscriptionSnapshot[] = [];
+        const cancel = onCurrentUserSubscriptionUpdate(payments, (snapshot) => {
+          events.push(snapshot);
+        });
         cancelers.push(cancel);
 
         await until(() => events.length > 0);
@@ -629,20 +688,30 @@ describe("Emulator tests", () => {
 
         await until(() => events.length > 1);
         expect(events.length).to.equal(2);
-        expect(events[1].subscriptions).to.eql([
-          { ...subscription1, uid: currentUser },
-          { ...subscription2, uid: currentUser },
-          { ...subscription3, uid: currentUser },
-          { ...subscription1, uid: currentUser, id: "sub4" },
-        ]);
+        expect(events[1]).to.eql({
+          subscriptions: [
+            { ...subscription1, uid: currentUser },
+            { ...subscription2, uid: currentUser },
+            { ...subscription3, uid: currentUser },
+            { ...subscription1, uid: currentUser, id: "sub4" },
+          ],
+          changes: [
+            {
+              type: "added",
+              subscription: { ...subscription1, uid: currentUser, id: "sub4" },
+            },
+          ],
+          size: 4,
+          empty: false,
+        });
       });
 
       it("should fire an event when a subscription is deleted", async () => {
-        const events: Array<{ subscriptions: Subscription[] }> = [];
+        const events: SubscriptionSnapshot[] = [];
         const cancel = onCurrentUserSubscriptionUpdate(
           payments,
           (subscriptions) => {
-            events.push({ subscriptions });
+            events.push(subscriptions);
           }
         );
         cancelers.push(cancel);
@@ -659,10 +728,20 @@ describe("Emulator tests", () => {
 
         await until(() => events.length > 1);
         expect(events.length).to.equal(2);
-        expect(events[1].subscriptions).to.eql([
-          { ...subscription1, uid: currentUser },
-          { ...subscription2, uid: currentUser },
-        ]);
+        expect(events[1]).to.eql({
+          subscriptions: [
+            { ...subscription1, uid: currentUser },
+            { ...subscription2, uid: currentUser },
+          ],
+          changes: [
+            {
+              type: "removed",
+              subscription: { ...subscription3, uid: currentUser },
+            },
+          ],
+          size: 2,
+          empty: false,
+        });
       });
 
       async function until(
