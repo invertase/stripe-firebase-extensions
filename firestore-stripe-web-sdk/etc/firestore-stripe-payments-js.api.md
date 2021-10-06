@@ -62,6 +62,9 @@ export interface GetSubscriptionsOptions {
 }
 
 // @public
+export function onCurrentUserSubscriptionUpdate(payments: StripePayments, onUpdate: (snapshot: Subscription[]) => void, onError?: (error: StripePaymentsError) => void): () => void;
+
+// @public
 export interface Price {
     // (undocumented)
     readonly [propName: string]: any;

@@ -17,6 +17,7 @@
 import { expect, use } from "chai";
 import { deleteApp, FirebaseApp, initializeApp } from "@firebase/app";
 import {
+  collection,
   collectionGroup,
   connectFirestoreEmulator,
   deleteDoc,
@@ -25,12 +26,16 @@ import {
   DocumentData,
   DocumentReference,
   Firestore,
+  getDocs,
   getFirestore,
   onSnapshot,
   Query,
   setDoc,
   Timestamp,
   Unsubscribe,
+  updateDoc,
+  WriteBatch,
+  writeBatch,
 } from "@firebase/firestore";
 import {
   createCheckoutSession,
@@ -41,6 +46,7 @@ import {
   getProduct,
   getProducts,
   getStripePayments,
+  onCurrentUserSubscriptionUpdate,
   Price,
   Product,
   Subscription,
@@ -60,6 +66,7 @@ import {
   subscription1,
   subscription2,
   subscription3,
+  SubscriptionData,
 } from "./testdata";
 import {
   Auth,
@@ -371,9 +378,7 @@ describe("Emulator tests", () => {
       before(async () => {
         currentUser = (await signInAnonymously(auth)).user.uid;
         await addUserData(currentUser);
-        for (const [id, subscription] of Object.entries(rawSubscriptionData)) {
-          await addSubscriptionData(currentUser, id, subscription);
-        }
+        await addSubscriptionData(currentUser, rawSubscriptionData);
       });
 
       after(async () => {
@@ -415,8 +420,6 @@ describe("Emulator tests", () => {
   });
 
   describe("getCurrentUserSubscriptions()", () => {
-    let currentUser: string = "";
-
     context("without user signed in", () => {
       it("rejects when fetching a subscription", async () => {
         const err: any = await expect(
@@ -432,12 +435,12 @@ describe("Emulator tests", () => {
     });
 
     context("with user signed in", () => {
+      let currentUser: string = "";
+
       before(async () => {
         currentUser = (await signInAnonymously(auth)).user.uid;
         await addUserData(currentUser);
-        for (const [id, subscription] of Object.entries(rawSubscriptionData)) {
-          await addSubscriptionData(currentUser, id, subscription);
-        }
+        await addSubscriptionData(currentUser, rawSubscriptionData);
       });
 
       after(async () => {
@@ -488,17 +491,221 @@ describe("Emulator tests", () => {
     });
   });
 
+  describe("onCurrentUserSubscriptionUpdate()", () => {
+    context("without user signed in", () => {
+      it("throws when registering a listener", async () => {
+        expect(() =>
+          onCurrentUserSubscriptionUpdate(
+            payments,
+            (snap: Subscription[]) => {}
+          )
+        ).to.throw(
+          "Failed to determine currently signed in user. User not signed in."
+        );
+      });
+    });
+
+    context("with user signed in", () => {
+      let currentUser: string = "";
+      let cancelers: Array<() => void> = [];
+
+      before(async () => {
+        currentUser = (await signInAnonymously(auth)).user.uid;
+        await addUserData(currentUser);
+      });
+
+      after(async () => {
+        await signOut(auth);
+      });
+
+      beforeEach(async () => {
+        await addSubscriptionData(currentUser, rawSubscriptionData);
+      });
+
+      afterEach(async () => {
+        cancelers.forEach((cancel) => {
+          cancel();
+        });
+        cancelers = [];
+
+        const subs = await getDocs(
+          collection(db, "customers", currentUser, "subscriptions")
+        );
+        const batch: WriteBatch = writeBatch(db);
+        subs.forEach((sub) => {
+          batch.delete(sub.ref);
+        });
+
+        await batch.commit();
+      });
+
+      it("should fire an event with all existing subscriptions", async () => {
+        const events: Array<{ subscriptions: Subscription[] }> = [];
+        const cancel = onCurrentUserSubscriptionUpdate(
+          payments,
+          (subscriptions) => {
+            events.push({ subscriptions });
+          }
+        );
+        cancelers.push(cancel);
+
+        await until(() => events.length > 0);
+        expect(events.length).to.equal(1);
+        const expected: Subscription[] = [
+          { ...subscription1, uid: currentUser },
+          { ...subscription2, uid: currentUser },
+          { ...subscription3, uid: currentUser },
+        ];
+        expect(events[0].subscriptions).to.eql(expected);
+      });
+
+      it("should fire an event for each subscription update", async () => {
+        const events: Array<{ subscriptions: Subscription[] }> = [];
+        const cancel = onCurrentUserSubscriptionUpdate(
+          payments,
+          (subscriptions) => {
+            events.push({ subscriptions });
+          }
+        );
+        cancelers.push(cancel);
+
+        await until(() => events.length > 0);
+        expect(events.length).to.equal(1);
+
+        const sub2: DocumentReference = doc(
+          db,
+          "customers",
+          currentUser,
+          "subscriptions",
+          "sub2"
+        );
+        await updateDoc(sub2, { status: "active" });
+
+        await until(() => events.length > 1);
+        expect(events.length).to.equal(2);
+        expect(events[1].subscriptions).to.eql([
+          { ...subscription1, uid: currentUser },
+          { ...subscription2, uid: currentUser, status: "active" },
+          { ...subscription3, uid: currentUser },
+        ]);
+
+        const sub3: DocumentReference = doc(
+          db,
+          "customers",
+          currentUser,
+          "subscriptions",
+          "sub3"
+        );
+        await updateDoc(sub3, { status: "active" });
+
+        await until(() => events.length > 2);
+        expect(events.length).to.equal(3);
+        expect(events[2].subscriptions).to.eql([
+          { ...subscription1, uid: currentUser },
+          { ...subscription2, uid: currentUser, status: "active" },
+          { ...subscription3, uid: currentUser, status: "active" },
+        ]);
+      });
+
+      it("should fire an event when a subscription is created", async () => {
+        const events: Array<{ subscriptions: Subscription[] }> = [];
+        const cancel = onCurrentUserSubscriptionUpdate(
+          payments,
+          (subscriptions) => {
+            events.push({ subscriptions });
+          }
+        );
+        cancelers.push(cancel);
+
+        await until(() => events.length > 0);
+        const sub4: DocumentReference = doc(
+          db,
+          "customers",
+          currentUser,
+          "subscriptions",
+          "sub4"
+        );
+        await setDoc(sub4, buildSubscriptionDocument(rawSubscriptionData.sub1));
+
+        await until(() => events.length > 1);
+        expect(events.length).to.equal(2);
+        expect(events[1].subscriptions).to.eql([
+          { ...subscription1, uid: currentUser },
+          { ...subscription2, uid: currentUser },
+          { ...subscription3, uid: currentUser },
+          { ...subscription1, uid: currentUser, id: "sub4" },
+        ]);
+      });
+
+      it("should fire an event when a subscription is deleted", async () => {
+        const events: Array<{ subscriptions: Subscription[] }> = [];
+        const cancel = onCurrentUserSubscriptionUpdate(
+          payments,
+          (subscriptions) => {
+            events.push({ subscriptions });
+          }
+        );
+        cancelers.push(cancel);
+
+        await until(() => events.length > 0);
+        const sub3: DocumentReference = doc(
+          db,
+          "customers",
+          currentUser,
+          "subscriptions",
+          "sub3"
+        );
+        await deleteDoc(sub3);
+
+        await until(() => events.length > 1);
+        expect(events.length).to.equal(2);
+        expect(events[1].subscriptions).to.eql([
+          { ...subscription1, uid: currentUser },
+          { ...subscription2, uid: currentUser },
+        ]);
+      });
+
+      async function until(
+        predicate: () => boolean,
+        intervalMillis: number = 50,
+        timeoutMillis: number = 5 * 1000
+      ) {
+        const start = Date.now();
+        let done = false;
+        // If the condition is already met, return without any delay.
+        if (predicate()) {
+          return;
+        }
+
+        // If not start polling for the condition.
+        do {
+          await new Promise((resolve) => setTimeout(resolve, intervalMillis));
+          if (predicate()) {
+            done = true;
+          } else if (Date.now() > start + timeoutMillis) {
+            throw new Error(
+              `Timed out waiting for predicate after ${timeoutMillis} ms.`
+            );
+          }
+        } while (!done);
+      }
+    });
+  });
+
   async function addProductData(
     productId: string,
     data: ProductData
   ): Promise<void> {
-    await setDoc(doc(db, payments.productsCollection, productId), data.product);
+    const batch: WriteBatch = writeBatch(db);
+    batch.set(doc(db, payments.productsCollection, productId), data.product);
     for (const [priceId, price] of Object.entries(data.prices)) {
-      await setDoc(
+      batch.set(
         doc(db, payments.productsCollection, productId, "prices", priceId),
         price
       );
     }
+
+    await batch.commit();
   }
 
   async function addUserData(uid: string): Promise<void> {
@@ -507,14 +714,27 @@ describe("Emulator tests", () => {
 
   async function addSubscriptionData(
     uid: string,
-    subscriptionId: string,
-    subscription: Record<string, any>
+    data: SubscriptionData
   ): Promise<void> {
+    const batch: WriteBatch = writeBatch(db);
+    for (const [id, subscription] of Object.entries(data)) {
+      batch.set(
+        doc(db, "customers", uid, "subscriptions", id),
+        buildSubscriptionDocument(subscription)
+      );
+    }
+
+    await batch.commit();
+  }
+
+  function buildSubscriptionDocument(
+    subscription: Record<string, any>
+  ): DocumentData {
     const prices: DocumentReference[] = subscription.prices.map(
       (item: { product: string; price: string }) =>
         doc(db, "products", item.product, "prices", item.price)
     );
-    const data: DocumentData = {
+    return {
       ...subscription,
       product: doc(db, "products", subscription.product),
       price: doc(
@@ -526,10 +746,6 @@ describe("Emulator tests", () => {
       ),
       prices,
     };
-    await setDoc(
-      doc(db, "customers", uid, "subscriptions", subscriptionId),
-      data
-    );
   }
 });
 

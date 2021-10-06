@@ -58,7 +58,7 @@ describe("getCurrentUserSubscription()", () => {
     const expected: Subscription = { ...subscription1, uid: "alice" };
     const fake: SinonSpy = sinonFake.resolves(expected);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscription", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const subscription: Subscription = await getCurrentUserSubscription(
@@ -78,7 +78,7 @@ describe("getCurrentUserSubscription()", () => {
     );
     const fake: SinonSpy = sinonFake.rejects(error);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscription", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(
@@ -94,7 +94,7 @@ describe("getCurrentUserSubscription()", () => {
       "unauthenticated",
       "user not signed in"
     );
-    const userFake: SinonSpy = sinonFake.rejects(error);
+    const userFake: SinonSpy = sinonFake.throws(error);
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(
@@ -109,7 +109,7 @@ describe("getCurrentUserSubscriptions()", () => {
   it("should return all subscriptions when called without options", async () => {
     const fake: SinonSpy = sinonFake.resolves([subscription1, subscription2]);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
@@ -136,7 +136,7 @@ describe("getCurrentUserSubscriptions()", () => {
   it("should only return subscriptions with the given status", async () => {
     const fake: SinonSpy = sinonFake.resolves([subscription1]);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
@@ -156,7 +156,7 @@ describe("getCurrentUserSubscriptions()", () => {
   it("should only return subscriptions with the given statuses", async () => {
     const fake: SinonSpy = sinonFake.resolves([subscription1, subscription2]);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
@@ -192,7 +192,7 @@ describe("getCurrentUserSubscriptions()", () => {
     );
     const fake: SinonSpy = sinonFake.rejects(error);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(getCurrentUserSubscriptions(payments)).to.be.rejectedWith(
@@ -208,7 +208,7 @@ describe("getCurrentUserSubscriptions()", () => {
       "unauthenticated",
       "user not signed in"
     );
-    const userFake: SinonSpy = sinonFake.rejects(error);
+    const userFake: SinonSpy = sinonFake.throws(error);
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(getCurrentUserSubscriptions(payments)).to.be.rejectedWith(

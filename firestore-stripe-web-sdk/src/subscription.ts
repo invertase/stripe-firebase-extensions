@@ -17,15 +17,19 @@
 import { FirebaseApp } from "@firebase/app";
 import {
   collection,
+  CollectionReference,
   doc,
+  DocumentChange,
   DocumentData,
   DocumentReference,
   DocumentSnapshot,
   Firestore,
   FirestoreDataConverter,
+  FirestoreError,
   getDoc,
   getDocs,
   getFirestore,
+  onSnapshot,
   query,
   Query,
   QueryDocumentSnapshot,
@@ -34,7 +38,7 @@ import {
   where,
 } from "@firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
-import { getCurrentUser } from "./user";
+import { getCurrentUser, getCurrentUserSync } from "./user";
 import { checkNonEmptyArray, checkNonEmptyString } from "./utils";
 
 /**
@@ -214,6 +218,35 @@ export function getCurrentUserSubscriptions(
   });
 }
 
+/**
+ * Registers a listener to receive subscription update events for the currently signed in
+ * user. If the user is not signed in throws an `unauthenticated` error, and no listener is
+ * registered.
+ *
+ * Upon successful registration, the `onUpdate` callback will fire once with
+ * the current state of all the subscriptions. From then onwards, each update to a subscription
+ * will fire the `onUpdate` callback with the latest state of the subscriptions.
+ * Subscriptions array passed into the `onUpdate` callback are ordered by the subscription ID.
+ * If no subscriptions are available for the current user, the callback will receive an empty
+ * array.
+ *
+ * @param payments - A valid {@link StripePayments} object.
+ * @param onUpdate - A callback that will fire whenever the current user's subscriptions
+ *   are updated.
+ * @param onError - A callback that will fire whenever an error occurs while listening to
+ *   subscription updates.
+ * @returns A function that can be called to cancel and unregister the listener.
+ */
+export function onCurrentUserSubscriptionUpdate(
+  payments: StripePayments,
+  onUpdate: (snapshot: Subscription[]) => void,
+  onError?: (error: StripePaymentsError) => void
+): () => void {
+  const uid: string = getCurrentUserSync(payments);
+  const dao: SubscriptionDAO = getOrInitSubscriptionDAO(payments);
+  return dao.onSubscriptionUpdate(uid, onUpdate, onError);
+}
+
 function getStatusAsArray(
   status: SubscriptionStatus | SubscriptionStatus[]
 ): SubscriptionStatus[] {
@@ -237,6 +270,11 @@ export interface SubscriptionDAO {
     uid: string,
     options?: { status?: SubscriptionStatus[] }
   ): Promise<Subscription[]>;
+  onSubscriptionUpdate(
+    uid: string,
+    onUpdate: (snapshot: Subscription[]) => void,
+    onError?: (error: StripePaymentsError) => void
+  ): () => void;
 }
 
 const SUBSCRIPTION_CONVERTER: FirestoreDataConverter<Subscription> = {
@@ -319,6 +357,40 @@ class FirestoreSubscriptionDAO implements SubscriptionDAO {
     });
 
     return subscriptions;
+  }
+
+  public onSubscriptionUpdate(
+    uid: string,
+    onUpdate: (snapshot: Subscription[]) => void,
+    onError?: (error: StripePaymentsError) => void
+  ): () => void {
+    const subscriptions: CollectionReference<Subscription> = collection(
+      this.firestore,
+      this.customersCollection,
+      uid,
+      "subscriptions"
+    ).withConverter(SUBSCRIPTION_CONVERTER);
+    return onSnapshot(
+      subscriptions,
+      (querySnap: QuerySnapshot<Subscription>) => {
+        const args: Subscription[] = [];
+        querySnap.forEach((snap: QueryDocumentSnapshot<Subscription>) => {
+          args.push(snap.data());
+        });
+
+        onUpdate(args);
+      },
+      (err: FirestoreError) => {
+        if (onError) {
+          const arg: StripePaymentsError = new StripePaymentsError(
+            "internal",
+            `Error while listening to database updates: ${err.message}`,
+            err
+          );
+          onError(arg);
+        }
+      }
+    );
   }
 
   private async getSubscriptionSnapshotIfExists(

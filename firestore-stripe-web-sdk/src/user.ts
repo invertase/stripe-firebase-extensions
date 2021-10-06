@@ -25,6 +25,21 @@ import { StripePayments, StripePaymentsError } from "./init";
  * @internal
  */
 export function getCurrentUser(payments: StripePayments): Promise<string> {
+  try {
+    const uid: string = getCurrentUserSync(payments);
+    return Promise.resolve(uid);
+  } catch (err: unknown) {
+    return Promise.reject(err);
+  }
+}
+
+/**
+ * Internal API for retrieving the currently signed in user. Throws "unauthenticated" if
+ * the user is not signed in. Exposed for internal use.
+ *
+ * @internal
+ */
+export function getCurrentUserSync(payments: StripePayments): string {
   const dao: UserDAO = getOrInitUserDAO(payments);
   return dao.getCurrentUser();
 }
@@ -35,7 +50,7 @@ export function getCurrentUser(payments: StripePayments): Promise<string> {
  * @internal
  */
 export interface UserDAO {
-  getCurrentUser(): Promise<string>;
+  getCurrentUser(): string;
 }
 
 class FirebaseAuthUserDAO implements UserDAO {
@@ -45,18 +60,16 @@ class FirebaseAuthUserDAO implements UserDAO {
     this.auth = getAuth(app);
   }
 
-  public getCurrentUser(): Promise<string> {
+  public getCurrentUser(): string {
     const currentUser: string | undefined = this.auth.currentUser?.uid;
     if (!currentUser) {
-      return Promise.reject(
-        new StripePaymentsError(
-          "unauthenticated",
-          "Failed to determine currently signed in user. User not signed in."
-        )
+      throw new StripePaymentsError(
+        "unauthenticated",
+        "Failed to determine currently signed in user. User not signed in."
       );
     }
 
-    return Promise.resolve(currentUser);
+    return currentUser;
   }
 }
 

@@ -46,6 +46,7 @@ export {
 export {
   getCurrentUserSubscription,
   getCurrentUserSubscriptions,
+  onCurrentUserSubscriptionUpdate,
   GetSubscriptionsOptions,
   Subscription,
   SubscriptionStatus,
