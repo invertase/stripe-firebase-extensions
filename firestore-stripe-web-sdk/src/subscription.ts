@@ -218,15 +218,38 @@ export function getCurrentUserSubscriptions(
   });
 }
 
-export type SubscriptionChange = "added" | "modified" | "removed";
+/**
+ * Different types of changes that may occur on a subscription object.
+ */
+export type SubscriptionChangeType = "added" | "modified" | "removed";
 
+/**
+ * Represents the current state of a set of subscriptions owned by a user.
+ */
 export interface SubscriptionSnapshot {
+  /**
+   * A list of all currently available subscriptions ordered by the subscription ID. Empty
+   * if no subscriptions are available.
+   */
   subscriptions: Subscription[];
+
+  /**
+   * The list of changes in the subscriptions since the last snapshot.
+   */
   changes: Array<{
-    type: SubscriptionChange;
+    type: SubscriptionChangeType;
     subscription: Subscription;
   }>;
+
+  /**
+   * Number of currently available subscriptions.
+   */
   size: number;
+
+  /**
+   * True if there are no subscriptions available. False whenever at least one subscription is
+   * present.
+   */
   empty: boolean;
 }
 
@@ -238,9 +261,6 @@ export interface SubscriptionSnapshot {
  * Upon successful registration, the `onUpdate` callback will fire once with
  * the current state of all the subscriptions. From then onwards, each update to a subscription
  * will fire the `onUpdate` callback with the latest state of the subscriptions.
- * Subscriptions array passed into the `onUpdate` callback are ordered by the subscription ID.
- * If no subscriptions are available for the current user, the callback will receive an empty
- * array.
  *
  * @param payments - A valid {@link StripePayments} object.
  * @param onUpdate - A callback that will fire whenever the current user's subscriptions

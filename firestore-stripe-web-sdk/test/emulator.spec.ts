@@ -529,29 +529,18 @@ describe("Emulator tests", () => {
         });
         cancelers = [];
 
-        await deleteSubscriptions();
+        await deleteSubscriptions(currentUser);
       });
-
-      async function deleteSubscriptions(): Promise<void> {
-        const subs = await getDocs(
-          collection(db, "customers", currentUser, "subscriptions")
-        );
-        const batch: WriteBatch = writeBatch(db);
-        subs.forEach((sub) => {
-          batch.delete(sub.ref);
-        });
-
-        await batch.commit();
-      }
 
       it("should fire an event with all existing subscriptions", async () => {
         const events: SubscriptionSnapshot[] = [];
+
         const cancel = onCurrentUserSubscriptionUpdate(payments, (snapshot) => {
           events.push(snapshot);
         });
         cancelers.push(cancel);
-
         await until(() => events.length > 0);
+
         expect(events.length).to.equal(1);
         expect(events[0]).to.eql({
           subscriptions: [
@@ -579,14 +568,15 @@ describe("Emulator tests", () => {
       });
 
       it("should fire an event with empty snapshot when no subscriptions are present", async () => {
-        await deleteSubscriptions();
+        await deleteSubscriptions(currentUser);
         const events: SubscriptionSnapshot[] = [];
+
         const cancel = onCurrentUserSubscriptionUpdate(payments, (snapshot) => {
           events.push(snapshot);
         });
         cancelers.push(cancel);
-
         await until(() => events.length > 0);
+
         expect(events.length).to.equal(1);
         expect(events[0]).to.eql({
           subscriptions: [],
@@ -598,12 +588,13 @@ describe("Emulator tests", () => {
 
       it("should fire an event for each subscription update", async () => {
         const events: SubscriptionSnapshot[] = [];
+
         const cancel = onCurrentUserSubscriptionUpdate(payments, (snapshot) => {
           events.push(snapshot);
         });
         cancelers.push(cancel);
-
         await until(() => events.length > 0);
+
         expect(events.length).to.equal(1);
 
         const sub2: DocumentReference = doc(
@@ -614,8 +605,8 @@ describe("Emulator tests", () => {
           "sub2"
         );
         await updateDoc(sub2, { status: "active" });
-
         await until(() => events.length > 1);
+
         expect(events.length).to.equal(2);
         expect(events[1]).to.eql({
           subscriptions: [
@@ -645,8 +636,8 @@ describe("Emulator tests", () => {
           "sub3"
         );
         await updateDoc(sub3, { status: "active" });
-
         await until(() => events.length > 2);
+
         expect(events.length).to.equal(3);
         expect(events[2]).to.eql({
           subscriptions: [
@@ -671,12 +662,13 @@ describe("Emulator tests", () => {
 
       it("should fire an event when a subscription is created", async () => {
         const events: SubscriptionSnapshot[] = [];
+
         const cancel = onCurrentUserSubscriptionUpdate(payments, (snapshot) => {
           events.push(snapshot);
         });
         cancelers.push(cancel);
-
         await until(() => events.length > 0);
+
         const sub4: DocumentReference = doc(
           db,
           "customers",
@@ -685,8 +677,8 @@ describe("Emulator tests", () => {
           "sub4"
         );
         await setDoc(sub4, buildSubscriptionDocument(rawSubscriptionData.sub1));
-
         await until(() => events.length > 1);
+
         expect(events.length).to.equal(2);
         expect(events[1]).to.eql({
           subscriptions: [
@@ -715,8 +707,8 @@ describe("Emulator tests", () => {
           }
         );
         cancelers.push(cancel);
-
         await until(() => events.length > 0);
+
         const sub3: DocumentReference = doc(
           db,
           "customers",
@@ -725,8 +717,8 @@ describe("Emulator tests", () => {
           "sub3"
         );
         await deleteDoc(sub3);
-
         await until(() => events.length > 1);
+
         expect(events.length).to.equal(2);
         expect(events[1]).to.eql({
           subscriptions: [
@@ -756,7 +748,7 @@ describe("Emulator tests", () => {
           return;
         }
 
-        // If not start polling for the condition.
+        // If not, start polling for the condition.
         do {
           await new Promise((resolve) => setTimeout(resolve, intervalMillis));
           if (predicate()) {
@@ -802,6 +794,18 @@ describe("Emulator tests", () => {
         buildSubscriptionDocument(subscription)
       );
     }
+
+    await batch.commit();
+  }
+
+  async function deleteSubscriptions(uid: string): Promise<void> {
+    const subs = await getDocs(
+      collection(db, "customers", uid, "subscriptions")
+    );
+    const batch: WriteBatch = writeBatch(db);
+    subs.forEach((sub) => {
+      batch.delete(sub.ref);
+    });
 
     await batch.commit();
   }

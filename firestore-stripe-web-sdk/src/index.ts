@@ -49,7 +49,7 @@ export {
   onCurrentUserSubscriptionUpdate,
   GetSubscriptionsOptions,
   Subscription,
-  SubscriptionChange,
+  SubscriptionChangeType,
   SubscriptionSnapshot,
   SubscriptionStatus,
 } from "./subscription";

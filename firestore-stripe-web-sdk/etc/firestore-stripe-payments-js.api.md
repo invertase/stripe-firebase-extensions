@@ -177,21 +177,17 @@ export interface Subscription {
     readonly uid: string;
 }
 
-// @public (undocumented)
-export type SubscriptionChange = "added" | "modified" | "removed";
+// @public
+export type SubscriptionChangeType = "added" | "modified" | "removed";
 
-// @public (undocumented)
+// @public
 export interface SubscriptionSnapshot {
-    // (undocumented)
     changes: Array<{
-        type: SubscriptionChange;
+        type: SubscriptionChangeType;
         subscription: Subscription;
     }>;
-    // (undocumented)
     empty: boolean;
-    // (undocumented)
     size: number;
-    // (undocumented)
     subscriptions: Subscription[];
 }
 
