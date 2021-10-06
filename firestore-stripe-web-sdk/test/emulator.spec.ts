@@ -23,6 +23,7 @@ import {
   doc,
   DocumentChange,
   DocumentData,
+  DocumentReference,
   Firestore,
   getFirestore,
   onSnapshot,
@@ -34,6 +35,7 @@ import {
 import {
   createCheckoutSession,
   getCurrentUserSubscription,
+  getCurrentUserSubscriptions,
   getPrice,
   getPrices,
   getProduct,
@@ -57,6 +59,7 @@ import {
   standardPlanPrice2,
   subscription1,
   subscription2,
+  subscription3,
 } from "./testdata";
 import {
   Auth,
@@ -411,6 +414,80 @@ describe("Emulator tests", () => {
     });
   });
 
+  describe("getCurrentUserSubscriptions()", () => {
+    let currentUser: string = "";
+
+    context("without user signed in", () => {
+      it("rejects when fetching a subscription", async () => {
+        const err: any = await expect(
+          getCurrentUserSubscriptions(payments)
+        ).to.be.rejectedWith(
+          "Failed to determine currently signed in user. User not signed in."
+        );
+
+        expect(err).to.be.instanceOf(StripePaymentsError);
+        expect(err.code).to.equal("unauthenticated");
+        expect(err.cause).to.be.undefined;
+      });
+    });
+
+    context("with user signed in", () => {
+      before(async () => {
+        currentUser = (await signInAnonymously(auth)).user.uid;
+        await addUserData(currentUser);
+        for (const [id, subscription] of Object.entries(rawSubscriptionData)) {
+          await addSubscriptionData(currentUser, id, subscription);
+        }
+      });
+
+      after(async () => {
+        await signOut(auth);
+      });
+
+      it("should return all subscriptions when called without options", async () => {
+        const subs: Subscription[] = await getCurrentUserSubscriptions(
+          payments
+        );
+
+        const expected: Subscription[] = [
+          { ...subscription1, uid: currentUser },
+          { ...subscription2, uid: currentUser },
+          { ...subscription3, uid: currentUser },
+        ];
+        expect(subs).to.eql(expected);
+      });
+
+      it("should only return subscriptions with the given status", async () => {
+        const subs: Subscription[] = await getCurrentUserSubscriptions(
+          payments,
+          {
+            status: "active",
+          }
+        );
+
+        const expected: Subscription[] = [
+          { ...subscription1, uid: currentUser },
+        ];
+        expect(subs).to.eql(expected);
+      });
+
+      it("should only return subscriptions with the given statuses", async () => {
+        const subs: Subscription[] = await getCurrentUserSubscriptions(
+          payments,
+          {
+            status: ["active", "incomplete"],
+          }
+        );
+
+        const expected: Subscription[] = [
+          { ...subscription1, uid: currentUser },
+          { ...subscription2, uid: currentUser },
+        ];
+        expect(subs).to.eql(expected);
+      });
+    });
+  });
+
   async function addProductData(
     productId: string,
     data: ProductData
@@ -433,23 +510,25 @@ describe("Emulator tests", () => {
     subscriptionId: string,
     subscription: Record<string, any>
   ): Promise<void> {
-    const productId: string = subscription.product;
-    subscription.product = doc(db, "products", productId);
-    subscription.price = doc(
-      db,
-      "products",
-      productId,
-      "prices",
-      subscription.price
+    const prices: DocumentReference[] = subscription.prices.map(
+      (item: { product: string; price: string }) =>
+        doc(db, "products", item.product, "prices", item.price)
     );
-    const prices: Array<{ product: string; price: string }> =
-      subscription.prices;
-    subscription.prices = prices.map((item) =>
-      doc(db, "products", item.product, "prices", item.price)
-    );
+    const data: DocumentData = {
+      ...subscription,
+      product: doc(db, "products", subscription.product),
+      price: doc(
+        db,
+        "products",
+        subscription.product,
+        "prices",
+        subscription.price
+      ),
+      prices,
+    };
     await setDoc(
       doc(db, "customers", uid, "subscriptions", subscriptionId),
-      subscription
+      data
     );
   }
 });
