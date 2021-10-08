@@ -242,13 +242,14 @@ export interface SubscriptionSnapshot {
   }>;
 
   /**
-   * Number of currently available subscriptions.
+   * Number of currently available subscriptions. This is same as the length of the
+   * `subscriptions` array in the snapshot.
    */
   size: number;
 
   /**
    * True if there are no subscriptions available. False whenever at least one subscription is
-   * present.
+   * present. When True, the `subscriptions` array is empty, and the `size` is 0.
    */
   empty: boolean;
 }
