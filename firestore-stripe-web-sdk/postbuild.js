@@ -6,7 +6,8 @@ const results = replace.sync({
   from: "__VERSION__",
   to: pkg.version,
 });
-results.filter((result) => result.hasChanged)
+results
+  .filter((result) => result.hasChanged)
   .forEach((result) => {
     console.log(`Replaced version in: ${result.file}`);
   });
