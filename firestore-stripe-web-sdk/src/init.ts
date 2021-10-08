@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from "@firebase/app";
+import { FirebaseApp, registerVersion } from "@firebase/app";
+
+registerVersion("firestore-stripe-payments", "__VERSION__");
 
 /**
  * Serves as the main entry point to this library. Initializes the client SDK,
