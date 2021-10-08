@@ -13,11 +13,21 @@
   },
   "keywords": [
     "firebase",
-    "stripe",
-    "payments"
+    "payments",
+    "subscriptions",
+    "stripe"
   ],
   "author": "Stripe (https://stripe.com/)",
+  "contributors": [
+    "Firebase <firebase-support@google.com> (https://firebase.google.com/)"
+  ],
   "license": "Apache-2.0",
+  "files": [
+    "lib/",
+    "LICENSE",
+    "NOTICE.txt",
+    "README.md"
+  ],
   "devDependencies": {
     "@microsoft/api-extractor": "^7.18.7",
     "@types/chai": "^4.2.21",
