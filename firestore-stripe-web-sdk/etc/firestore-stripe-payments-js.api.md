@@ -62,6 +62,9 @@ export interface GetSubscriptionsOptions {
 }
 
 // @public
+export function onCurrentUserSubscriptionUpdate(payments: StripePayments, onUpdate: (snapshot: SubscriptionSnapshot) => void, onError?: (error: StripePaymentsError) => void): () => void;
+
+// @public
 export interface Price {
     // (undocumented)
     readonly [propName: string]: any;
@@ -172,6 +175,20 @@ export interface Subscription {
     readonly trialEnd: string | null;
     readonly trialStart: string | null;
     readonly uid: string;
+}
+
+// @public
+export type SubscriptionChangeType = "added" | "modified" | "removed";
+
+// @public
+export interface SubscriptionSnapshot {
+    changes: Array<{
+        type: SubscriptionChangeType;
+        subscription: Subscription;
+    }>;
+    empty: boolean;
+    size: number;
+    subscriptions: Subscription[];
 }
 
 // @public

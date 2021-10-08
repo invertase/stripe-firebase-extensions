@@ -175,11 +175,6 @@ export const rawProductData: Record<string, ProductData> = {
   },
 };
 
-export interface SubscriptionData {
-  uid: string;
-  subscriptions: Record<string, Record<string, any>>;
-}
-
 export const subscription1: Subscription = {
   cancelAt: null,
   cancelAtPeriodEnd: true,
@@ -263,7 +258,9 @@ export const subscription3: Subscription = {
   uid: "dynamic",
 };
 
-export const rawSubscriptionData: Record<string, Record<string, any>> = {
+export type SubscriptionData = Record<string, Record<string, any>>;
+
+export const rawSubscriptionData: SubscriptionData = {
   sub1: {
     cancel_at: null,
     cancel_at_period_end: true,

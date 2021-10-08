@@ -21,12 +21,17 @@ import {
   getCurrentUserSubscription,
   getCurrentUserSubscriptions,
   getStripePayments,
+  onCurrentUserSubscriptionUpdate,
   Subscription,
   StripePayments,
   StripePaymentsError,
 } from "../src/index";
 import { subscription1, subscription2 } from "./testdata";
-import { setSubscriptionDAO, SubscriptionDAO } from "../src/subscription";
+import {
+  setSubscriptionDAO,
+  SubscriptionDAO,
+  SubscriptionSnapshot,
+} from "../src/subscription";
 import { setUserDAO, UserDAO } from "../src/user";
 
 use(require("chai-as-promised"));
@@ -58,7 +63,7 @@ describe("getCurrentUserSubscription()", () => {
     const expected: Subscription = { ...subscription1, uid: "alice" };
     const fake: SinonSpy = sinonFake.resolves(expected);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscription", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const subscription: Subscription = await getCurrentUserSubscription(
@@ -78,7 +83,7 @@ describe("getCurrentUserSubscription()", () => {
     );
     const fake: SinonSpy = sinonFake.rejects(error);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscription", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(
@@ -94,7 +99,7 @@ describe("getCurrentUserSubscription()", () => {
       "unauthenticated",
       "user not signed in"
     );
-    const userFake: SinonSpy = sinonFake.rejects(error);
+    const userFake: SinonSpy = sinonFake.throws(error);
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(
@@ -109,7 +114,7 @@ describe("getCurrentUserSubscriptions()", () => {
   it("should return all subscriptions when called without options", async () => {
     const fake: SinonSpy = sinonFake.resolves([subscription1, subscription2]);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
@@ -136,7 +141,7 @@ describe("getCurrentUserSubscriptions()", () => {
   it("should only return subscriptions with the given status", async () => {
     const fake: SinonSpy = sinonFake.resolves([subscription1]);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
@@ -156,7 +161,7 @@ describe("getCurrentUserSubscriptions()", () => {
   it("should only return subscriptions with the given statuses", async () => {
     const fake: SinonSpy = sinonFake.resolves([subscription1, subscription2]);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
@@ -192,7 +197,7 @@ describe("getCurrentUserSubscriptions()", () => {
     );
     const fake: SinonSpy = sinonFake.rejects(error);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(getCurrentUserSubscriptions(payments)).to.be.rejectedWith(
@@ -208,10 +213,74 @@ describe("getCurrentUserSubscriptions()", () => {
       "unauthenticated",
       "user not signed in"
     );
-    const userFake: SinonSpy = sinonFake.rejects(error);
+    const userFake: SinonSpy = sinonFake.throws(error);
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(getCurrentUserSubscriptions(payments)).to.be.rejectedWith(
+      error
+    );
+
+    expect(userFake).to.have.been.calledOnce;
+  });
+});
+
+describe("onCurrentUserSubscriptionUpdate()", () => {
+  it("should register a callback to receive subscription updates", () => {
+    let canceled: boolean = false;
+    const fake: SinonSpy = sinonFake.returns(() => {
+      canceled = true;
+    });
+    setSubscriptionDAO(
+      payments,
+      testSubscriptionDAO("onSubscriptionUpdate", fake)
+    );
+    const userFake: SinonSpy = sinonFake.returns("alice");
+    setUserDAO(payments, testUserDAO(userFake));
+    const onUpdate: (snap: SubscriptionSnapshot) => void = () => {};
+
+    const cancel = onCurrentUserSubscriptionUpdate(payments, onUpdate);
+    cancel();
+
+    expect(canceled).to.be.true;
+    expect(fake).to.have.been.calledOnceWithExactly(
+      "alice",
+      onUpdate,
+      undefined
+    );
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+  });
+
+  it("should register a callback to receive errors when specified", () => {
+    let canceled: boolean = false;
+    const fake: SinonSpy = sinonFake.returns(() => {
+      canceled = true;
+    });
+    setSubscriptionDAO(
+      payments,
+      testSubscriptionDAO("onSubscriptionUpdate", fake)
+    );
+    const userFake: SinonSpy = sinonFake.returns("alice");
+    setUserDAO(payments, testUserDAO(userFake));
+    const onUpdate: (snap: SubscriptionSnapshot) => void = () => {};
+    const onError: (err: StripePaymentsError) => void = () => {};
+
+    const cancel = onCurrentUserSubscriptionUpdate(payments, onUpdate, onError);
+    cancel();
+
+    expect(canceled).to.be.true;
+    expect(fake).to.have.been.calledOnceWithExactly("alice", onUpdate, onError);
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+  });
+
+  it("should throw when the user data access object throws", () => {
+    const error: StripePaymentsError = new StripePaymentsError(
+      "unauthenticated",
+      "user not signed in"
+    );
+    const userFake: SinonSpy = sinonFake.throws(error);
+    setUserDAO(payments, testUserDAO(userFake));
+
+    expect(() => onCurrentUserSubscriptionUpdate(payments, () => {})).to.throw(
       error
     );
 

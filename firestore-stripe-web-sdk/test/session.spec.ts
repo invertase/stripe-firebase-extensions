@@ -107,7 +107,7 @@ describe("createCheckoutSession()", () => {
   it("should return a session when called with minimum valid parameters", async () => {
     const fake: SinonSpy = sinonFake.resolves(testSession);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const session: Session = await createCheckoutSession(payments, {
@@ -131,7 +131,7 @@ describe("createCheckoutSession()", () => {
   it("should return a session when called with all valid parameters", async () => {
     const fake: SinonSpy = sinonFake.resolves(testSession);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
     const params: SessionCreateParams = {
       cancelUrl: "https://example.com/cancel",
@@ -155,7 +155,7 @@ describe("createCheckoutSession()", () => {
   it("should return a session when called with valid timeout", async () => {
     const fake: SinonSpy = sinonFake.resolves(testSession);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const session: Session = await createCheckoutSession(
@@ -187,7 +187,7 @@ describe("createCheckoutSession()", () => {
     );
     const fake: SinonSpy = sinonFake.rejects(error);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
-    const userFake: SinonSpy = sinonFake.resolves("alice");
+    const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(
@@ -203,7 +203,7 @@ describe("createCheckoutSession()", () => {
       "unauthenticated",
       "user not signed in"
     );
-    const userFake: SinonSpy = sinonFake.rejects(error);
+    const userFake: SinonSpy = sinonFake.throws(error);
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(

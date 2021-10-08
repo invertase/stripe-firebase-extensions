@@ -17,15 +17,19 @@
 import { FirebaseApp } from "@firebase/app";
 import {
   collection,
+  CollectionReference,
   doc,
+  DocumentChange,
   DocumentData,
   DocumentReference,
   DocumentSnapshot,
   Firestore,
   FirestoreDataConverter,
+  FirestoreError,
   getDoc,
   getDocs,
   getFirestore,
+  onSnapshot,
   query,
   Query,
   QueryDocumentSnapshot,
@@ -34,7 +38,7 @@ import {
   where,
 } from "@firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
-import { getCurrentUser } from "./user";
+import { getCurrentUser, getCurrentUserSync } from "./user";
 import { checkNonEmptyArray, checkNonEmptyString } from "./utils";
 
 /**
@@ -214,6 +218,68 @@ export function getCurrentUserSubscriptions(
   });
 }
 
+/**
+ * Different types of changes that may occur on a subscription object.
+ */
+export type SubscriptionChangeType = "added" | "modified" | "removed";
+
+/**
+ * Represents the current state of a set of subscriptions owned by a user.
+ */
+export interface SubscriptionSnapshot {
+  /**
+   * A list of all currently available subscriptions ordered by the subscription ID. Empty
+   * if no subscriptions are available.
+   */
+  subscriptions: Subscription[];
+
+  /**
+   * The list of changes in the subscriptions since the last snapshot.
+   */
+  changes: Array<{
+    type: SubscriptionChangeType;
+    subscription: Subscription;
+  }>;
+
+  /**
+   * Number of currently available subscriptions. This is same as the length of the
+   * `subscriptions` array in the snapshot.
+   */
+  size: number;
+
+  /**
+   * True if there are no subscriptions available. False whenever at least one subscription is
+   * present. When True, the `subscriptions` array is empty, and the `size` is 0.
+   */
+  empty: boolean;
+}
+
+/**
+ * Registers a listener to receive subscription update events for the currently signed in
+ * user. If the user is not signed in throws an `unauthenticated` error, and no listener is
+ * registered.
+ *
+ * Upon successful registration, the `onUpdate` callback will fire once with
+ * the current state of all the subscriptions. From then onwards, each update to a subscription
+ * will fire the `onUpdate` callback with the latest state of the subscriptions.
+ *
+ * @param payments - A valid {@link StripePayments} object.
+ * @param onUpdate - A callback that will fire whenever the current user's subscriptions
+ *   are updated.
+ * @param onError - A callback that will fire whenever an error occurs while listening to
+ *   subscription updates.
+ * @returns A function that can be called to cancel and unregister the listener.
+ */
+export function onCurrentUserSubscriptionUpdate(
+  payments: StripePayments,
+  onUpdate: (snapshot: SubscriptionSnapshot) => void,
+  onError?: (error: StripePaymentsError) => void
+): () => void {
+  const uid: string = getCurrentUserSync(payments);
+  const dao: SubscriptionDAO = getOrInitSubscriptionDAO(payments);
+  return dao.onSubscriptionUpdate(uid, onUpdate, onError);
+}
+
 function getStatusAsArray(
   status: SubscriptionStatus | SubscriptionStatus[]
 ): SubscriptionStatus[] {
@@ -237,6 +303,11 @@ export interface SubscriptionDAO {
     uid: string,
     options?: { status?: SubscriptionStatus[] }
   ): Promise<Subscription[]>;
+  onSubscriptionUpdate(
+    uid: string,
+    onUpdate: (snapshot: SubscriptionSnapshot) => void,
+    onError?: (error: StripePaymentsError) => void
+  ): () => void;
 }
 
 const SUBSCRIPTION_CONVERTER: FirestoreDataConverter<Subscription> = {
@@ -278,6 +349,8 @@ const SUBSCRIPTION_CONVERTER: FirestoreDataConverter<Subscription> = {
     };
   },
 };
+
+const SUBSCRIPTIONS_COLLECTION = "subscriptions" as const;
 
 function toNullableUTCDateString(timestamp: Timestamp | null): string | null {
   if (timestamp === null) {
@@ -321,6 +394,53 @@ class FirestoreSubscriptionDAO implements SubscriptionDAO {
     return subscriptions;
   }
 
+  public onSubscriptionUpdate(
+    uid: string,
+    onUpdate: (snapshot: SubscriptionSnapshot) => void,
+    onError?: (error: StripePaymentsError) => void
+  ): () => void {
+    const subscriptions: CollectionReference<Subscription> = collection(
+      this.firestore,
+      this.customersCollection,
+      uid,
+      SUBSCRIPTIONS_COLLECTION
+    ).withConverter(SUBSCRIPTION_CONVERTER);
+    return onSnapshot(
+      subscriptions,
+      (querySnap: QuerySnapshot<Subscription>) => {
+        const snapshot: SubscriptionSnapshot = {
+          subscriptions: [],
+          changes: [],
+          size: querySnap.size,
+          empty: querySnap.empty,
+        };
+        querySnap.forEach((snap: QueryDocumentSnapshot<Subscription>) => {
+          snapshot.subscriptions.push(snap.data());
+        });
+        querySnap
+          .docChanges()
+          .forEach((change: DocumentChange<Subscription>) => {
+            snapshot.changes.push({
+              type: change.type,
+              subscription: change.doc.data(),
+            });
+          });
+
+        onUpdate(snapshot);
+      },
+      (err: FirestoreError) => {
+        if (onError) {
+          const arg: StripePaymentsError = new StripePaymentsError(
+            "internal",
+            `Error while listening to database updates: ${err.message}`,
+            err
+          );
+          onError(arg);
+        }
+      }
+    );
+  }
+
   private async getSubscriptionSnapshotIfExists(
     uid: string,
     subscriptionId: string
@@ -329,7 +449,7 @@ class FirestoreSubscriptionDAO implements SubscriptionDAO {
       this.firestore,
       this.customersCollection,
       uid,
-      "subscriptions",
+      SUBSCRIPTIONS_COLLECTION,
       subscriptionId
     ).withConverter(SUBSCRIPTION_CONVERTER);
     const snapshot: DocumentSnapshot<Subscription> = await this.queryFirestore(
@@ -353,7 +473,7 @@ class FirestoreSubscriptionDAO implements SubscriptionDAO {
       this.firestore,
       this.customersCollection,
       uid,
-      "subscriptions"
+      SUBSCRIPTIONS_COLLECTION
     ).withConverter(SUBSCRIPTION_CONVERTER);
     if (status) {
       subscriptionsQuery = query(
