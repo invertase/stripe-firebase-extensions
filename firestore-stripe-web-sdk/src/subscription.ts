@@ -349,6 +349,8 @@ const SUBSCRIPTION_CONVERTER: FirestoreDataConverter<Subscription> = {
   },
 };
 
+const SUBSCRIPTIONS_COLLECTION = "subscriptions" as const;
+
 function toNullableUTCDateString(timestamp: Timestamp | null): string | null {
   if (timestamp === null) {
     return null;
@@ -400,30 +402,30 @@ class FirestoreSubscriptionDAO implements SubscriptionDAO {
       this.firestore,
       this.customersCollection,
       uid,
-      "subscriptions"
+      SUBSCRIPTIONS_COLLECTION
     ).withConverter(SUBSCRIPTION_CONVERTER);
     return onSnapshot(
       subscriptions,
       (querySnap: QuerySnapshot<Subscription>) => {
-        const args: SubscriptionSnapshot = {
+        const snapshot: SubscriptionSnapshot = {
           subscriptions: [],
           changes: [],
           size: querySnap.size,
           empty: querySnap.empty,
         };
         querySnap.forEach((snap: QueryDocumentSnapshot<Subscription>) => {
-          args.subscriptions.push(snap.data());
+          snapshot.subscriptions.push(snap.data());
         });
         querySnap
           .docChanges()
           .forEach((change: DocumentChange<Subscription>) => {
-            args.changes.push({
+            snapshot.changes.push({
               type: change.type,
               subscription: change.doc.data(),
             });
           });
 
-        onUpdate(args);
+        onUpdate(snapshot);
       },
       (err: FirestoreError) => {
         if (onError) {
@@ -446,7 +448,7 @@ class FirestoreSubscriptionDAO implements SubscriptionDAO {
       this.firestore,
       this.customersCollection,
       uid,
-      "subscriptions",
+      SUBSCRIPTIONS_COLLECTION,
       subscriptionId
     ).withConverter(SUBSCRIPTION_CONVERTER);
     const snapshot: DocumentSnapshot<Subscription> = await this.queryFirestore(
@@ -470,7 +472,7 @@ class FirestoreSubscriptionDAO implements SubscriptionDAO {
       this.firestore,
       this.customersCollection,
       uid,
-      "subscriptions"
+      SUBSCRIPTIONS_COLLECTION
     ).withConverter(SUBSCRIPTION_CONVERTER);
     if (status) {
       subscriptionsQuery = query(
