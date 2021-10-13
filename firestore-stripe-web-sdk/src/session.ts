@@ -166,7 +166,7 @@ function checkAndUpdateCommonParams(params: SessionCreateParams): void {
   if (typeof params.cancel_url !== "undefined") {
     checkNonEmptyString(
       params.cancel_url,
-      "cancelUrl must be a non-empty string."
+      "cancel_url must be a non-empty string."
     );
   } else {
     params.cancel_url = window.location.href;
@@ -176,7 +176,7 @@ function checkAndUpdateCommonParams(params: SessionCreateParams): void {
   if (typeof params.success_url !== "undefined") {
     checkNonEmptyString(
       params.success_url,
-      "successUrl must be a non-empty string."
+      "success_url must be a non-empty string."
     );
   } else {
     params.success_url = window.location.href;
@@ -184,7 +184,7 @@ function checkAndUpdateCommonParams(params: SessionCreateParams): void {
 }
 
 function checkAndUpdatePriceIdParams(params: PriceIdSessionCreateParams): void {
-  checkNonEmptyString(params.price, "priceId must be a non-empty string.");
+  checkNonEmptyString(params.price, "price must be a non-empty string.");
   if (typeof params.quantity !== "undefined") {
     checkPositiveNumber(
       params.quantity,

@@ -63,7 +63,7 @@ describe("createCheckoutSession()", () => {
           cancel_url: cancelUrl,
           price: "price1",
         })
-      ).to.throw("cancelUrl must be a non-empty string.");
+      ).to.throw("cancel_url must be a non-empty string.");
     });
   });
 
@@ -74,7 +74,17 @@ describe("createCheckoutSession()", () => {
           success_url: successUrl,
           price: "price1",
         })
-      ).to.throw("successUrl must be a non-empty string.");
+      ).to.throw("success_url must be a non-empty string.");
+    });
+  });
+
+  [null, [], {}, true, -1, 0, NaN, ""].forEach((price: any) => {
+    it(`should throw when called with invalid price ID: ${price}`, () => {
+      expect(() =>
+        createCheckoutSession(payments, {
+          price,
+        })
+      ).to.throw("price must be a non-empty string.");
     });
   });
 
