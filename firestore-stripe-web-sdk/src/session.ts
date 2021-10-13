@@ -43,7 +43,7 @@ export interface CommonSessionCreateParams {
    * The URL the customer will be directed to if they decide to cancel payment and return to
    * your website.
    */
-  cancelUrl?: string;
+  cancel_url?: string;
 
   /**
    * The mode of the Checkout Session. If not specified defaults to `subscription`.
@@ -53,7 +53,7 @@ export interface CommonSessionCreateParams {
   /**
    * The URL to which Stripe should send customers when payment or setup is complete.
    */
-  successUrl?: string;
+  success_url?: string;
 }
 
 /**
@@ -63,7 +63,7 @@ export interface PriceIdSessionCreateParams extends CommonSessionCreateParams {
   /**
    * The ID of the Stripe price.
    */
-  priceId: string;
+  price: string;
 
   /**
    * The quantity of the item being purchased. Defaults to 1.
@@ -84,12 +84,12 @@ export interface Session {
    * The URL the customer will be directed to if they decide to cancel payment and return to
    * your website.
    */
-  readonly cancelUrl: string;
+  readonly cancel_url: string;
 
   /**
    * Time when the session was created as a UTC timestamp.
    */
-  readonly createdAt: string;
+  readonly created_at: string;
 
   /**
    * Unique identifier for the session. Used to pass to `redirectToCheckout()` in Stripe.js.
@@ -104,7 +104,7 @@ export interface Session {
   /**
    * The URL to which Stripe should send customers when payment or setup is complete.
    */
-  readonly successUrl: string;
+  readonly success_url: string;
 
   /**
    * The URL to the Checkout Session. Redirect the user to this URL to complete the payment.
@@ -114,7 +114,7 @@ export interface Session {
   /**
    * The ID of the Stripe price object purchased with this session.
    */
-  readonly priceId?: string;
+  readonly price?: string;
 
   /**
    * The quantity of item purchased. Defaults to 1.
@@ -163,28 +163,28 @@ export function createCheckoutSession(
 }
 
 function checkAndUpdateCommonParams(params: SessionCreateParams): void {
-  if (typeof params.cancelUrl !== "undefined") {
+  if (typeof params.cancel_url !== "undefined") {
     checkNonEmptyString(
-      params.cancelUrl,
+      params.cancel_url,
       "cancelUrl must be a non-empty string."
     );
   } else {
-    params.cancelUrl = window.location.href;
+    params.cancel_url = window.location.href;
   }
 
   params.mode ??= "subscription";
-  if (typeof params.successUrl !== "undefined") {
+  if (typeof params.success_url !== "undefined") {
     checkNonEmptyString(
-      params.successUrl,
+      params.success_url,
       "successUrl must be a non-empty string."
     );
   } else {
-    params.successUrl = window.location.href;
+    params.success_url = window.location.href;
   }
 }
 
 function checkAndUpdatePriceIdParams(params: PriceIdSessionCreateParams): void {
-  checkNonEmptyString(params.priceId, "priceId must be a non-empty string.");
+  checkNonEmptyString(params.price, "priceId must be a non-empty string.");
   if (typeof params.quantity !== "undefined") {
     checkPositiveNumber(
       params.quantity,
@@ -219,9 +219,6 @@ export interface SessionDAO {
   ): Promise<Session>;
 }
 
-type Mutable<T> = { -readonly [P in keyof T]: T[P] };
-type MutableSession = Mutable<Partial<Session>>;
-
 class FirestoreSessionDAO implements SessionDAO {
   private readonly firestore: Firestore;
 
@@ -234,23 +231,20 @@ class FirestoreSessionDAO implements SessionDAO {
     params: SessionCreateParams,
     timeoutMillis: number
   ): Promise<Session> {
-    const doc: DocumentReference<MutableSession> = await this.addSessionDoc(
-      uid,
-      params
-    );
+    const doc: DocumentReference = await this.addSessionDoc(uid, params);
     return this.waitForSessionId(doc, timeoutMillis);
   }
 
   private async addSessionDoc(
     uid: string,
     params: SessionCreateParams
-  ): Promise<DocumentReference<MutableSession>> {
-    const sessions: CollectionReference<MutableSession> = collection(
+  ): Promise<DocumentReference> {
+    const sessions: CollectionReference = collection(
       this.firestore,
       this.customersCollection,
       uid,
       "checkout_sessions"
-    ).withConverter(SESSION_CONVERTER);
+    );
     try {
       return await addDoc(sessions, params);
     } catch (err) {
@@ -263,7 +257,7 @@ class FirestoreSessionDAO implements SessionDAO {
   }
 
   private waitForSessionId(
-    doc: DocumentReference<MutableSession>,
+    doc: DocumentReference,
     timeoutMillis: number
   ): Promise<Session> {
     let cancel: Unsubscribe;
@@ -277,10 +271,10 @@ class FirestoreSessionDAO implements SessionDAO {
         );
       }, timeoutMillis);
       cancel = onSnapshot(
-        doc,
-        (snap: DocumentSnapshot<MutableSession>) => {
-          const session: MutableSession | undefined = snap.data();
-          if (hasSessionId(session)) {
+        doc.withConverter(SESSION_CONVERTER),
+        (snap: DocumentSnapshot<SessionOrNone>) => {
+          const session: SessionOrNone = snap.data();
+          if (typeof session !== "undefined") {
             clearTimeout(timeout);
             resolve(session);
           }
@@ -300,56 +294,32 @@ class FirestoreSessionDAO implements SessionDAO {
   }
 }
 
-function hasSessionId(session: MutableSession | undefined): session is Session {
-  return !!session && "id" in session;
-}
+type SessionOrNone = Session | undefined;
 
-const SESSION_CONVERTER: FirestoreDataConverter<MutableSession> = {
-  toFirestore: (session: MutableSession): DocumentData => {
-    const data: DocumentData = {
-      cancel_url: session.cancelUrl,
-      mode: session.mode,
-      price: session.priceId,
-      success_url: session.successUrl,
-    };
-
-    if (typeof session.quantity !== "undefined") {
-      data.quantity = session.quantity;
-    }
-
-    return data;
+const SESSION_CONVERTER: FirestoreDataConverter<SessionOrNone> = {
+  toFirestore: (): DocumentData => {
+    throw new Error("Not implemented for readonly Session type.");
   },
-  fromFirestore: (snapshot: QueryDocumentSnapshot): MutableSession => {
-    const data: DocumentData = snapshot.data();
-    const session: Partial<Mutable<Session>> = {
-      cancelUrl: data.cancel_url,
-      mode: data.mode,
-      priceId: data.price,
-      successUrl: data.success_url,
-    };
-
-    if (typeof data.created !== "undefined") {
-      session.createdAt = toUTCDateString(data.created);
+  fromFirestore: (snapshot: QueryDocumentSnapshot): SessionOrNone => {
+    const { created, sessionId, ...rest } = snapshot.data();
+    if (typeof sessionId !== "undefined") {
+      return {
+        ...(rest as Session),
+        id: sessionId,
+        created_at: toUTCDateString(created),
+      };
     }
 
-    if (typeof data.quantity !== "undefined") {
-      session.quantity = data.quantity;
-    }
-
-    if (typeof data.sessionId !== "undefined") {
-      session.id = data.sessionId;
-    }
-
-    if (typeof data.url !== "undefined") {
-      session.url = data.url;
-    }
-
-    return session;
+    return undefined;
   },
 };
 
-function toUTCDateString(timestamp: Timestamp): string {
-  return timestamp.toDate().toUTCString();
+function toUTCDateString(timestamp: Timestamp | undefined): string {
+  if (typeof timestamp !== "undefined") {
+    return timestamp.toDate().toUTCString();
+  }
+
+  return "unknown";
 }
 
 const SESSION_DAO_KEY = "checkout-session-dao" as const;

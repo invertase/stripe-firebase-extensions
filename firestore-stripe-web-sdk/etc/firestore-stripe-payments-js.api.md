@@ -8,9 +8,9 @@ import { FirebaseApp } from '@firebase/app';
 
 // @public
 export interface CommonSessionCreateParams {
-    cancelUrl?: string;
+    cancel_url?: string;
     mode?: "subscription" | "payment";
-    successUrl?: string;
+    success_url?: string;
 }
 
 // @public (undocumented)
@@ -73,16 +73,16 @@ export interface Price {
     readonly description: string | null;
     readonly id: string;
     readonly interval: "day" | "month" | "week" | "year" | null;
-    readonly intervalCount: number | null;
-    readonly productId: string;
-    readonly trialPeriodDays: number | null;
+    readonly interval_count: number | null;
+    readonly product: string;
+    readonly trial_period_days: number | null;
     readonly type: "one_time" | "recurring";
-    readonly unitAmount: number | null;
+    readonly unit_amount: number | null;
 }
 
 // @public
 export interface PriceIdSessionCreateParams extends CommonSessionCreateParams {
-    priceId: string;
+    price: string;
     quantity?: number;
 }
 
@@ -104,13 +104,13 @@ export interface Product {
 
 // @public
 export interface Session {
-    readonly cancelUrl: string;
-    readonly createdAt: string;
+    readonly cancel_url: string;
+    readonly created_at: string;
     readonly id: string;
     readonly mode: "subscription" | "payment";
-    readonly priceId?: string;
+    readonly price?: string;
     readonly quantity?: number;
-    readonly successUrl: string;
+    readonly success_url: string;
     readonly url: string;
 }
 
@@ -151,29 +151,29 @@ export interface StripePaymentsOptions {
 export interface Subscription {
     // (undocumented)
     readonly [propName: string]: any;
-    readonly cancelAt: string | null;
-    readonly cancelAtPeriodEnd: boolean;
-    readonly canceledAt: string | null;
+    readonly cancel_at: string | null;
+    readonly cancel_at_period_end: boolean;
+    readonly canceled_at: string | null;
     readonly created: string;
-    readonly currentPeriodEnd: string;
-    readonly currentPeriodStart: string;
-    readonly endedAt: string | null;
+    readonly current_period_end: string;
+    readonly current_period_start: string;
+    readonly ended_at: string | null;
     readonly id: string;
     readonly metadata: {
         [name: string]: string;
     };
-    readonly priceId: string;
+    readonly price: string;
     readonly prices: Array<{
-        productId: string;
-        priceId: string;
+        product: string;
+        price: string;
     }>;
-    readonly productId: string;
+    readonly product: string;
     readonly quantity: number | null;
     readonly role: string | null;
     readonly status: SubscriptionStatus;
-    readonly stripeLink: string;
-    readonly trialEnd: string | null;
-    readonly trialStart: string | null;
+    readonly stripe_link: string;
+    readonly trial_end: string | null;
+    readonly trial_start: string | null;
     readonly uid: string;
 }
 

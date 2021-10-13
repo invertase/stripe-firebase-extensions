@@ -124,7 +124,7 @@ describe("Emulator tests", () => {
       it("rejects when creating a new session", async () => {
         const err: any = await expect(
           createCheckoutSession(payments, {
-            priceId: "foo",
+            price: "foo",
           })
         ).to.be.rejectedWith(
           "Failed to determine currently signed in user. User not signed in."
@@ -148,18 +148,18 @@ describe("Emulator tests", () => {
 
       it("creates a session with defaults when only the priceId is specified", async () => {
         const session = await createCheckoutSession(payments, {
-          priceId: "foo",
+          price: "foo",
         });
 
         expect(backend.events).to.have.length(1);
         const { uid, docId, data, timestamp } = backend.events[0];
         expect(session).to.eql({
-          cancelUrl: window.location.href,
-          createdAt: timestamp.toDate().toUTCString(),
+          cancel_url: window.location.href,
+          created_at: timestamp.toDate().toUTCString(),
           id: `test_session_${docId}`,
           mode: "subscription",
-          priceId: "foo",
-          successUrl: window.location.href,
+          price: "foo",
+          success_url: window.location.href,
           url: `https://example.stripe.com/session/${docId}`,
         });
         expect(uid).to.equal(currentUser);
@@ -173,22 +173,22 @@ describe("Emulator tests", () => {
 
       it("creates a session with all the given parameters", async () => {
         const session = await createCheckoutSession(payments, {
-          cancelUrl: "https://example.com/cancel",
-          priceId: "foo",
+          cancel_url: "https://example.com/cancel",
+          price: "foo",
           quantity: 5,
-          successUrl: "https://example.com/success",
+          success_url: "https://example.com/success",
         });
 
         expect(backend.events).to.have.length(1);
         const { uid, docId, data, timestamp } = backend.events[0];
         expect(session).to.eql({
-          cancelUrl: "https://example.com/cancel",
-          createdAt: timestamp.toDate().toUTCString(),
+          cancel_url: "https://example.com/cancel",
+          created_at: timestamp.toDate().toUTCString(),
           id: `test_session_${docId}`,
           mode: "subscription",
-          priceId: "foo",
+          price: "foo",
           quantity: 5,
-          successUrl: "https://example.com/success",
+          success_url: "https://example.com/success",
           url: `https://example.stripe.com/session/${docId}`,
         });
         expect(uid).to.equal(currentUser);
@@ -209,7 +209,7 @@ describe("Emulator tests", () => {
         const err: any = await expect(
           createCheckoutSession(
             payments,
-            { priceId: "foo" },
+            { price: "foo" },
             { timeoutMillis: 10 }
           )
         ).to.be.rejectedWith("Timeout while waiting for session response.");

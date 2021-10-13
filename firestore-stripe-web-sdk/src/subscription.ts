@@ -48,21 +48,21 @@ export interface Subscription {
   /**
    * A future date in UTC format at which the subscription will automatically get canceled.
    */
-  readonly cancelAt: string | null;
+  readonly cancel_at: string | null;
 
   /**
    * If `true`, the subscription has been canceled by the user and will be deleted at the end
    * of the billing period.
    */
-  readonly cancelAtPeriodEnd: boolean;
+  readonly cancel_at_period_end: boolean;
 
   /**
    * If the subscription has been canceled, the date of that cancellation as a UTC timestamp.
-   * If the subscription was canceled with {@link Subscription.cancelAtPeriodEnd}, this field
+   * If the subscription was canceled with {@link Subscription.cancel_at_period_end}, this field
    * will still reflect the date of the initial cancellation request, not the end of the
    * subscription period when the subscription is automatically moved to a canceled state.
    */
-  readonly canceledAt: string | null;
+  readonly canceled_at: string | null;
 
   /**
    * The date when the subscription was created as a UTC timestamp.
@@ -73,17 +73,17 @@ export interface Subscription {
    * End of the current period that the subscription has been invoiced for as a UTC timestamp.
    * At the end of the period, a new invoice will be created.
    */
-  readonly currentPeriodEnd: string;
+  readonly current_period_end: string;
 
   /**
    * Start of the current period that the subscription has been invoiced for as a UTC timestamp.
    */
-  readonly currentPeriodStart: string;
+  readonly current_period_start: string;
 
   /**
    * If the subscription has ended, the date the subscription ended as a UTC timestamp.
    */
-  readonly endedAt: string | null;
+  readonly ended_at: string | null;
 
   /**
    * Unique Stripe subscription ID.
@@ -98,20 +98,20 @@ export interface Subscription {
   /**
    * Stripe price ID associated with this subscription.
    */
-  readonly priceId: string;
+  readonly price: string;
 
   /**
    * Array of product ID and price ID pairs. If multiple recurring prices were provided to the
    * checkout session (e.g. via `lineItems`) this array holds all recurring prices for this
    * subscription. The first element of this array always corresponds to the
-   * {@link Subscription.priceId} and {@link Subscription.productId} fields on the subscription.
+   * {@link Subscription.price} and {@link Subscription.product} fields on the subscription.
    */
-  readonly prices: Array<{ productId: string; priceId: string }>;
+  readonly prices: Array<{ product: string; price: string }>;
 
   /**
    * Stripe product ID associated with this subscription.
    */
-  readonly productId: string;
+  readonly product: string;
 
   /**
    * Quantity of items purchased with this subscription.
@@ -131,17 +131,17 @@ export interface Subscription {
   /**
    * A link to the subscription in the Stripe dashboard.
    */
-  readonly stripeLink: string;
+  readonly stripe_link: string;
 
   /**
    * If the subscription has a trial, the end date of that trial as a UTC timestamp.
    */
-  readonly trialEnd: string | null;
+  readonly trial_end: string | null;
 
   /**
    * If the subscription has a trial, the start date of that trial as a UTC timestamp.
    */
-  readonly trialStart: string | null;
+  readonly trial_start: string | null;
 
   /**
    * Firebase Auth UID of the user that created the subscription.
@@ -317,34 +317,34 @@ const SUBSCRIPTION_CONVERTER: FirestoreDataConverter<Subscription> = {
   fromFirestore: (snapshot: QueryDocumentSnapshot): Subscription => {
     const data: DocumentData = snapshot.data();
     const refs: DocumentReference[] = data.prices;
-    const prices: Array<{ productId: string; priceId: string }> = refs.map(
+    const prices: Array<{ product: string; price: string }> = refs.map(
       (priceRef: DocumentReference) => {
         return {
-          productId: priceRef.parent.parent!.id,
-          priceId: priceRef.id,
+          product: priceRef.parent.parent!.id,
+          price: priceRef.id,
         };
       }
     );
 
     return {
-      cancelAt: toNullableUTCDateString(data.cancel_at),
-      cancelAtPeriodEnd: data.cancel_at_period_end,
-      canceledAt: toNullableUTCDateString(data.canceled_at),
+      cancel_at: toNullableUTCDateString(data.cancel_at),
+      cancel_at_period_end: data.cancel_at_period_end,
+      canceled_at: toNullableUTCDateString(data.canceled_at),
       created: toUTCDateString(data.created),
-      currentPeriodStart: toUTCDateString(data.current_period_start),
-      currentPeriodEnd: toUTCDateString(data.current_period_end),
-      endedAt: toNullableUTCDateString(data.ended_at),
+      current_period_start: toUTCDateString(data.current_period_start),
+      current_period_end: toUTCDateString(data.current_period_end),
+      ended_at: toNullableUTCDateString(data.ended_at),
       id: snapshot.id,
       metadata: data.metadata ?? {},
-      priceId: (data.price as DocumentReference).id,
+      price: (data.price as DocumentReference).id,
       prices,
-      productId: (data.product as DocumentReference).id,
+      product: (data.product as DocumentReference).id,
       quantity: data.quantity ?? null,
       role: data.role ?? null,
       status: data.status,
-      stripeLink: data.stripeLink,
-      trialEnd: toNullableUTCDateString(data.trial_end),
-      trialStart: toNullableUTCDateString(data.trial_start),
+      stripe_link: data.stripeLink,
+      trial_end: toNullableUTCDateString(data.trial_end),
+      trial_start: toNullableUTCDateString(data.trial_start),
       uid: snapshot.ref.parent.parent!.id,
     };
   },
