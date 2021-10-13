@@ -272,9 +272,9 @@ class FirestoreSessionDAO implements SessionDAO {
       }, timeoutMillis);
       cancel = onSnapshot(
         doc.withConverter(SESSION_CONVERTER),
-        (snap: DocumentSnapshot<SessionOrNone>) => {
-          const session: SessionOrNone = snap.data();
-          if (typeof session !== "undefined") {
+        (snap: DocumentSnapshot<PartialSession>) => {
+          const session: PartialSession | undefined = snap.data();
+          if (hasSessionId(session)) {
             clearTimeout(timeout);
             resolve(session);
           }
@@ -294,13 +294,17 @@ class FirestoreSessionDAO implements SessionDAO {
   }
 }
 
-type SessionOrNone = Session | undefined;
+type PartialSession = Partial<Session>;
 
-const SESSION_CONVERTER: FirestoreDataConverter<SessionOrNone> = {
+function hasSessionId(session: PartialSession | undefined): session is Session {
+  return typeof session?.id !== "undefined";
+}
+
+const SESSION_CONVERTER: FirestoreDataConverter<PartialSession> = {
   toFirestore: (): DocumentData => {
     throw new Error("Not implemented for readonly Session type.");
   },
-  fromFirestore: (snapshot: QueryDocumentSnapshot): SessionOrNone => {
+  fromFirestore: (snapshot: QueryDocumentSnapshot): PartialSession => {
     const { created, sessionId, ...rest } = snapshot.data();
     if (typeof sessionId !== "undefined") {
       return {
@@ -310,16 +314,12 @@ const SESSION_CONVERTER: FirestoreDataConverter<SessionOrNone> = {
       };
     }
 
-    return undefined;
+    return { ...(rest as Session) };
   },
 };
 
-function toUTCDateString(timestamp: Timestamp | undefined): string {
-  if (typeof timestamp !== "undefined") {
-    return timestamp.toDate().toUTCString();
-  }
-
-  return "unknown";
+function toUTCDateString(timestamp: Timestamp): string {
+  return timestamp.toDate().toUTCString();
 }
 
 const SESSION_DAO_KEY = "checkout-session-dao" as const;
