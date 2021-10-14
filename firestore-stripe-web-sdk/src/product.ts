@@ -99,7 +99,7 @@ export interface Price {
   /**
    * ID of the Stripe product to which this price is related.
    */
-  readonly productId: string;
+  readonly product: string;
 
   /**
    * Whether the price can be used for new purchases.
@@ -114,7 +114,7 @@ export interface Price {
   /**
    * The unit amount in cents to be charged, represented as a whole integer if possible.
    */
-  readonly unitAmount: number | null;
+  readonly unit_amount: number | null;
 
   /**
    * A brief description of the price.
@@ -137,13 +137,13 @@ export interface Price {
    * subscription billings. For example, `interval=month` and `interval_count=3` bills every
    * 3 months.
    */
-  readonly intervalCount: number | null;
+  readonly interval_count: number | null;
 
   /**
    * Default number of trial days when subscribing a customer to this price using
    * {@link https://stripe.com/docs/api#create_subscription-trial_from_plan | trial_from_plan}.
    */
-  readonly trialPeriodDays: number | null;
+  readonly trial_period_days: number | null;
 
   readonly [propName: string]: any;
 }
@@ -311,10 +311,7 @@ const PRICE_CONVERTER: FirestoreDataConverter<Price> = {
     return {
       ...(data as Price),
       id: snapshot.id,
-      productId: snapshot.ref.parent.parent!.id,
-      intervalCount: data.interval_count,
-      trialPeriodDays: data.trial_period_days,
-      unitAmount: data.unit_amount,
+      product: snapshot.ref.parent.parent!.id,
     };
   },
 };

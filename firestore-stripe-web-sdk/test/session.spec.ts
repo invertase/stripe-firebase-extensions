@@ -44,12 +44,12 @@ const payments: StripePayments = getStripePayments(app, {
 });
 
 const testSession: Session = {
-  cancelUrl: "https://example.com/cancel",
-  createdAt: new Date().toUTCString(),
+  cancel_url: "https://example.com/cancel",
+  created_at: new Date().toUTCString(),
   id: "test_session_1",
   mode: "subscription",
-  priceId: "price1",
-  successUrl: "https://example.com/success",
+  price: "price1",
+  success_url: "https://example.com/success",
   url: "https://example.stripe.com/session/test_session_1",
 };
 
@@ -60,10 +60,10 @@ describe("createCheckoutSession()", () => {
     it(`should throw when called with invalid cancelUrl: ${cancelUrl}`, () => {
       expect(() =>
         createCheckoutSession(payments, {
-          cancelUrl,
-          priceId: "price1",
+          cancel_url: cancelUrl,
+          price: "price1",
         })
-      ).to.throw("cancelUrl must be a non-empty string.");
+      ).to.throw("cancel_url must be a non-empty string.");
     });
   });
 
@@ -71,10 +71,20 @@ describe("createCheckoutSession()", () => {
     it(`should throw when called with invalid successUrl: ${successUrl}`, () => {
       expect(() =>
         createCheckoutSession(payments, {
-          successUrl,
-          priceId: "price1",
+          success_url: successUrl,
+          price: "price1",
         })
-      ).to.throw("successUrl must be a non-empty string.");
+      ).to.throw("success_url must be a non-empty string.");
+    });
+  });
+
+  [null, [], {}, true, -1, 0, NaN, ""].forEach((price: any) => {
+    it(`should throw when called with invalid price ID: ${price}`, () => {
+      expect(() =>
+        createCheckoutSession(payments, {
+          price,
+        })
+      ).to.throw("price must be a non-empty string.");
     });
   });
 
@@ -83,7 +93,7 @@ describe("createCheckoutSession()", () => {
       expect(() =>
         createCheckoutSession(payments, {
           quantity,
-          priceId: "price1",
+          price: "price1",
         })
       ).to.throw("quantity must be a positive integer.");
     });
@@ -96,7 +106,7 @@ describe("createCheckoutSession()", () => {
           payments,
           {
             quantity: 1,
-            priceId: "price1",
+            price: "price1",
           },
           { timeoutMillis }
         )
@@ -111,17 +121,17 @@ describe("createCheckoutSession()", () => {
     setUserDAO(payments, testUserDAO(userFake));
 
     const session: Session = await createCheckoutSession(payments, {
-      priceId: "price1",
+      price: "price1",
     });
 
     expect(session).to.eql(testSession);
     expect(fake).to.have.been.calledOnceWithExactly(
       "alice",
       {
-        cancelUrl: window.location.href,
+        cancel_url: window.location.href,
         mode: "subscription",
-        priceId: "price1",
-        successUrl: window.location.href,
+        price: "price1",
+        success_url: window.location.href,
       },
       CREATE_SESSION_TIMEOUT_MILLIS
     );
@@ -134,11 +144,11 @@ describe("createCheckoutSession()", () => {
     const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
     const params: SessionCreateParams = {
-      cancelUrl: "https://example.com/cancel",
+      cancel_url: "https://example.com/cancel",
       mode: "subscription",
-      priceId: "price1",
+      price: "price1",
       quantity: 5,
-      successUrl: "https://example.com/success",
+      success_url: "https://example.com/success",
     };
 
     const session: Session = await createCheckoutSession(payments, params);
@@ -161,7 +171,7 @@ describe("createCheckoutSession()", () => {
     const session: Session = await createCheckoutSession(
       payments,
       {
-        priceId: "price1",
+        price: "price1",
       },
       { timeoutMillis: 3000 }
     );
@@ -170,10 +180,10 @@ describe("createCheckoutSession()", () => {
     expect(fake).to.have.been.calledOnceWithExactly(
       "alice",
       {
-        cancelUrl: window.location.href,
+        cancel_url: window.location.href,
         mode: "subscription",
-        priceId: "price1",
-        successUrl: window.location.href,
+        price: "price1",
+        success_url: window.location.href,
       },
       3000
     );
@@ -191,7 +201,7 @@ describe("createCheckoutSession()", () => {
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(
-      createCheckoutSession(payments, { priceId: "price1" })
+      createCheckoutSession(payments, { price: "price1" })
     ).to.be.rejectedWith(error);
 
     expect(fake).to.have.been.calledOnce;
@@ -207,7 +217,7 @@ describe("createCheckoutSession()", () => {
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(
-      createCheckoutSession(payments, { priceId: "price1" })
+      createCheckoutSession(payments, { price: "price1" })
     ).to.be.rejectedWith(error);
 
     expect(userFake).to.have.been.calledOnce;
