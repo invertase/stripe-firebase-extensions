@@ -78,6 +78,16 @@ describe("createCheckoutSession()", () => {
     });
   });
 
+  [null, [], {}, true, -1, 0, NaN, ""].forEach((lineItems: any) => {
+    it(`should throw when called with invalid line_items: ${lineItems}`, () => {
+      expect(() =>
+        createCheckoutSession(payments, {
+          line_items: lineItems,
+        })
+      ).to.throw("line_items must be a non-empty array.");
+    });
+  });
+
   [null, [], {}, true, -1, 0, NaN, ""].forEach((price: any) => {
     it(`should throw when called with invalid price ID: ${price}`, () => {
       expect(() =>
@@ -138,7 +148,43 @@ describe("createCheckoutSession()", () => {
     expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
   });
 
-  it("should return a session when called with all valid parameters", async () => {
+  it("should return a session when called with line item parameters", async () => {
+    const fake: SinonSpy = sinonFake.resolves(testSession);
+    setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
+    const userFake: SinonSpy = sinonFake.returns("alice");
+    setUserDAO(payments, testUserDAO(userFake));
+    const params: SessionCreateParams = {
+      cancel_url: "https://example.com/cancel",
+      line_items: [
+        {
+          description: "Economy package subscription",
+          price: "price1",
+          quantity: 1,
+        },
+        {
+          amount: 4.99,
+          currency: "USD",
+          description: "Stream content in HD",
+          name: "HD upgrade",
+          quantity: 1,
+        },
+      ],
+      mode: "subscription",
+      success_url: "https://example.com/success",
+    };
+
+    const session: Session = await createCheckoutSession(payments, params);
+
+    expect(session).to.eql(testSession);
+    expect(fake).to.have.been.calledOnceWithExactly(
+      "alice",
+      params,
+      CREATE_SESSION_TIMEOUT_MILLIS
+    );
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+  });
+
+  it("should return a session when called with price ID", async () => {
     const fake: SinonSpy = sinonFake.resolves(testSession);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
     const userFake: SinonSpy = sinonFake.returns("alice");

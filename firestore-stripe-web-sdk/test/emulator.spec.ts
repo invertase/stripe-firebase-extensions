@@ -47,6 +47,7 @@ import {
   getProducts,
   getStripePayments,
   onCurrentUserSubscriptionUpdate,
+  LineItemParams,
   Price,
   Product,
   Subscription,
@@ -146,7 +147,84 @@ describe("Emulator tests", () => {
         await signOut(auth);
       });
 
-      it("creates a session with defaults when only the priceId is specified", async () => {
+      it("creates a session when called with minimum line item parameters", async () => {
+        const lineItems: LineItemParams[] = [
+          {
+            price: "foo",
+          },
+          {
+            amount: 4.99,
+            currency: "USD",
+            name: "HD upgrade",
+          },
+        ];
+        const session = await createCheckoutSession(payments, {
+          line_items: lineItems,
+        });
+
+        expect(backend.events).to.have.length(1);
+        const { uid, docId, data, timestamp } = backend.events[0];
+        expect(session).to.eql({
+          cancel_url: window.location.href,
+          created_at: timestamp.toDate().toUTCString(),
+          id: `test_session_${docId}`,
+          line_items: lineItems,
+          mode: "subscription",
+          success_url: window.location.href,
+          url: `https://example.stripe.com/session/${docId}`,
+        });
+        expect(uid).to.equal(currentUser);
+        expect(data).to.eql({
+          cancel_url: window.location.href,
+          line_items: lineItems,
+          mode: "subscription",
+          success_url: window.location.href,
+        });
+      });
+
+      it("creates a session when called with all line item parameters", async () => {
+        const lineItems: LineItemParams[] = [
+          {
+            description: "Economy package subscription",
+            price: "foo",
+            quantity: 5,
+          },
+          {
+            amount: 4.99,
+            currency: "USD",
+            description: "Stream content in HD",
+            name: "HD upgrade",
+            quantity: 1,
+          },
+        ];
+        const session = await createCheckoutSession(payments, {
+          cancel_url: "https://example.com/cancel",
+          line_items: lineItems,
+          mode: "subscription",
+          success_url: "https://example.com/success",
+        });
+
+        expect(backend.events).to.have.length(1);
+        const { uid, docId, data, timestamp } = backend.events[0];
+        expect(session).to.eql({
+          cancel_url: "https://example.com/cancel",
+          created_at: timestamp.toDate().toUTCString(),
+          id: `test_session_${docId}`,
+          line_items: lineItems,
+          mode: "subscription",
+          success_url: "https://example.com/success",
+          url: `https://example.stripe.com/session/${docId}`,
+        });
+        expect(uid).to.equal(currentUser);
+        expect(data).to.eql({
+          cancel_url: "https://example.com/cancel",
+          line_items: lineItems,
+          mode: "subscription",
+          success_url: "https://example.com/success",
+        });
+      });
+
+      it("creates a session when called with minimum price ID parameters", async () => {
         const session = await createCheckoutSession(payments, {
           price: "foo",
         });
@@ -171,9 +249,10 @@ describe("Emulator tests", () => {
         });
       });
 
-      it("creates a session with all the given parameters", async () => {
+      it("creates a session when called with all price ID parameters", async () => {
         const session = await createCheckoutSession(payments, {
           cancel_url: "https://example.com/cancel",
+          mode: "subscription",
           price: "foo",
           quantity: 5,
           success_url: "https://example.com/success",

@@ -33,7 +33,11 @@ import {
 } from "@firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
 import { getCurrentUser } from "./user";
-import { checkNonEmptyString, checkPositiveNumber } from "./utils";
+import {
+  checkNonEmptyArray,
+  checkNonEmptyString,
+  checkPositiveNumber,
+} from "./utils";
 
 /**
  * Parameters common across all session types.
@@ -57,6 +61,64 @@ export interface CommonSessionCreateParams {
 }
 
 /**
+ * Parameters for createing a session with one or more line items.
+ */
+export interface LineItemSessionCreateParams extends CommonSessionCreateParams {
+  line_items: LineItemParams[];
+}
+
+/**
+ * Parameters common across all line item types.
+ */
+export interface CommonLineItemParams {
+  /**
+   * The description for the line item, to be displayed on the Checkout page.
+   */
+  description?: string;
+
+  /**
+   * The quantity of the line item being purchased.
+   */
+  quantity?: number;
+}
+
+/**
+ * Parameters for createing a line item with a custom amount.
+ */
+export interface AmountLineItemParams extends CommonLineItemParams {
+  /**
+   * The amount to be collected per unit of the line item.
+   */
+  amount: number;
+
+  /**
+   * Three-letter {@link https://www.iso.org/iso-4217-currency-codes.html | ISO currency code},
+   * in lowercase. Must be a {@link https://stripe.com/docs/currencies | supported currency}.
+   */
+  currency: string;
+
+  /**
+   * The name for the item to be displayed on the Checkout page.
+   */
+  name: string;
+}
+
+/**
+ * Parameters for createing a line item with a Stripe price ID.
+ */
+export interface PriceIdLineItemParams extends CommonLineItemParams {
+  /**
+   * The ID of the Stripe price.
+   */
+  price: string;
+}
+
+/**
+ * Parameters for creating a new line item.
+ */
+export type LineItemParams = AmountLineItemParams | PriceIdLineItemParams;
+
+/**
  * Parameters for createing a session with a Stripe price ID.
  */
 export interface PriceIdSessionCreateParams extends CommonSessionCreateParams {
@@ -74,7 +136,15 @@ export interface PriceIdSessionCreateParams extends CommonSessionCreateParams {
 /**
  * Parameters for creating a new session.
  */
-export type SessionCreateParams = PriceIdSessionCreateParams;
+export type SessionCreateParams =
+  | LineItemSessionCreateParams
+  | PriceIdSessionCreateParams;
+
+function hasLineItems(
+  params: SessionCreateParams
+): params is LineItemSessionCreateParams {
+  return "line_items" in params;
+}
 
 /**
  * Interface of Stripe checkout session.
@@ -112,7 +182,14 @@ export interface Session {
   readonly url: string;
 
   /**
-   * The ID of the Stripe price object purchased with this session.
+   * The array of line items purchased with this session. A session is guaranteed to contain either
+   * {@link Session.line_items} or {@link Session.price}.
+   */
+  readonly line_items?: LineItem[];
+
+  /**
+   * The ID of the Stripe price object purchased with this session. A session is guaranteed to
+   * contain either {@link Session.line_items} or {@link Session.price}.
    */
   readonly price?: string;
 
@@ -120,6 +197,42 @@ export interface Session {
    * The quantity of item purchased. Defaults to 1.
    */
   readonly quantity?: number;
+}
+
+/**
+ * Interface of Stripe line item associated with a checkout session.
+ */
+export interface LineItem {
+  /**
+   * The amount to be collected per unit of the line item.
+   */
+  amount?: number;
+
+  /**
+   * Three-letter {@link https://www.iso.org/iso-4217-currency-codes.html | ISO currency code},
+   * in lowercase. Must be a {@link https://stripe.com/docs/currencies | supported currency}.
+   */
+  currency?: string;
+
+  /**
+   * The description for the line item, to be displayed on the Checkout page.
+   */
+  description?: string;
+
+  /**
+   * The name for the item to be displayed on the Checkout page.
+   */
+  name?: string;
+
+  /**
+   * The ID of the Stripe price.
+   */
+  price?: string;
+
+  /**
+   * The quantity of the line item being purchased.
+   */
+  quantity?: number;
 }
 
 export const CREATE_SESSION_TIMEOUT_MILLIS = 30 * 1000;
@@ -154,7 +267,12 @@ export function createCheckoutSession(
 ): Promise<Session> {
   params = { ...params };
   checkAndUpdateCommonParams(params);
-  checkAndUpdatePriceIdParams(params);
+  if (hasLineItems(params)) {
+    checkLineItemsParams(params);
+  } else {
+    checkPriceIdParams(params);
+  }
+
   const timeoutMillis: number = getTimeoutMillis(options?.timeoutMillis);
   return getCurrentUser(payments).then((uid: string) => {
     const dao: SessionDAO = getOrInitSessionDAO(payments);
@@ -183,7 +301,14 @@ function checkAndUpdateCommonParams(params: SessionCreateParams): void {
   }
 }
 
-function checkAndUpdatePriceIdParams(params: PriceIdSessionCreateParams): void {
+function checkLineItemsParams(params: LineItemSessionCreateParams): void {
+  checkNonEmptyArray(
+    params.line_items,
+    "line_items must be a non-empty array."
+  );
+}
+
+function checkPriceIdParams(params: PriceIdSessionCreateParams): void {
   checkNonEmptyString(params.price, "price must be a non-empty string.");
   if (typeof params.quantity !== "undefined") {
     checkPositiveNumber(
