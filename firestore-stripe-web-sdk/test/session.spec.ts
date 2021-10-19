@@ -148,7 +148,7 @@ describe("createCheckoutSession()", () => {
     expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
   });
 
-  it("should return a session when called with line item parameters", async () => {
+  it("should return a session when called with line items", async () => {
     const fake: SinonSpy = sinonFake.resolves(testSession);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
     const userFake: SinonSpy = sinonFake.returns("alice");

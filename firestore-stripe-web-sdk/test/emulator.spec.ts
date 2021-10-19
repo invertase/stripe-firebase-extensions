@@ -122,7 +122,7 @@ describe("Emulator tests", () => {
     });
 
     context("without user signed in", () => {
-      it("rejects when creating a new session", async () => {
+      it("should reject when creating a new session", async () => {
         const err: any = await expect(
           createCheckoutSession(payments, {
             price: "foo",
@@ -147,7 +147,7 @@ describe("Emulator tests", () => {
         await signOut(auth);
       });
 
-      it("creates a session when called with minimum line item parameters", async () => {
+      it("should create a session when called with minimum line item parameters", async () => {
         const lineItems: LineItemParams[] = [
           {
             price: "foo",
@@ -182,7 +182,7 @@ describe("Emulator tests", () => {
         });
       });
 
-      it("creates a session when called with all line item parameters", async () => {
+      it("should create a session when called with all line item parameters", async () => {
         const lineItems: LineItemParams[] = [
           {
             description: "Economy package subscription",
@@ -224,7 +224,7 @@ describe("Emulator tests", () => {
         });
       });
 
-      it("creates a session when called with minimum price ID parameters", async () => {
+      it("should create a session when called with minimum price ID parameters", async () => {
         const session = await createCheckoutSession(payments, {
           price: "foo",
         });
@@ -249,7 +249,7 @@ describe("Emulator tests", () => {
         });
       });
 
-      it("creates a session when called with all price ID parameters", async () => {
+      it("should create a session when called with all price ID parameters", async () => {
         const session = await createCheckoutSession(payments, {
           cancel_url: "https://example.com/cancel",
           mode: "subscription",
@@ -280,7 +280,7 @@ describe("Emulator tests", () => {
         });
       });
 
-      it("rejects with deadline-exceeded when the timeout has expired", async () => {
+      it("should reject with deadline-exceeded when the timeout has expired", async () => {
         // Backend trigger is already initialized above in beforeEach.
         // Teardown it here so the session will never get created.
         await backend.tearDown();
