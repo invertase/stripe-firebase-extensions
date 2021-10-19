@@ -1,6 +1,6 @@
 # Firestore Stripe Payments Web SDK
 
-An experimental web SDK that simplifies integrating the firestore-stripe-payments
+An experimental web SDK that simplifies integrating the @stripe/firebase-stripe-payments
 extension into web applications. Web app developers can use this library in their
 client applications. A bundler like Webpack is recommended.
 
@@ -16,7 +16,7 @@ Initialize the SDK with a Firebase App instance:
 
 ```js
 import { getApp } from "@firebase/app";
-import { getStripePayments } from "firestore-stripe-payments";
+import { getStripePayments } from "@stripe/firebase-stripe-payments";
 
 const app = getApp();
 const payments = getStripePayments(app, {
@@ -28,7 +28,7 @@ const payments = getStripePayments(app, {
 List products and prices:
 
 ```js
-import { getProducts } from "firestore-stripe-payments";
+import { getProducts } from "@stripe/firebase-stripe-payments";
 
 const products = await getProducts(payments, {
   includePrices: true,
@@ -42,7 +42,7 @@ for (const product of products) {
 Start a checkout session:
 
 ```js
-import { createCheckoutSession } from "firestore-stripe-payments";
+import { createCheckoutSession } from "@stripe/firebase-stripe-payments";
 
 const session = await createCheckoutSession(payments, {
   price: myPriceId,
@@ -53,12 +53,12 @@ window.location.assign(session.url);
 Listen for subscription updates:
 
 ```js
-import { onCurrentUserSubscriptionUpdate } from "firestore-stripe-payments";
+import { onCurrentUserSubscriptionUpdate } from "@stripe/firebase-stripe-payments";
 
 onCurrentUserSubscriptionUpdate(
   payments,
   (snapshot) => {
-    for (const change in shapshot.changes) {
+    for (const change in snapshot.changes) {
       if (change.type === "added") {
         console.log(`New subscription added with ID: ${change.subscription.id}`);
       }

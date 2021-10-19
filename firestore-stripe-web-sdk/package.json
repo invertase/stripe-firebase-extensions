@@ -1,7 +1,7 @@
 {
-  "name": "firestore-stripe-payments-js",
+  "name": "@stripe/firebase-stripe-payments",
   "version": "0.0.1",
-  "description": "Client SDK for the firestore-stripe-payments Firebase Extension",
+  "description": "Client SDK for the firebase-stripe-payments Firebase Extension",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
   "scripts": {
