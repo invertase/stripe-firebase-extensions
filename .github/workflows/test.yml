@@ -15,6 +15,6 @@ jobs:
       - name: NPM Install
         run: npm i
       - name: Unit Test
-        run: lerna run --scope firestore-stripe-payments-js test
+        run: lerna run --scope @stripe/firestore-stripe-payments test
       - name: API Report
-        run: lerna run --scope firestore-stripe-payments-js api-extractor
+        run: lerna run --scope @stripe/firestore-stripe-payments api-extractor
