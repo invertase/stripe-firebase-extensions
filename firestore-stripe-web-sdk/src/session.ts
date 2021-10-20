@@ -268,7 +268,7 @@ export function createCheckoutSession(
   params = { ...params };
   checkAndUpdateCommonParams(params);
   if (hasLineItems(params)) {
-    checkLineItemsParams(params);
+    checkLineItemParams(params);
   } else {
     checkPriceIdParams(params);
   }
@@ -301,7 +301,7 @@ function checkAndUpdateCommonParams(params: SessionCreateParams): void {
   }
 }
 
-function checkLineItemsParams(params: LineItemSessionCreateParams): void {
+function checkLineItemParams(params: LineItemSessionCreateParams): void {
   checkNonEmptyArray(
     params.line_items,
     "line_items must be a non-empty array."
