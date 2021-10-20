@@ -136,7 +136,7 @@ describe("getProducts()", () => {
     const products: Product[] = await getProducts(payments);
 
     expect(products).to.eql([economyPlan, premiumPlan, standardPlan]);
-    expect(fake).to.have.been.calledOnceWithExactly({ activeOnly: false });
+    expect(fake).to.have.been.calledOnceWithExactly({});
   });
 
   it("should return empty array if no products are available", async () => {
@@ -146,7 +146,7 @@ describe("getProducts()", () => {
     const products: Product[] = await getProducts(payments);
 
     expect(products).to.be.an("array").and.be.empty;
-    expect(fake).to.have.been.calledOnceWithExactly({ activeOnly: false });
+    expect(fake).to.have.been.calledOnceWithExactly({});
   });
 
   it("should only return active products when activeOnly is set", async () => {
@@ -178,9 +178,7 @@ describe("getProducts()", () => {
       { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2] },
     ];
     expect(products).to.eql(expected);
-    expect(fakes.getProducts).to.have.been.calledOnceWithExactly({
-      activeOnly: false,
-    });
+    expect(fakes.getProducts).to.have.been.calledOnceWithExactly({});
     expect(fakes.getPrices).to.have.been.calledAfter(fakes.getProducts).and
       .calledThrice;
     expect(fakes.getPrices.firstCall).to.have.been.calledWithExactly("economy");
@@ -220,6 +218,60 @@ describe("getProducts()", () => {
     );
   });
 
+  it("should return specified number of products when limit is set", async () => {
+    const fake: SinonSpy = sinonFake.resolves([premiumPlan, standardPlan]);
+    setProductDAO(payments, testProductDAO("getProducts", fake));
+
+    const products: Product[] = await getProducts(payments, {
+      limit: 2,
+    });
+
+    expect(products).to.eql([premiumPlan, standardPlan]);
+    expect(fake).to.have.been.calledOnceWithExactly({ limit: 2 });
+  });
+
+  it("should return matching products when filters is set", async () => {
+    const fake: SinonSpy = sinonFake.resolves([premiumPlan]);
+    setProductDAO(payments, testProductDAO("getProducts", fake));
+
+    const products: Product[] = await getProducts(payments, {
+      filters: [["metadata.firebaseRole", "==", "moderator"]],
+    });
+
+    expect(products).to.eql([premiumPlan]);
+    expect(fake).to.have.been.calledOnceWithExactly({
+      filters: [["metadata.firebaseRole", "==", "moderator"]],
+    });
+  });
+
+  it("should return a matching product array when called with all options", async () => {
+    const fakes: Record<string, SinonSpy> = {
+      getProducts: sinonFake.resolves([premiumPlan]),
+      getPrices: sinonFake(getPricesForTest),
+    };
+    setProductDAO(payments, testProductDAO(fakes));
+
+    const products: Product[] = await getProducts(payments, {
+      activeOnly: true,
+      filters: [["metadata.firebaseRole", "==", "moderator"]],
+      includePrices: true,
+      limit: 2,
+    });
+
+    const expected: Product[] = [
+      { ...premiumPlan, prices: [premiumPlanPrice] },
+    ];
+    expect(products).to.eql(expected);
+    expect(fakes.getProducts).to.have.been.calledOnceWithExactly({
+      activeOnly: true,
+      filters: [["metadata.firebaseRole", "==", "moderator"]],
+      limit: 2,
+    });
+    expect(fakes.getPrices).to.have.been.calledAfter(fakes.getProducts).and
+      .calledOnce;
+    expect(fakes.getPrices.firstCall).to.have.been.calledWithExactly("premium");
+  });
+
   it("should reject when the data access object throws", async () => {
     const error: StripePaymentsError = new StripePaymentsError(
       "not-found",
@@ -230,7 +282,7 @@ describe("getProducts()", () => {
 
     await expect(getProducts(payments)).to.be.rejectedWith(error);
 
-    expect(fake).to.have.been.calledOnceWithExactly({ activeOnly: false });
+    expect(fake).to.have.been.calledOnceWithExactly({});
   });
 
   function getPricesForTest(productId: string): Promise<Price[]> {

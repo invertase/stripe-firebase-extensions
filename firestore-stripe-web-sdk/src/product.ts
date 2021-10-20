@@ -27,11 +27,14 @@ import {
   getDoc,
   getDocs,
   getFirestore,
+  limit,
   query,
   Query,
+  QueryConstraint,
   QueryDocumentSnapshot,
   QuerySnapshot,
   where,
+  WhereFilterOp,
 } from "@firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
 import { checkNonEmptyString } from "./utils";
@@ -190,16 +193,36 @@ export function getProduct(
 export interface GetProductsOptions {
   /**
    * Set to `true` to retrieve only the currently active set of Stripe products. If not set,
-   * returns all available products.
+   * returns all available products. When set, the effect is same as if called with the filter
+   * `["active", "==", true]`.
    */
   activeOnly?: boolean;
+
+  /**
+   * An array of optoinal filters that will be applied when querying the products from the app
+   * database.
+   */
+  filters?: WhereFilter[];
 
   /**
    * Set to `true` to retrieve the prices along with a product. If not set, the product is
    * returned with no prices (i.e. {@link Product.prices} field will be empty).
    */
   includePrices?: boolean;
+
+  /**
+   * Maximum number of products to return.
+   */
+  limit?: number;
 }
+
+export { WhereFilterOp } from "@firebase/firestore";
+
+/**
+ * A filter constraint that can be applied to database queries. Consists of a field name (in
+ * Firestore dotted notation), a Firestore filter operator, and a value.
+ */
+export type WhereFilter = [string, WhereFilterOp, any];
 
 /**
  * Retrieves a Stripe product from the database.
@@ -214,9 +237,9 @@ export function getProducts(
   options?: GetProductsOptions
 ): Promise<Product[]> {
   const dao: ProductDAO = getOrInitProductDAO(payments);
-  const activeOnly: boolean = options?.activeOnly ?? false;
-  return dao.getProducts({ activeOnly }).then((products: Product[]) => {
-    if (options?.includePrices) {
+  const { includePrices, ...rest } = options ?? {};
+  return dao.getProducts(rest).then((products: Product[]) => {
+    if (includePrices) {
       const productsWithPrices: Promise<Product>[] = products.map(
         (product: Product) => getProductWithPrices(dao, product)
       );
@@ -281,7 +304,11 @@ export function getPrices(
  */
 export interface ProductDAO {
   getProduct(productId: string): Promise<Product>;
-  getProducts(options?: { activeOnly?: boolean }): Promise<Product[]>;
+  getProducts(options?: {
+    activeOnly?: boolean;
+    filters?: WhereFilter[];
+    limit?: number;
+  }): Promise<Product[]>;
   getPrice(productId: string, priceId: string): Promise<Price>;
   getPrices(
     productId: string,
@@ -331,9 +358,11 @@ class FirestoreProductDAO implements ProductDAO {
 
   public async getProducts(options?: {
     activeOnly?: boolean;
+    filters?: WhereFilter[];
+    limit?: number;
   }): Promise<Product[]> {
     const querySnap: QuerySnapshot<Product> = await this.getProductSnapshots(
-      options?.activeOnly
+      options
     );
     const products: Product[] = [];
     querySnap.forEach((snap: QueryDocumentSnapshot<Product>) => {
@@ -389,18 +418,37 @@ class FirestoreProductDAO implements ProductDAO {
     return snapshot;
   }
 
-  private async getProductSnapshots(
-    activeOnly?: boolean
-  ): Promise<QuerySnapshot<Product>> {
+  private async getProductSnapshots(options?: {
+    activeOnly?: boolean;
+    filters?: WhereFilter[];
+    limit?: number;
+  }): Promise<QuerySnapshot<Product>> {
     let productsQuery: Query<Product> = collection(
       this.firestore,
       this.productsCollection
     ).withConverter(PRODUCT_CONVERTER);
-    if (activeOnly) {
-      productsQuery = query(productsQuery, where("active", "==", true));
+    const constraints: QueryConstraint[] = [];
+    if (options?.activeOnly) {
+      constraints.push(where("active", "==", true));
     }
 
-    return await this.queryFirestore(() => getDocs(productsQuery));
+    if (options?.filters) {
+      for (const filter of options.filters) {
+        constraints.push(where(...filter));
+      }
+    }
+
+    if (typeof options?.limit !== "undefined") {
+      constraints.push(limit(options.limit));
+    }
+
+    return await this.queryFirestore(() => {
+      if (constraints.length > 0) {
+        productsQuery = query(productsQuery, ...constraints);
+      }
+
+      return getDocs(productsQuery);
+    });
   }
 
   private async getPriceSnapshotIfExists(

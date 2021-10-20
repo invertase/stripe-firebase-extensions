@@ -5,6 +5,7 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app';
+import { WhereFilterOp } from '@firebase/firestore';
 
 // @public
 export interface CommonSessionCreateParams {
@@ -50,7 +51,9 @@ export function getProducts(payments: StripePayments, options?: GetProductsOptio
 // @public
 export interface GetProductsOptions {
     activeOnly?: boolean;
+    filters?: WhereFilter[];
     includePrices?: boolean;
+    limit?: number;
 }
 
 // @public
@@ -193,6 +196,11 @@ export interface SubscriptionSnapshot {
 
 // @public
 export type SubscriptionStatus = "active" | "canceled" | "incomplete" | "incomplete_expired" | "past_due" | "trialing" | "unpaid";
+
+// @public
+export type WhereFilter = [string, WhereFilterOp, any];
+
+export { WhereFilterOp }
 
 // (No @packageDocumentation comment for this package)
 

@@ -288,6 +288,58 @@ describe("Emulator tests", () => {
       ];
       expect(products).to.be.an("array").of.length(2).and.be.like(expected);
     });
+
+    it("should return the specified number of products when limit set", async () => {
+      const products: Product[] = await getProducts(payments, {
+        limit: 2,
+      });
+
+      expect(products).to.eql([economyPlan, premiumPlan]);
+    });
+
+    it("should return the specified number of active products when limit and activeOnly are set", async () => {
+      const products: Product[] = await getProducts(payments, {
+        activeOnly: true,
+        limit: 1,
+      });
+
+      expect(products).to.eql([premiumPlan]);
+    });
+
+    it("should return the matching products when filters is set", async () => {
+      const products: Product[] = await getProducts(payments, {
+        filters: [["metadata.firebaseRole", "==", "moderator"]],
+      });
+
+      expect(products).to.eql([premiumPlan]);
+    });
+
+    it("should return no products when the filters don't match anything", async () => {
+      const products: Product[] = await getProducts(payments, {
+        filters: [
+          ["metadata.firebaseRole", "==", "moderator"],
+          ["metadata.type", "==", "books"],
+        ],
+      });
+
+      expect(products).to.be.an("array").and.be.empty;
+    });
+
+    it("should reject when the provided filters are Firestore incompatible", async () => {
+      // Firestore doesn't support range predicates on different fields.
+      const err: any = await expect(
+        getProducts(payments, {
+          filters: [
+            ["metadata.foo", ">", 10],
+            ["metadata.bar", ">", 20],
+          ],
+        })
+      ).to.be.rejectedWith("Unexpected error while querying Firestore");
+
+      expect(err).to.be.instanceOf(StripePaymentsError);
+      expect(err.code).to.equal("internal");
+      expect(err.cause).to.be.ok;
+    });
   });
 
   describe("getPrice()", () => {
