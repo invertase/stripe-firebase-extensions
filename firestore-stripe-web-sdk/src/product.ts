@@ -202,7 +202,7 @@ export interface GetProductsOptions {
    * An array of optoinal filters that will be applied when querying the products from the app
    * database.
    */
-  filters?: WhereFilter[];
+  where?: WhereFilter[];
 
   /**
    * Set to `true` to retrieve the prices along with a product. If not set, the product is
@@ -306,7 +306,7 @@ export interface ProductDAO {
   getProduct(productId: string): Promise<Product>;
   getProducts(options?: {
     activeOnly?: boolean;
-    filters?: WhereFilter[];
+    where?: WhereFilter[];
     limit?: number;
   }): Promise<Product[]>;
   getPrice(productId: string, priceId: string): Promise<Price>;
@@ -358,7 +358,7 @@ class FirestoreProductDAO implements ProductDAO {
 
   public async getProducts(options?: {
     activeOnly?: boolean;
-    filters?: WhereFilter[];
+    where?: WhereFilter[];
     limit?: number;
   }): Promise<Product[]> {
     const querySnap: QuerySnapshot<Product> = await this.getProductSnapshots(
@@ -420,7 +420,7 @@ class FirestoreProductDAO implements ProductDAO {
 
   private async getProductSnapshots(options?: {
     activeOnly?: boolean;
-    filters?: WhereFilter[];
+    where?: WhereFilter[];
     limit?: number;
   }): Promise<QuerySnapshot<Product>> {
     let productsQuery: Query<Product> = collection(
@@ -432,8 +432,8 @@ class FirestoreProductDAO implements ProductDAO {
       constraints.push(where("active", "==", true));
     }
 
-    if (options?.filters) {
-      for (const filter of options.filters) {
+    if (options?.where) {
+      for (const filter of options.where) {
         constraints.push(where(...filter));
       }
     }

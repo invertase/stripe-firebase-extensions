@@ -235,12 +235,12 @@ describe("getProducts()", () => {
     setProductDAO(payments, testProductDAO("getProducts", fake));
 
     const products: Product[] = await getProducts(payments, {
-      filters: [["metadata.firebaseRole", "==", "moderator"]],
+      where: [["metadata.firebaseRole", "==", "moderator"]],
     });
 
     expect(products).to.eql([premiumPlan]);
     expect(fake).to.have.been.calledOnceWithExactly({
-      filters: [["metadata.firebaseRole", "==", "moderator"]],
+      where: [["metadata.firebaseRole", "==", "moderator"]],
     });
   });
 
@@ -253,7 +253,7 @@ describe("getProducts()", () => {
 
     const products: Product[] = await getProducts(payments, {
       activeOnly: true,
-      filters: [["metadata.firebaseRole", "==", "moderator"]],
+      where: [["metadata.firebaseRole", "==", "moderator"]],
       includePrices: true,
       limit: 2,
     });
@@ -264,7 +264,7 @@ describe("getProducts()", () => {
     expect(products).to.eql(expected);
     expect(fakes.getProducts).to.have.been.calledOnceWithExactly({
       activeOnly: true,
-      filters: [["metadata.firebaseRole", "==", "moderator"]],
+      where: [["metadata.firebaseRole", "==", "moderator"]],
       limit: 2,
     });
     expect(fakes.getPrices).to.have.been.calledAfter(fakes.getProducts).and

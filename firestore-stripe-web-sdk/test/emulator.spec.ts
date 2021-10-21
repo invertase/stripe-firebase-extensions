@@ -308,7 +308,7 @@ describe("Emulator tests", () => {
 
     it("should return the matching products when filters is set", async () => {
       const products: Product[] = await getProducts(payments, {
-        filters: [["metadata.firebaseRole", "==", "moderator"]],
+        where: [["metadata.firebaseRole", "==", "moderator"]],
       });
 
       expect(products).to.eql([premiumPlan]);
@@ -316,7 +316,7 @@ describe("Emulator tests", () => {
 
     it("should return no products when the filters don't match anything", async () => {
       const products: Product[] = await getProducts(payments, {
-        filters: [
+        where: [
           ["metadata.firebaseRole", "==", "moderator"],
           ["metadata.type", "==", "books"],
         ],
@@ -329,7 +329,7 @@ describe("Emulator tests", () => {
       // Firestore doesn't support range predicates on different fields.
       const err: any = await expect(
         getProducts(payments, {
-          filters: [
+          where: [
             ["metadata.foo", ">", 10],
             ["metadata.bar", ">", 20],
           ],

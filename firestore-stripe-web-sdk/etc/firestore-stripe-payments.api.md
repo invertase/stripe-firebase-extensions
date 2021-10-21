@@ -51,9 +51,9 @@ export function getProducts(payments: StripePayments, options?: GetProductsOptio
 // @public
 export interface GetProductsOptions {
     activeOnly?: boolean;
-    filters?: WhereFilter[];
     includePrices?: boolean;
     limit?: number;
+    where?: WhereFilter[];
 }
 
 // @public
