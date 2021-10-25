@@ -25,7 +25,6 @@ export {
 export {
   CREATE_SESSION_TIMEOUT_MILLIS,
   createCheckoutSession,
-  AmountLineItemParams,
   CreateCheckoutSessionOptions,
   CommonLineItemParams,
   CommonSessionCreateParams,

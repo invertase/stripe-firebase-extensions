@@ -161,13 +161,6 @@ describe("createCheckoutSession()", () => {
           price: "price1",
           quantity: 1,
         },
-        {
-          amount: 4.99,
-          currency: "USD",
-          description: "Stream content in HD",
-          name: "HD upgrade",
-          quantity: 1,
-        },
       ],
       mode: "subscription",
       success_url: "https://example.com/success",

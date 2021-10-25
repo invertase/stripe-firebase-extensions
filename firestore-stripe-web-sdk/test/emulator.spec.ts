@@ -152,11 +152,6 @@ describe("Emulator tests", () => {
           {
             price: "foo",
           },
-          {
-            amount: 4.99,
-            currency: "USD",
-            name: "HD upgrade",
-          },
         ];
         const session = await createCheckoutSession(payments, {
           line_items: lineItems,
@@ -188,13 +183,6 @@ describe("Emulator tests", () => {
             description: "Economy package subscription",
             price: "foo",
             quantity: 5,
-          },
-          {
-            amount: 4.99,
-            currency: "USD",
-            description: "Stream content in HD",
-            name: "HD upgrade",
-            quantity: 1,
           },
         ];
         const session = await createCheckoutSession(payments, {

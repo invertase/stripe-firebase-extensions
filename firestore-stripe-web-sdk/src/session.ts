@@ -83,27 +83,6 @@ export interface CommonLineItemParams {
 }
 
 /**
- * Parameters for createing a line item with a custom amount.
- */
-export interface AmountLineItemParams extends CommonLineItemParams {
-  /**
-   * The amount to be collected per unit of the line item.
-   */
-  amount: number;
-
-  /**
-   * Three-letter {@link https://www.iso.org/iso-4217-currency-codes.html | ISO currency code},
-   * in lowercase. Must be a {@link https://stripe.com/docs/currencies | supported currency}.
-   */
-  currency: string;
-
-  /**
-   * The name for the item to be displayed on the Checkout page.
-   */
-  name: string;
-}
-
-/**
  * Parameters for createing a line item with a Stripe price ID.
  */
 export interface PriceIdLineItemParams extends CommonLineItemParams {
@@ -116,7 +95,7 @@ export interface PriceIdLineItemParams extends CommonLineItemParams {
 /**
  * Parameters for creating a new line item.
  */
-export type LineItemParams = AmountLineItemParams | PriceIdLineItemParams;
+export type LineItemParams = PriceIdLineItemParams;
 
 /**
  * Parameters for createing a session with a Stripe price ID.

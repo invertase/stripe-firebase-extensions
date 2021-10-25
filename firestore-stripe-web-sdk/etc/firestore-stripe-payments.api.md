@@ -7,13 +7,6 @@
 import { FirebaseApp } from '@firebase/app';
 
 // @public
-export interface AmountLineItemParams extends CommonLineItemParams {
-    amount: number;
-    currency: string;
-    name: string;
-}
-
-// @public
 export interface CommonLineItemParams {
     description?: string;
     quantity?: number;
@@ -85,7 +78,7 @@ export interface LineItem {
 }
 
 // @public
-export type LineItemParams = AmountLineItemParams | PriceIdLineItemParams;
+export type LineItemParams = PriceIdLineItemParams;
 
 // @public
 export interface LineItemSessionCreateParams extends CommonSessionCreateParams {
