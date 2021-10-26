@@ -179,7 +179,8 @@ export interface Session {
 }
 
 /**
- * Interface of Stripe line item associated with a checkout session.
+ * Interface of a Stripe line item associated with a checkout session. A line item represents
+ * an individual item purchased using the session.
  */
 export interface LineItem {
   /**
