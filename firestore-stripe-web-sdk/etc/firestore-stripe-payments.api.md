@@ -7,6 +7,12 @@
 import { FirebaseApp } from '@firebase/app';
 
 // @public
+export interface CommonLineItemParams {
+    description?: string;
+    quantity?: number;
+}
+
+// @public
 export interface CommonSessionCreateParams {
     cancel_url?: string;
     mode?: "subscription" | "payment";
@@ -62,6 +68,25 @@ export interface GetSubscriptionsOptions {
 }
 
 // @public
+export interface LineItem {
+    amount?: number;
+    currency?: string;
+    description?: string;
+    name?: string;
+    price?: string;
+    quantity?: number;
+}
+
+// @public
+export type LineItemParams = PriceIdLineItemParams;
+
+// @public
+export interface LineItemSessionCreateParams extends CommonSessionCreateParams {
+    // (undocumented)
+    line_items: LineItemParams[];
+}
+
+// @public
 export function onCurrentUserSubscriptionUpdate(payments: StripePayments, onUpdate: (snapshot: SubscriptionSnapshot) => void, onError?: (error: StripePaymentsError) => void): () => void;
 
 // @public
@@ -78,6 +103,11 @@ export interface Price {
     readonly trial_period_days: number | null;
     readonly type: "one_time" | "recurring";
     readonly unit_amount: number | null;
+}
+
+// @public
+export interface PriceIdLineItemParams extends CommonLineItemParams {
+    price: string;
 }
 
 // @public
@@ -107,6 +137,7 @@ export interface Session {
     readonly cancel_url: string;
     readonly created_at: string;
     readonly id: string;
+    readonly line_items?: LineItem[];
     readonly mode: "subscription" | "payment";
     readonly price?: string;
     readonly quantity?: number;
@@ -115,7 +146,7 @@ export interface Session {
 }
 
 // @public
-export type SessionCreateParams = PriceIdSessionCreateParams;
+export type SessionCreateParams = LineItemSessionCreateParams | PriceIdSessionCreateParams;
 
 // @public
 export class StripePayments {

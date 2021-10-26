@@ -47,6 +47,7 @@ import {
   getProducts,
   getStripePayments,
   onCurrentUserSubscriptionUpdate,
+  LineItemParams,
   Price,
   Product,
   Subscription,
@@ -121,7 +122,7 @@ describe("Emulator tests", () => {
     });
 
     context("without user signed in", () => {
-      it("rejects when creating a new session", async () => {
+      it("should reject when creating a new session", async () => {
         const err: any = await expect(
           createCheckoutSession(payments, {
             price: "foo",
@@ -146,7 +147,72 @@ describe("Emulator tests", () => {
         await signOut(auth);
       });
 
-      it("creates a session with defaults when only the priceId is specified", async () => {
+      it("should create a session when called with minimum line item parameters", async () => {
+        const lineItems: LineItemParams[] = [
+          {
+            price: "foo",
+          },
+        ];
+        const session = await createCheckoutSession(payments, {
+          line_items: lineItems,
+        });
+
+        expect(backend.events).to.have.length(1);
+        const { uid, docId, data, timestamp } = backend.events[0];
+        expect(session).to.eql({
+          cancel_url: window.location.href,
+          created_at: timestamp.toDate().toUTCString(),
+          id: `test_session_${docId}`,
+          line_items: lineItems,
+          mode: "subscription",
+          success_url: window.location.href,
+          url: `https://example.stripe.com/session/${docId}`,
+        });
+        expect(uid).to.equal(currentUser);
+        expect(data).to.eql({
+          cancel_url: window.location.href,
+          line_items: lineItems,
+          mode: "subscription",
+          success_url: window.location.href,
+        });
+      });
+
+      it("should create a session when called with all line item parameters", async () => {
+        const lineItems: LineItemParams[] = [
+          {
+            description: "Economy package subscription",
+            price: "foo",
+            quantity: 5,
+          },
+        ];
+        const session = await createCheckoutSession(payments, {
+          cancel_url: "https://example.com/cancel",
+          line_items: lineItems,
+          mode: "subscription",
+          success_url: "https://example.com/success",
+        });
+
+        expect(backend.events).to.have.length(1);
+        const { uid, docId, data, timestamp } = backend.events[0];
+        expect(session).to.eql({
+          cancel_url: "https://example.com/cancel",
+          created_at: timestamp.toDate().toUTCString(),
+          id: `test_session_${docId}`,
+          line_items: lineItems,
+          mode: "subscription",
+          success_url: "https://example.com/success",
+          url: `https://example.stripe.com/session/${docId}`,
+        });
+        expect(uid).to.equal(currentUser);
+        expect(data).to.eql({
+          cancel_url: "https://example.com/cancel",
+          line_items: lineItems,
+          mode: "subscription",
+          success_url: "https://example.com/success",
+        });
+      });
+
+      it("should create a session when called with minimum price ID parameters", async () => {
         const session = await createCheckoutSession(payments, {
           price: "foo",
         });
@@ -171,9 +237,10 @@ describe("Emulator tests", () => {
         });
       });
 
-      it("creates a session with all the given parameters", async () => {
+      it("should create a session when called with all price ID parameters", async () => {
         const session = await createCheckoutSession(payments, {
           cancel_url: "https://example.com/cancel",
+          mode: "subscription",
           price: "foo",
           quantity: 5,
           success_url: "https://example.com/success",
@@ -201,7 +268,7 @@ describe("Emulator tests", () => {
         });
       });
 
-      it("rejects with deadline-exceeded when the timeout has expired", async () => {
+      it("should reject with deadline-exceeded when the timeout has expired", async () => {
         // Backend trigger is already initialized above in beforeEach.
         // Teardown it here so the session will never get created.
         await backend.tearDown();
