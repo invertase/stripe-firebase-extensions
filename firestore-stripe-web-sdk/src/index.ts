@@ -42,6 +42,8 @@ export {
   GetProductsOptions,
   Price,
   Product,
+  WhereFilter,
+  WhereFilterOp,
   getPrice,
   getPrices,
   getProduct,
