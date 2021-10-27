@@ -1,18 +1,26 @@
 # Firestore Stripe Payments Web SDK
 
-An experimental web SDK that simplifies integrating the firestore-stripe-payments
-extension into web applications. Web app developers can use this library in their
-client applications. A bundler like Webpack is recommended.
+This package helps you integrate your web app client with the
+[`firestore-stripe-payments`](https://firebase.google.com/products/extensions/firestore-stripe-subscriptions)
+extension. It abstracts out all the typical Firestore queries, and
+other database interactions necessary to use the extension. Moreover, it provides type
+definitions for all the common object types that are used by the extension when processing
+payments.
 
-# Dependencies
+# API Reference
 
-* Cloud Firestore (`@firebase/firestore`)
-* Firebase Auth (`@firebase/auth`)
-* Firebase Core (`@firebase/app`)
+[API reference](./markdown/index.md)
 
 # Example usage
 
-Initialize the SDK with a Firebase App instance:
+## Initialize the SDK
+
+Start by [initializing the Firebase web SDK](https://firebase.google.com/docs/web/setup)
+as usual.
+
+Then, initialize this library by passing in an `App` instance obtained from the Firebase
+web SDK, and configure the library to use the same Firestore collections you configured
+the extension to use.
 
 ```js
 import { getApp } from "@firebase/app";
@@ -25,7 +33,10 @@ const payments = getStripePayments(app, {
 });
 ```
 
-List products and prices:
+## List products and prices
+
+To fetch all the active products along with their prices, call the
+`getProducts()` function as follows:
 
 ```js
 import { getProducts } from "@stripe/firestore-stripe-payments";
@@ -39,7 +50,29 @@ for (const product of products) {
 }
 ```
 
-Start a checkout session:
+Note that for `N` products, this results in `(1 + N)` Firestore queries. Fetching
+the products without the prices only requires 1 Firestore query.
+
+You can also specify filters and limits on the product query as follows:
+
+```js
+import { getProducts } from "@stripe/firestore-stripe-payments";
+
+const products = await getProducts(payments, {
+  includePrices: true,
+  activeOnly: true,
+  where: [
+    ["metadata.type", "==", "books"],
+    ["metadata.rating", ">=", 4],
+  ],
+  limit: 10,
+});
+for (const product of products) {
+  // ...
+}
+```
+
+## Start a subscription checkout session
 
 ```js
 import { createCheckoutSession } from "@stripe/firestore-stripe-payments";
@@ -50,7 +83,39 @@ const session = await createCheckoutSession(payments, {
 window.location.assign(session.url);
 ```
 
-Listen for subscription updates:
+Calling `createCheckoutSession()` as shown above will use the current page
+(`window.location.href`) as the success and cancel URLs for the session. Instead you
+can specify your own URLs as follows:
+
+```js
+import { createCheckoutSession } from "@stripe/firestore-stripe-payments";
+
+const session = await createCheckoutSession(payments, {
+  price: myPriceId,
+  success_url: "https://example.com/payments/success",
+  cancel_url: "https://example.com/payments/cancel",
+});
+window.location.assign(session.url);
+```
+
+To create a checkout session for more than one item, pass `line_items`:
+
+```js
+import { createCheckoutSession } from "@stripe/firestore-stripe-payments";
+
+const session = await createCheckoutSession(payments, {
+  line_items: [
+    { price: myPriceId1 },
+    { price: myPriceId2 },
+  ],
+});
+window.location.assign(session.url);
+```
+
+## Listen for subscription updates
+
+Once a subscription checkout session has been created, you can listen to the
+Stripe subscription update events as follows:
 
 ```js
 import { onCurrentUserSubscriptionUpdate } from "@stripe/firestore-stripe-payments";
@@ -66,6 +131,12 @@ onCurrentUserSubscriptionUpdate(
   }
 );
 ```
+
+# Dependencies
+
+* Cloud Firestore (`@firebase/firestore`)
+* Firebase Auth (`@firebase/auth`)
+* Firebase Core (`@firebase/app`)
 
 # Build, test, release
 

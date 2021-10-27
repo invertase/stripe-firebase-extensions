@@ -11,6 +11,7 @@ README.md
 **/functions/lib/**
 **/lib/**
 **/dist/**
+**/markdown/**
 coverage
 
 # extension install md files
