@@ -1,10 +1,10 @@
 # Firestore Stripe Payments Web SDK
 
-This package enables web app developers to easily integrate the
+This package helps you integrate your web app client with the
 [`firestore-stripe-payments`](https://firebase.google.com/products/extensions/firestore-stripe-subscriptions)
-Extension with their apps. It abstracts out all the typical Firestore queries, and
-other database interactions necessary to use the Extension. Moreover, it provides type
-definitions for all the common object types that are used by the Extension when processing
+extension. It abstracts out all the typical Firestore queries, and
+other database interactions necessary to use the extension. Moreover, it provides type
+definitions for all the common object types that are used by the extension when processing
 payments.
 
 # API Reference
@@ -16,8 +16,11 @@ payments.
 ## Initialize the SDK
 
 Start by [initializing the Firebase web SDK](https://firebase.google.com/docs/web/setup)
-as usual. Then you can initialize this library by passing in an `App` instance obtained
-from the Firebase web SDK.
+as usual.
+
+Then, initialize this library by passing in an `App` instance obtained from the Firebase
+web SDK, and configure the library to use the same Firestore collections you configured
+the extension to use.
 
 ```js
 import { getApp } from "@firebase/app";
