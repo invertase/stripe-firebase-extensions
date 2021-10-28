@@ -32,7 +32,7 @@ service cloud.firestore {
       match /prices/{id} {
         allow read: if true;
       }
-      
+
       match /tax_rates/{id} {
         allow read: if true;
       }
@@ -190,7 +190,7 @@ const docRef = await db
 docRef.onSnapshot((snap) => {
   const { error, url } = snap.data();
   if (error) {
-    // Show an error to your customer and 
+    // Show an error to your customer and
     // inspect your Cloud Function logs in the Firebase console.
     alert(`An error occured: ${error.message}`);
   }
@@ -239,7 +239,7 @@ const docRef = await db
 
 #### Applying promotion codes programmatically
 
-You can set a [promotion code](https://stripe.com/docs/billing/subscriptions/discounts/codes) to be applied to the checkout session without the customer needing to input it. 
+You can set a [promotion code](https://stripe.com/docs/billing/subscriptions/discounts/codes) to be applied to the checkout session without the customer needing to input it.
 
 **_NOTE_**: anyone with access to a promotion code ID would be able to apply it to their checkout session. Therefore make sure to limit your promotion codes and archive any codes you don't want to offer anymore.
 
@@ -407,7 +407,7 @@ const docRef = await db
 
 #### Start a subscription via the Stripe Dashboard or API
 
-Since version `0.1.7` the extension also syncs subscriptions that were not created via Stripe Checkout, e.g. via the [Stripe Dashboard](https://support.stripe.com/questions/create-update-and-schedule-subscriptions) or [via Elements and the API](https://stripe.com/docs/billing/subscriptions/fixed-price). 
+Since version `0.1.7` the extension also syncs subscriptions that were not created via Stripe Checkout, e.g. via the [Stripe Dashboard](https://support.stripe.com/questions/create-update-and-schedule-subscriptions) or [via Elements and the API](https://stripe.com/docs/billing/subscriptions/fixed-price).
 
 In order for this to work, Firebase Authentication users need to be synced with Stripe customer objects and the customers collection in Cloud Firestore (new configuration added in version `0.1.7`).
 
@@ -446,9 +446,19 @@ window.location.assign(data.url);
 
 #### Delete User Data
 
-You have the option to automatically delete customer objects in Stripe by setting the deletion option in the configuration to "Auto delete". In that case, when a user is deleted in Firebase Authentication, the extension will delete their customer object in Stripe which will immediately cancel all subscriptions for the user. 
+You have the option to automatically delete customer objects in Stripe by setting the deletion option in the configuration to "Auto delete". In that case, when a user is deleted in Firebase Authentication, the extension will delete their customer object in Stripe which will immediately cancel all subscriptions for the user.
 
 The extension will not delete any data from Cloud Firestore. Should you wish to delete the customer data from Cloud Firestore, you can use the [Delete User Data](https://firebase.google.com/products/extensions/delete-user-data) extension built by the Firebase team.
+
+### Client SDK
+
+You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/web-sdk/firestore-stripe-web-sdk/README.md)
+JavaScript package to easily access this extension from web clients. This client SDK provides
+TypeScript type definitions and high-level convenience APIs for most common operations client
+applications would want to implement using the extension.
+
+Use a package manager like NPM to install the above package, and use it in conjunction with
+the Firebase Web SDK.
 
 ### Monitoring
 
