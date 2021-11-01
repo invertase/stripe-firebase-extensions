@@ -31,30 +31,30 @@
     "README.md"
   ],
   "devDependencies": {
-    "@microsoft/api-documenter": "^7.13.63",
-    "@microsoft/api-extractor": "^7.18.7",
+    "@microsoft/api-documenter": "^7.13.65",
+    "@microsoft/api-extractor": "^7.18.17",
     "@types/chai": "^4.2.21",
     "@types/chai-as-promised": "^7.1.4",
     "@types/chai-like": "^1.1.1",
     "@types/mocha": "^9.0.0",
-    "@types/sinon": "^10.0.2",
+    "@types/sinon": "^10.0.6",
     "@types/sinon-chai": "^3.2.5",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
     "chai-like": "^1.1.1",
-    "firebase-tools": "^9.18.0",
+    "firebase-tools": "^9.21.0",
     "jsdom": "^17.0.0",
     "jsdom-global": "^3.0.2",
     "mocha": "^9.1.1",
-    "replace-in-file": "^6.2.0",
+    "replace-in-file": "^6.3.2",
     "sinon": "^11.1.2",
     "sinon-chai": "^3.7.0",
-    "ts-node": "^10.2.1",
+    "ts-node": "^10.4.0",
     "typescript": "^4.4.2"
   },
   "dependencies": {
-    "@firebase/app": "^0.7.0",
+    "@firebase/app": "^0.7.5",
     "@firebase/auth": "^0.17.2",
-    "@firebase/firestore": "^3.0.1"
+    "@firebase/firestore": "^3.2.0"
   }
 }
