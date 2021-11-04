@@ -131,7 +131,10 @@ exports.createCheckoutSession = functions.firestore
         ? (
             await admin
               .firestore()
-              .collection(config.productsCollectionPath)
+              .collection(
+                config.stripeConfigCollectionPath ||
+                  config.productsCollectionPath
+              )
               .doc('shipping_countries')
               .get()
           ).data()?.['allowed_countries'] ?? []
