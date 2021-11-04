@@ -13,6 +13,16 @@ The design for Stripe Checkout and the customer portal can be customized in your
 
 This extension is meant for the web platform. If you're developing native mobile applications and want to sell digital products or services **within** your app, (e.g. subscriptions, in-game currencies, game levels, access to premium content, or unlocking a full version), you must use the app store's in-app purchase APIs. See [Apple's](https://developer.apple.com/app-store/review/guidelines/#payments) and [Google's](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en&ref_topic=9857752) guidelines for more information.
 
+#### Client SDK
+
+You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/web-sdk/firestore-stripe-web-sdk/README.md)
+JavaScript package to easily access this extension from web clients. This client SDK provides
+TypeScript type definitions and high-level convenience APIs for most common operations client
+applications would want to implement using the extension.
+
+Use a package manager like NPM to install the above package, and use it in conjunction with
+the Firebase Web SDK.
+
 #### Additional setup
 
 Before installing this extension, set up the following Firebase services in your Firebase project:
