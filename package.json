@@ -12,7 +12,7 @@
     "generate-readmes": "lerna run --parallel generate-readme",
     "dev": "cd $npm_config_ext/ && firebase ext:dev:emulators:start --test-params=../.env --project=$npm_config_project",
     "dev:invoices": "npm run dev --ext=firestore-stripe-invoices --project=stripe-subs-ext",
-    "dev:subs": "npm run dev --ext=firestore-stripe-subscriptions --project=stripe-subs-ext",
+    "dev:subs": "npm run dev --ext=firestore-stripe-payments --project=stripe-subs-ext",
     "ext:install": "npm run build && firebase ext:install ./$npm_config_ext/ --params=.env --project=$npm_config_project",
     "ext:update": "npm run build && firebase ext:update $npm_config_ext ./$npm_config_ext/ --project=$npm_config_project",
     "ext:uninstall": "firebase ext:uninstall $npm_config_ext --project=$npm_config_project",
