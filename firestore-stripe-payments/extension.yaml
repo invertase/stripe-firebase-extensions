@@ -36,6 +36,10 @@ contributors:
 
 billingRequired: true # this extension makes requests to a third party API (Stripe)
 
+externalServices:
+  - name: Stripe
+  - pricingUri: https://stripe.com/pricing
+
 roles:
   - role: firebaseauth.admin
     reason: >-
@@ -180,6 +184,15 @@ params:
     validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
     required: true
 
+  - param: STRIPE_CONFIG_COLLECTION
+    label: Stripe configuration collection
+    description: >-
+      What is the path to the Cloud Firestore collection where the extension should store Stripe configuration?
+    default: configuration
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
+    required: false
+
   - param: SYNC_USERS_ON_CREATE
     label: Sync new users to Stripe customers and Cloud Firestore
     description: >-
@@ -213,6 +226,7 @@ params:
 
   - param: STRIPE_API_KEY
     label: Stripe API key with restricted access
+    type: secret
     description: >-
       What is your Stripe API key? 
       We recommend creating a new [restricted key](https://stripe.com/docs/keys#limit-access)
@@ -223,6 +237,7 @@ params:
 
   - param: STRIPE_WEBHOOK_SECRET
     label: Stripe webhook secret
+    type: secret
     description: >-
       This is your signing secret for a Stripe-registered webhook. 
       This webhook can only be registered after installation.
