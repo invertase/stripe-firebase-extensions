@@ -29,6 +29,6 @@
   },
   "devDependencies": {
     "lerna": "^3.4.3",
-    "prettier": "2.0.5"
+    "prettier": "^2.4.1"
   }
 }
