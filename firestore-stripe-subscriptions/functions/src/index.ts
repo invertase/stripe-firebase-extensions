@@ -127,18 +127,19 @@ exports.createCheckoutSession = functions.firestore
       }
       const customer = customerRecord.stripeId;
       // Get shipping countries
-      const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] = collect_shipping_address
-        ? (
-            await admin
-              .firestore()
-              .collection(
-                config.stripeConfigCollectionPath ||
-                  config.productsCollectionPath
-              )
-              .doc('shipping_countries')
-              .get()
-          ).data()?.['allowed_countries'] ?? []
-        : [];
+      const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] =
+        collect_shipping_address
+          ? (
+              await admin
+                .firestore()
+                .collection(
+                  config.stripeConfigCollectionPath ||
+                    config.productsCollectionPath
+                )
+                .doc('shipping_countries')
+                .get()
+            ).data()?.['allowed_countries'] ?? []
+          : [];
       const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
         billing_address_collection,
         shipping_address_collection: { allowed_countries: shippingCountries },
