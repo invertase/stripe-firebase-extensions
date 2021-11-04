@@ -1,3 +1,31 @@
+## Version 0.2.0 - 2021-11-04
+
+[RENAME] The extension has been renamed from `firestore-stripe-subscriptions` to `firestore-stripe-payments` to better reflect the support for both one time, and recurring payments.
+
+[feat] Add support for setting [`shipping_rates`](https://stripe.com/docs/payments/checkout/shipping) in the `checkout_sessions` doc. (#241)
+
+[feat] Add support for mobile clients for both payment and setup mode:
+
+#### One-time payments
+
+To create a one time payment in your mobile application, create a new doc in your `${param:CUSTOMERS_COLLECTION}/{uid}/checkout_sessions` collection with the following parameters:
+
+- client: 'mobile'
+- mode: 'payment'
+- amount: [{payment amount}](https://stripe.com/docs/api/payment_intents/object#payment_intent_object-amount)
+- currency: [{currency code}](https://stripe.com/docs/api/payment_intents/object#payment_intent_object-currency)
+
+Then listen for the extension to append `paymentIntentClientSecret`, `ephemeralKeySecret`, and `customer` to the doc and use these to [integrate the mobile payment sheet](https://stripe.com/docs/payments/accept-a-payment?platform=ios&ui=payment-sheet#integrate-payment-sheet).
+
+#### Set up a payment method for future usage
+
+You can collect a payment method from your customer to charge it at a later point in time. To do so create a new doc in your `${param:CUSTOMERS_COLLECTION}/{uid}/checkout_sessions` collection with the following parameters:
+
+- client: 'mobile'
+- mode: 'setup'
+
+Then listen for the extension to append `setupIntentClientSecret`, `ephemeralKeySecret`, and `customer` to the doc and use these to [integrate the mobile payment sheet](https://stripe.com/docs/payments/accept-a-payment?platform=ios&ui=payment-sheet#integrate-payment-sheet).
+
 ## Version 0.1.15 - 2021-08-26
 
 [feat] Programmatically set locale for customer portal session. (#131)
@@ -8,7 +36,7 @@
 const functionRef = firebase
   .app()
   .functions(functionLocation)
-  .httpsCallable("ext-firestore-stripe-subscriptions-createPortalLink");
+  .httpsCallable("ext-firestore-stripe-payments-createPortalLink");
 const { data } = await functionRef({
   returnUrl: window.location.origin,
   locale: "auto", // Optional, defaults to "auto"

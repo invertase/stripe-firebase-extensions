@@ -1,4 +1,12 @@
-Use this extension to create subscriptions for your users with the [Stripe](https://www.stripe.com/) payments platform and manage access control via Firebase Authentication.
+Use this extension as a backend for your [Stripe](https://www.stripe.com/) payments.
+
+The extension supports multiple use cases:
+
+- Process one-time payments with [Stripe Checkout](https://stripe.com/docs/payments/checkout) on the web.
+- Create subscriptions for your users and manage access control via Firebase Authentication.
+- Process payments & set up payment methods with the mobile payment sheet on [Android](https://stripe.com/docs/payments/accept-a-payment?platform=android&ui=payment-sheet), [iOS](https://stripe.com/docs/payments/accept-a-payment?platform=ios&ui=payment-sheet), or with [React Native](https://stripe.com/docs/payments/accept-a-payment?platform=react-native&ui=payment-sheet).
+
+#### Subscription payments with Stripe Checkout
 
 Users can sign-up for your digital goods and paid content with Stripe Checkout and manage their subscriptions with the Stripe customer portal.
 
@@ -11,7 +19,11 @@ The design for Stripe Checkout and the customer portal can be customized in your
 
 #### Recommended usage
 
-This extension is meant for the web platform. If you're developing native mobile applications and want to sell digital products or services **within** your app, (e.g. subscriptions, in-game currencies, game levels, access to premium content, or unlocking a full version), you must use the app store's in-app purchase APIs. See [Apple's](https://developer.apple.com/app-store/review/guidelines/#payments) and [Google's](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en&ref_topic=9857752) guidelines for more information.
+If you're building on the web platform, you can use this extension for any of your payment use cases. 
+
+If you're developing native mobile applications and you're selling digital products or services within your app, (e.g. subscriptions, in-game currencies, game levels, access to premium content, or unlocking a full version), you must use the app store's in-app purchase APIs. See [Apple's](https://developer.apple.com/app-store/review/guidelines/#payments) and [Google's](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en&ref_topic=9857752) guidelines for more information. 
+
+For all other scenarios you can use the [stripe-android](https://github.com/stripe/stripe-android), [stripe-ios](https://github.com/stripe/stripe-ios), [stripe-react-native](https://github.com/stripe/stripe-react-native), or [flutter_stripe](https://github.com/flutter-stripe/flutter_stripe) SDKs.
 
 #### Client SDK
 
@@ -46,7 +58,8 @@ This extension uses the following Firebase services which may have associated ch
 
 This extension also uses the following third-party services:
 
-- Stripe Billing ([pricing information](https://stripe.com/pricing#billing-pricing))
+- Stripe Payments ([pricing information](https://stripe.com/pricing)) 
+- Stripe Billing (when using subscriptions. [pricing information](https://stripe.com/pricing#billing-pricing))
 
 You are responsible for any costs associated with your use of these services.
 
