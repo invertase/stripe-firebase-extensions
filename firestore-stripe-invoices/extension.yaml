@@ -38,6 +38,10 @@ contributors:
 
 billingRequired: true # this extension makes requests to a third party API (Stripe)
 
+externalServices:
+  - name: Stripe
+  - pricingUri: https://stripe.com/pricing
+
 roles:
   - role: firebaseauth.viewer
     reason: >-
