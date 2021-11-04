@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: firestore-stripe-payments
-version: 0.2.0
+name: firestore-stripe-subscriptions
+version: 0.1.15
 specVersion: v1beta
 
-displayName: Web & Mobile Payments with Stripe
+displayName: Run Subscription Payments with Stripe
 description: Controls access to paid content by syncing your subscriptions with Firebase Authentication.
 
 license: Apache-2.0
 
-sourceUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-payments
-releaseNotesUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-payments/CHANGELOG.md
+sourceUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-subscriptions
+releaseNotesUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-subscriptions/CHANGELOG.md
 
 author:
   authorName: Stripe
