@@ -79,6 +79,7 @@ import {
 } from "@firebase/auth";
 
 use(require("chai-like"));
+use(require("chai-as-promised"));
 
 describe("Emulator tests", () => {
   const app: FirebaseApp = initializeApp({

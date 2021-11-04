@@ -147,11 +147,13 @@ exports.sendInvoice = functions.handler.firestore.document.onCreate(async (snap,
             idempotencyKey: eventId,
             default_tax_rates: payload.default_tax_rates,
             transfer_data: payload.transfer_data,
-            description: payload.description
+            description: payload.description,
         });
         if (invoice) {
             // Email the invoice to the customer
-            const finalizedInvoice = await stripe.invoices.sendInvoice(invoice.id, { idempotencyKey: `invoices-sendInvoice-${eventId}` });
+            const finalizedInvoice = await stripe.invoices.sendInvoice(invoice.id, {
+                idempotencyKey: `invoices-sendInvoice-${eventId}`,
+            });
             if (finalizedInvoice.status === 'open') {
                 // Successfully emailed the invoice
                 logs.invoiceSent(finalizedInvoice.id, email, finalizedInvoice.hosted_invoice_url);
