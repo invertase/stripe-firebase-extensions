@@ -1,5 +1,5 @@
 {
-  "name": "firestore-stripe-payments",
+  "name": "firestore-stripe-subscriptions",
   "main": "lib/index.js",
   "scripts": {
     "build": "./node_modules/.bin/tsc",
