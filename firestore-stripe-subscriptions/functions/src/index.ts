@@ -312,6 +312,7 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
     transform_quantity: price.transform_quantity,
     tax_behavior: price.tax_behavior ?? null,
     metadata: price.metadata,
+    product: price.product,
     ...prefixMetadata(price.metadata),
   };
   const dbRef = admin
