@@ -452,7 +452,7 @@ document
     const functionRef = firebase
       .app()
       .functions(functionLocation)
-      .httpsCallable("ext-firestore-stripe-subscriptions-createPortalLink");
+      .httpsCallable("ext-firestore-stripe-payments-createPortalLink");
     const { data } = await functionRef({ returnUrl: window.location.origin });
     window.location.assign(data.url);
   });
