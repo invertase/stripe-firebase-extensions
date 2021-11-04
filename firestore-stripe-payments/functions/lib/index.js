@@ -98,7 +98,9 @@ const createCustomerRecord = async ({ email, uid, }) => {
         return null;
     }
 };
-exports.createCustomer = functions.auth.user().onCreate(async (user) => {
+exports.createCustomer = functions.auth
+    .user()
+    .onCreate(async (user) => {
     if (!config_1.default.syncUsersOnCreate)
         return;
     const { email, uid } = user;

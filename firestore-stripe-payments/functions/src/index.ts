@@ -80,13 +80,13 @@ const createCustomerRecord = async ({
   }
 };
 
-exports.createCustomer = functions.auth.user().onCreate(
-  async (user): Promise<void> => {
+exports.createCustomer = functions.auth
+  .user()
+  .onCreate(async (user): Promise<void> => {
     if (!config.syncUsersOnCreate) return;
     const { email, uid } = user;
     await createCustomerRecord({ email, uid });
-  }
-);
+  });
 
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.
@@ -131,9 +131,9 @@ exports.createCheckoutSession = functions.firestore
         });
       }
       const customer = customerRecord.stripeId;
-      if (client === 'web') {
-        // Get shipping countries
-        const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] = collect_shipping_address
+      // Get shipping countries
+      const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] =
+        collect_shipping_address
           ? (
               await admin
                 .firestore()

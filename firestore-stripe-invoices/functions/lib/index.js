@@ -151,7 +151,9 @@ exports.sendInvoice = functions.handler.firestore.document.onCreate(async (snap,
         });
         if (invoice) {
             // Email the invoice to the customer
-            const finalizedInvoice = await stripe.invoices.sendInvoice(invoice.id, { idempotencyKey: `invoices-sendInvoice-${eventId}` });
+            const finalizedInvoice = await stripe.invoices.sendInvoice(invoice.id, {
+                idempotencyKey: `invoices-sendInvoice-${eventId}`,
+            });
             if (finalizedInvoice.status === 'open') {
                 // Successfully emailed the invoice
                 logs.invoiceSent(finalizedInvoice.id, email, finalizedInvoice.hosted_invoice_url);

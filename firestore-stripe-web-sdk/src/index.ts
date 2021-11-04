@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Stripe, Inc.
+ * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,47 @@
 
 export {
   StripePayments,
+  StripePaymentsError,
+  StripePaymentsErrorCode,
   StripePaymentsOptions,
   getStripePayments,
 } from "./init";
+
+export {
+  CREATE_SESSION_TIMEOUT_MILLIS,
+  createCheckoutSession,
+  CreateCheckoutSessionOptions,
+  CommonLineItemParams,
+  CommonSessionCreateParams,
+  LineItem,
+  LineItemParams,
+  LineItemSessionCreateParams,
+  PriceIdLineItemParams,
+  PriceIdSessionCreateParams,
+  Session,
+  SessionCreateParams,
+} from "./session";
+
+export {
+  GetProductOptions,
+  GetProductsOptions,
+  Price,
+  Product,
+  WhereFilter,
+  WhereFilterOp,
+  getPrice,
+  getPrices,
+  getProduct,
+  getProducts,
+} from "./product";
+
+export {
+  getCurrentUserSubscription,
+  getCurrentUserSubscriptions,
+  onCurrentUserSubscriptionUpdate,
+  GetSubscriptionsOptions,
+  Subscription,
+  SubscriptionChangeType,
+  SubscriptionSnapshot,
+  SubscriptionStatus,
+} from "./subscription";
