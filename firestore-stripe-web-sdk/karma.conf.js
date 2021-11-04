@@ -1,13 +1,13 @@
-const karma = require('karma');
-const webpackTestConfig = require('./webpack.test');
+const karma = require("karma");
+const webpackTestConfig = require("./webpack.test");
 
 const config = {
   // files to load into karma
-  files: ['test/**/*.ts', 'src/**/*.ts'],
+  files: ["test/**/*.ts", "src/**/*.ts"],
 
   // frameworks to use
   // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-  frameworks: ['mocha'],
+  frameworks: ["mocha"],
 
   // Doing 65 seconds to allow for the 20 second firestore tests
   browserNoActivityTimeout: 65000,
@@ -16,15 +16,15 @@ const config = {
   // available preprocessors:
   // https://npmjs.org/browse/keyword/karma-preprocessor
   preprocessors: {
-    '**/*.ts': ['webpack', 'sourcemap']
+    "**/*.ts": ["webpack", "sourcemap"],
   },
 
-  mime: { 'text/x-typescript': ['ts', 'tsx'] },
+  mime: { "text/x-typescript": ["ts", "tsx"] },
 
   // test results reporter to use
   // possible values: 'dots', 'progress', 'coverage-istanbul'
   // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-  reporters: ['mocha'],
+  reporters: ["mocha"],
 
   // web server port
   port: 8089,
@@ -44,7 +44,7 @@ const config = {
   // start these browsers
   // available browser launchers:
   // https://npmjs.org/browse/keyword/karma-launcher
-  browsers: ['ChromeHeadless'],
+  browsers: ["ChromeHeadless"],
 
   webpack: webpackTestConfig,
 
@@ -54,15 +54,15 @@ const config = {
 
   client: {
     mocha: {
-      timeout: 5000
-    }
+      timeout: 5000,
+    },
   },
 
   mochaReporter: {
-    showDiff: true
-  }
+    showDiff: true,
+  },
 };
 
-module.exports = function(karmaConfig){
+module.exports = function (karmaConfig) {
   karmaConfig.set(config);
 };
