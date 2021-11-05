@@ -107,7 +107,7 @@ if [[ ! "${REPLY}" =~ ^[Yy]$ ]]; then
 fi
 
 # publish
-if ! npm publish stripe-firestore-stripe-payments-*.tgz --access restricted; then
+if ! npm publish stripe-firestore-stripe-payments-*.tgz --access public; then
     echo
     echo "${RED}ERROR:${RESET} encountered an error while publishing new version"
     exit 1
