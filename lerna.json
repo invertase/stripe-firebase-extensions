@@ -2,7 +2,7 @@
   "packages": [
     "*",
     "firestore-stripe-invoices/functions",
-    "firestore-stripe-subscriptions/functions"
+    "firestore-stripe-payments/functions"
   ],
   "version": "0.0.0"
 }

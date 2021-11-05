@@ -138,9 +138,8 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
       }
 
       // Check to see if there's a Stripe customer associated with the email address
-      let customers: Stripe.ApiList<Stripe.Customer> = await stripe.customers.list(
-        { email }
-      );
+      let customers: Stripe.ApiList<Stripe.Customer> =
+        await stripe.customers.list({ email });
       let customer: Stripe.Customer;
 
       if (customers.data.length) {
@@ -173,15 +172,15 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
         idempotencyKey: eventId,
         default_tax_rates: payload.default_tax_rates,
         transfer_data: payload.transfer_data,
-        description: payload.description
+        description: payload.description,
       });
 
       if (invoice) {
         // Email the invoice to the customer
-        const finalizedInvoice: Stripe.Invoice = await stripe.invoices.sendInvoice(
-          invoice.id,
-          { idempotencyKey: `invoices-sendInvoice-${eventId}` }
-        );
+        const finalizedInvoice: Stripe.Invoice =
+          await stripe.invoices.sendInvoice(invoice.id, {
+            idempotencyKey: `invoices-sendInvoice-${eventId}`,
+          });
         if (finalizedInvoice.status === 'open') {
           // Successfully emailed the invoice
           logs.invoiceSent(

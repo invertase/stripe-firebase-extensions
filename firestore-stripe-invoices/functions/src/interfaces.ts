@@ -24,7 +24,7 @@ export interface InvoicePayload {
     destination: string;
     amount?: number;
   };
-  description?:string;
+  description?: string;
 }
 
 export interface OrderItem {
