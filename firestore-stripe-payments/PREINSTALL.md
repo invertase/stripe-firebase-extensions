@@ -54,6 +54,7 @@ This extension uses the following Firebase services which may have associated ch
 
 - Cloud Firestore
 - Cloud Functions
+- Cloud Secret Manager
 - Firebase Authentication
 
 This extension also uses the following third-party services:

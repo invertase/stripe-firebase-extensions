@@ -13,11 +13,11 @@
 # limitations under the License.
 
 name: firestore-stripe-payments
-version: 0.2.1
+version: 0.2.2
 specVersion: v1beta
 
-displayName: Web & Mobile Payments with Stripe
-description: Controls access to paid content by syncing your subscriptions with Firebase Authentication.
+displayName: Run Payments with Stripe
+description: Controls access to paid content by syncing your one-time and recurring payments with Firebase Authentication.
 
 license: Apache-2.0
 
@@ -246,4 +246,4 @@ params:
       and configuring this value.
     example: whsec_1234567890
     default: FILL_IN_FROM_POSTINSTALL
-    required: true
+    required: false
