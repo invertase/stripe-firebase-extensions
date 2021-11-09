@@ -1,3 +1,13 @@
+### Client SDK
+
+You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/web-sdk/firestore-stripe-web-sdk/README.md)
+JavaScript package to easily access this extension from web clients. This client SDK provides
+TypeScript type definitions and high-level convenience APIs for most common operations client
+applications would want to implement using the extension.
+
+Use a package manager like NPM to install the above package, and use it in conjunction with
+the Firebase Web SDK.
+
 ### Configuring the extension
 
 Before you proceed, make sure you have the following Firebase services set up:
@@ -480,16 +490,6 @@ window.location.assign(data.url);
 You have the option to automatically delete customer objects in Stripe by setting the deletion option in the configuration to "Auto delete". In that case, when a user is deleted in Firebase Authentication, the extension will delete their customer object in Stripe which will immediately cancel all subscriptions for the user.
 
 The extension will not delete any data from Cloud Firestore. Should you wish to delete the customer data from Cloud Firestore, you can use the [Delete User Data](https://firebase.google.com/products/extensions/delete-user-data) extension built by the Firebase team.
-
-### Client SDK
-
-You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/web-sdk/firestore-stripe-web-sdk/README.md)
-JavaScript package to easily access this extension from web clients. This client SDK provides
-TypeScript type definitions and high-level convenience APIs for most common operations client
-applications would want to implement using the extension.
-
-Use a package manager like NPM to install the above package, and use it in conjunction with
-the Firebase Web SDK.
 
 ### Monitoring
 
