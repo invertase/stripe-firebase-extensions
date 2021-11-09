@@ -27,7 +27,11 @@ The design for Stripe Checkout and the customer portal can be customized in your
 
 #### Recommended usage
 
-If you're building on the web platform, you can use this extension for any of your payment use cases. 
+If you're building on the web platform, you can use this extension for any of your payment use cases.
+You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/web-sdk/firestore-stripe-web-sdk/README.md)
+JavaScript package to easily access this extension from web clients. This client SDK provides
+TypeScript type definitions and high-level convenience APIs for most common operations client
+applications would want to implement using the extension.
 
 If you're developing native mobile applications and you're selling digital products or services within your app, (e.g. subscriptions, in-game currencies, game levels, access to premium content, or unlocking a full version), you must use the app store's in-app purchase APIs. See [Apple's](https://developer.apple.com/app-store/review/guidelines/#payments) and [Google's](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en&ref_topic=9857752) guidelines for more information. 
 
