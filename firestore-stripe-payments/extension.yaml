@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firestore-stripe-payments
-version: 0.2.0
+version: 0.2.1
 specVersion: v1beta
 
 displayName: Web & Mobile Payments with Stripe
@@ -38,7 +38,7 @@ billingRequired: true # this extension makes requests to a third party API (Stri
 
 externalServices:
   - name: Stripe
-  - pricingUri: https://stripe.com/pricing
+    pricingUri: https://stripe.com/pricing
 
 roles:
   - role: firebaseauth.admin
