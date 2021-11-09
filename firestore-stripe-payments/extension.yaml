@@ -38,7 +38,7 @@ billingRequired: true # this extension makes requests to a third party API (Stri
 
 externalServices:
   - name: Stripe
-  - pricingUri: https://stripe.com/pricing
+    pricingUri: https://stripe.com/pricing
 
 roles:
   - role: firebaseauth.admin
