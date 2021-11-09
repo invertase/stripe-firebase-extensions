@@ -1,4 +1,4 @@
-## Version 0.2.0 - 2021-11-05
+## Version 0.2.1 - 2021-11-09
 
 [RENAME] The extension has been renamed from `firestore-stripe-subscriptions` to `firestore-stripe-payments` to better reflect the support for both one time, and recurring payments.
 
