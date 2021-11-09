@@ -9,7 +9,7 @@ payments.
 
 # API Reference
 
-[API reference](./markdown/index.md)
+[API reference](https://github.com/stripe/stripe-firebase-extensions/blob/next/firestore-stripe-web-sdk/markdown/index.md)
 
 # Example usage
 
