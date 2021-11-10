@@ -245,5 +245,4 @@ params:
       postinstall instructions for registering your webhook
       and configuring this value.
     example: whsec_1234567890
-    default: FILL_IN_FROM_POSTINSTALL
     required: false
