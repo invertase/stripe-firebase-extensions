@@ -1,3 +1,4 @@
+api-extractor.json
 package.json
 extension.yaml
 package-lock.json
@@ -6,9 +7,11 @@ package-lock.json
 
 # generated files
 README.md
+**/etc/**
 **/functions/lib/**
 **/lib/**
 **/dist/**
+**/markdown/**
 coverage
 
 # extension install md files

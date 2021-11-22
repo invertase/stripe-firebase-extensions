@@ -1,0 +1,20 @@
+name: Test
+
+on:
+  pull_request:
+    paths:
+      - "firestore-stripe-web-sdk/**"
+    branches:
+      - "**"
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: NPM Install
+        run: npm i
+      - name: Unit Test
+        run: lerna run --scope @stripe/firestore-stripe-payments test
+      - name: API Report
+        run: lerna run --scope @stripe/firestore-stripe-payments api-extractor

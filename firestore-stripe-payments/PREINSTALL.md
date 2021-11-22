@@ -25,6 +25,16 @@ If you're developing native mobile applications and you're selling digital produ
 
 For all other scenarios you can use the [stripe-android](https://github.com/stripe/stripe-android), [stripe-ios](https://github.com/stripe/stripe-ios), [stripe-react-native](https://github.com/stripe/stripe-react-native), or [flutter_stripe](https://github.com/flutter-stripe/flutter_stripe) SDKs.
 
+#### Client SDK
+
+You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/web-sdk/firestore-stripe-web-sdk/README.md)
+JavaScript package to easily access this extension from web clients. This client SDK provides
+TypeScript type definitions and high-level convenience APIs for most common operations client
+applications would want to implement using the extension.
+
+Use a package manager like NPM to install the above package, and use it in conjunction with
+the Firebase Web SDK.
+
 #### Additional setup
 
 Before installing this extension, set up the following Firebase services in your Firebase project:
@@ -44,6 +54,7 @@ This extension uses the following Firebase services which may have associated ch
 
 - Cloud Firestore
 - Cloud Functions
+- Cloud Secret Manager
 - Firebase Authentication
 
 This extension also uses the following third-party services:

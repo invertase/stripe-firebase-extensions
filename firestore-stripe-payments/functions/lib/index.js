@@ -61,7 +61,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-payments',
-        version: '0.2.1',
+        version: '0.2.3',
     },
 });
 admin.initializeApp();
@@ -98,7 +98,9 @@ const createCustomerRecord = async ({ email, uid, }) => {
         return null;
     }
 };
-exports.createCustomer = functions.auth.user().onCreate(async (user) => {
+exports.createCustomer = functions.auth
+    .user()
+    .onCreate(async (user) => {
     if (!config_1.default.syncUsersOnCreate)
         return;
     const { email, uid } = user;
@@ -129,7 +131,8 @@ exports.createCheckoutSession = functions.firestore
             const shippingCountries = collect_shipping_address
                 ? (_b = (_a = (await admin
                     .firestore()
-                    .collection(config_1.default.productsCollectionPath)
+                    .collection(config_1.default.stripeConfigCollectionPath ||
+                    config_1.default.productsCollectionPath)
                     .doc('shipping_countries')
                     .get()).data()) === null || _a === void 0 ? void 0 : _a['allowed_countries']) !== null && _b !== void 0 ? _b : [] : [];
             const sessionCreateParams = {
@@ -316,7 +319,7 @@ const insertPriceRecord = async (price) => {
     if (price.billing_scheme === 'tiered')
         // Tiers aren't included by default, we need to retireve and expand.
         price = await stripe.prices.retrieve(price.id, { expand: ['tiers'] });
-    const priceData = Object.assign({ active: price.active, billing_scheme: price.billing_scheme, tiers_mode: price.tiers_mode, tiers: (_a = price.tiers) !== null && _a !== void 0 ? _a : null, currency: price.currency, description: price.nickname, type: price.type, unit_amount: price.unit_amount, recurring: price.recurring, interval: (_c = (_b = price.recurring) === null || _b === void 0 ? void 0 : _b.interval) !== null && _c !== void 0 ? _c : null, interval_count: (_e = (_d = price.recurring) === null || _d === void 0 ? void 0 : _d.interval_count) !== null && _e !== void 0 ? _e : null, trial_period_days: (_g = (_f = price.recurring) === null || _f === void 0 ? void 0 : _f.trial_period_days) !== null && _g !== void 0 ? _g : null, transform_quantity: price.transform_quantity, tax_behavior: (_h = price.tax_behavior) !== null && _h !== void 0 ? _h : null, metadata: price.metadata }, prefixMetadata(price.metadata));
+    const priceData = Object.assign({ active: price.active, billing_scheme: price.billing_scheme, tiers_mode: price.tiers_mode, tiers: (_a = price.tiers) !== null && _a !== void 0 ? _a : null, currency: price.currency, description: price.nickname, type: price.type, unit_amount: price.unit_amount, recurring: price.recurring, interval: (_c = (_b = price.recurring) === null || _b === void 0 ? void 0 : _b.interval) !== null && _c !== void 0 ? _c : null, interval_count: (_e = (_d = price.recurring) === null || _d === void 0 ? void 0 : _d.interval_count) !== null && _e !== void 0 ? _e : null, trial_period_days: (_g = (_f = price.recurring) === null || _f === void 0 ? void 0 : _f.trial_period_days) !== null && _g !== void 0 ? _g : null, transform_quantity: price.transform_quantity, tax_behavior: (_h = price.tax_behavior) !== null && _h !== void 0 ? _h : null, metadata: price.metadata, product: price.product }, prefixMetadata(price.metadata));
     const dbRef = admin
         .firestore()
         .collection(config_1.default.productsCollectionPath)

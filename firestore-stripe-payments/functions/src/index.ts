@@ -34,7 +34,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-payments',
-    version: '0.2.1',
+    version: '0.2.3',
   },
 });
 
@@ -80,13 +80,13 @@ const createCustomerRecord = async ({
   }
 };
 
-exports.createCustomer = functions.auth.user().onCreate(
-  async (user): Promise<void> => {
+exports.createCustomer = functions.auth
+  .user()
+  .onCreate(async (user): Promise<void> => {
     if (!config.syncUsersOnCreate) return;
     const { email, uid } = user;
     await createCustomerRecord({ email, uid });
-  }
-);
+  });
 
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.
@@ -133,15 +133,19 @@ exports.createCheckoutSession = functions.firestore
       const customer = customerRecord.stripeId;
       if (client === 'web') {
         // Get shipping countries
-        const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] = collect_shipping_address
-          ? (
-              await admin
-                .firestore()
-                .collection(config.productsCollectionPath)
-                .doc('shipping_countries')
-                .get()
-            ).data()?.['allowed_countries'] ?? []
-          : [];
+        const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] =
+          collect_shipping_address
+            ? (
+                await admin
+                  .firestore()
+                  .collection(
+                    config.stripeConfigCollectionPath ||
+                      config.productsCollectionPath
+                  )
+                  .doc('shipping_countries')
+                  .get()
+              ).data()?.['allowed_countries'] ?? []
+            : [];
         const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
           billing_address_collection,
           shipping_address_collection: { allowed_countries: shippingCountries },
@@ -373,6 +377,7 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
     transform_quantity: price.transform_quantity,
     tax_behavior: price.tax_behavior ?? null,
     metadata: price.metadata,
+    product: price.product,
     ...prefixMetadata(price.metadata),
   };
   const dbRef = admin
