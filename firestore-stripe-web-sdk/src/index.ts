@@ -31,6 +31,7 @@ export {
   LineItem,
   LineItemParams,
   LineItemSessionCreateParams,
+  PaymentMethodType,
   PriceIdLineItemParams,
   PriceIdSessionCreateParams,
   Session,
