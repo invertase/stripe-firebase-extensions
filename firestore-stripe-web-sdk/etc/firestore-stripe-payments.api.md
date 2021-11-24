@@ -15,9 +15,19 @@ export interface CommonLineItemParams {
 
 // @public
 export interface CommonSessionCreateParams {
+    allow_promotion_codes?: boolean;
+    automatic_tax?: boolean;
     cancel_url?: string;
+    client_reference_id?: string;
+    metadata?: {
+        [key: string]: any;
+    };
     mode?: "subscription" | "payment";
+    payment_method_types?: PaymentMethodType[];
+    promotion_code?: string;
     success_url?: string;
+    tax_id_collection?: boolean;
+    trial_from_plan?: boolean;
 }
 
 // @public (undocumented)
@@ -93,6 +103,9 @@ export interface LineItemSessionCreateParams extends CommonSessionCreateParams {
 export function onCurrentUserSubscriptionUpdate(payments: StripePayments, onUpdate: (snapshot: SubscriptionSnapshot) => void, onError?: (error: StripePaymentsError) => void): () => void;
 
 // @public
+export type PaymentMethodType = "card" | "acss_debit" | "afterpay_clearpay" | "alipay" | "bacs_debit" | "bancontact" | "boleto" | "eps" | "fpx" | "giropay" | "grabpay" | "ideal" | "klarna" | "oxxo" | "p24" | "sepa_debit" | "sofort" | "wechat_pay";
+
+// @public
 export interface Price {
     // (undocumented)
     readonly [propName: string]: any;
@@ -137,14 +150,24 @@ export interface Product {
 
 // @public
 export interface Session {
+    readonly allow_promotion_codes?: boolean;
+    readonly automatic_tax?: boolean;
     readonly cancel_url: string;
+    readonly client_reference_id?: string;
     readonly created_at: string;
     readonly id: string;
     readonly line_items?: LineItem[];
+    readonly metadata?: {
+        [key: string]: any;
+    };
     readonly mode: "subscription" | "payment";
+    readonly payment_method_types?: PaymentMethodType[];
     readonly price?: string;
+    readonly promotion_code?: string;
     readonly quantity?: number;
     readonly success_url: string;
+    readonly tax_id_collection?: boolean;
+    readonly trial_from_plan?: boolean;
     readonly url: string;
 }
 
