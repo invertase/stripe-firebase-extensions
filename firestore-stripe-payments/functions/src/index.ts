@@ -106,6 +106,7 @@ exports.createCheckoutSession = functions.firestore
       payment_method_types,
       shipping_rates = [],
       metadata = {},
+      automatic_payment_methods = {enabled: true},
       automatic_tax = false,
       tax_rates = [],
       tax_id_collection = false,
@@ -227,13 +228,18 @@ exports.createCheckoutSession = functions.firestore
               `When using 'client:mobile' and 'mode:payment' you must specify amount and currency!`
             );
           }
-          const paymentIntent = await stripe.paymentIntents.create({
+          const paymentIntentCreateParams: Stripe.PaymentIntentCreateParams = {
             amount,
             currency,
             customer,
             metadata,
-            payment_method_types: payment_method_types ?? ['card'],
-          });
+          }
+          if (payment_method_types) {
+            paymentIntentCreateParams.payment_method_types = payment_method_types;
+          } else {
+            paymentIntentCreateParams.automatic_payment_methods = automatic_payment_methods;
+          }
+          const paymentIntent = await stripe.paymentIntents.create(paymentIntentCreateParams);
           paymentIntentClientSecret = paymentIntent.client_secret;
         } else if (mode === 'setup') {
           const setupIntent = await stripe.setupIntents.create({
