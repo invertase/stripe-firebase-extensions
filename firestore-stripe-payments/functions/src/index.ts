@@ -106,7 +106,7 @@ exports.createCheckoutSession = functions.firestore
       payment_method_types,
       shipping_rates = [],
       metadata = {},
-      automatic_payment_methods = {enabled: true},
+      automatic_payment_methods = { enabled: true },
       automatic_tax = false,
       tax_rates = [],
       tax_id_collection = false,
@@ -233,13 +233,17 @@ exports.createCheckoutSession = functions.firestore
             currency,
             customer,
             metadata,
-          }
+          };
           if (payment_method_types) {
-            paymentIntentCreateParams.payment_method_types = payment_method_types;
+            paymentIntentCreateParams.payment_method_types =
+              payment_method_types;
           } else {
-            paymentIntentCreateParams.automatic_payment_methods = automatic_payment_methods;
+            paymentIntentCreateParams.automatic_payment_methods =
+              automatic_payment_methods;
           }
-          const paymentIntent = await stripe.paymentIntents.create(paymentIntentCreateParams);
+          const paymentIntent = await stripe.paymentIntents.create(
+            paymentIntentCreateParams
+          );
           paymentIntentClientSecret = paymentIntent.client_secret;
         } else if (mode === 'setup') {
           const setupIntent = await stripe.setupIntents.create({
