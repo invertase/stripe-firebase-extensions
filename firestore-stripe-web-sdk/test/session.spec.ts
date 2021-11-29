@@ -44,12 +44,22 @@ const payments: StripePayments = getStripePayments(app, {
 });
 
 const testSession: Session = {
+  allow_promotion_codes: true,
+  automatic_tax: true,
   cancel_url: "https://example.com/cancel",
+  client_reference_id: "example",
   created_at: new Date().toUTCString(),
   id: "test_session_1",
+  metadata: {
+    test: true,
+  },
   mode: "subscription",
+  payment_method_types: ["card"],
   price: "price1",
+  promotion_code: "discount",
   success_url: "https://example.com/success",
+  tax_id_collection: true,
+  trial_from_plan: true,
   url: "https://example.stripe.com/session/test_session_1",
 };
 
@@ -183,11 +193,21 @@ describe("createCheckoutSession()", () => {
     const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
     const params: SessionCreateParams = {
+      allow_promotion_codes: true,
+      automatic_tax: true,
+      client_reference_id: "example",
       cancel_url: "https://example.com/cancel",
+      metadata: {
+        test: true,
+      },
       mode: "subscription",
+      payment_method_types: ["card"],
       price: "price1",
+      promotion_code: "discount",
       quantity: 5,
       success_url: "https://example.com/success",
+      tax_id_collection: true,
+      trial_from_plan: true,
     };
 
     const session: Session = await createCheckoutSession(payments, params);

@@ -44,10 +44,32 @@ import {
  */
 export interface CommonSessionCreateParams {
   /**
+   * Enables user redeemable promotion codes.
+   */
+  allow_promotion_codes?: boolean;
+
+  /**
+   * Set to true to enable automatic taxes. Defaults to false.
+   */
+  automatic_tax?: boolean;
+
+  /**
+   * A unique string to reference the Checkout Session. This can be a customer ID, a cart ID,
+   * or similar, and can be used to reconcile the session with your internal systems.
+   */
+  client_reference_id?: string;
+
+  /**
    * The URL the customer will be directed to if they decide to cancel payment and return to
    * your website.
    */
   cancel_url?: string;
+
+  /**
+   * Set of key-value pairs that you can attach to an object. This can be useful for storing
+   * additional information about the object in a structured format.
+   */
+  metadata?: { [key: string]: any };
 
   /**
    * The mode of the Checkout Session. If not specified defaults to `subscription`.
@@ -55,10 +77,55 @@ export interface CommonSessionCreateParams {
   mode?: "subscription" | "payment";
 
   /**
+   * A list of the types of payment methods (e.g., `card`) this Checkout Session can accept.
+   * Defaults to `["card"]`.
+   */
+  payment_method_types?: PaymentMethodType[];
+
+  /**
+   * The promotion code to apply to this Session.
+   */
+  promotion_code?: string;
+
+  /**
    * The URL to which Stripe should send customers when payment or setup is complete.
    */
   success_url?: string;
+
+  /**
+   * Controls tax ID collection settings for the session.
+   */
+  tax_id_collection?: boolean;
+
+  /**
+   * Indicates if a plan’s `trial_period_days` should be applied to the subscription. Defaults
+   * to `true`.
+   */
+  trial_from_plan?: boolean;
 }
+
+/**
+ * Supported payment methods.
+ */
+export type PaymentMethodType =
+  | "card"
+  | "acss_debit"
+  | "afterpay_clearpay"
+  | "alipay"
+  | "bacs_debit"
+  | "bancontact"
+  | "boleto"
+  | "eps"
+  | "fpx"
+  | "giropay"
+  | "grabpay"
+  | "ideal"
+  | "klarna"
+  | "oxxo"
+  | "p24"
+  | "sepa_debit"
+  | "sofort"
+  | "wechat_pay";
 
 /**
  * Parameters for createing a session with one or more line items.
@@ -161,10 +228,38 @@ export interface Session {
   readonly url: string;
 
   /**
+   * Enables user redeemable promotion codes.
+   */
+  readonly allow_promotion_codes?: boolean;
+
+  /**
+   * Indicates whether automatic tax is enabled for the session
+   */
+  readonly automatic_tax?: boolean;
+
+  /**
+   * A unique string to reference the Checkout Session. This can be a customer ID, a cart ID,
+   * or similar, and can be used to reconcile the session with your internal systems.
+   */
+  readonly client_reference_id?: string;
+
+  /**
    * The array of line items purchased with this session. A session is guaranteed to contain either
    * {@link Session.line_items} or {@link Session.price}.
    */
   readonly line_items?: LineItem[];
+
+  /**
+   * Set of key-value pairs that you can attach to an object. This can be useful for storing
+   * additional information about the object in a structured format.
+   */
+  readonly metadata?: { [key: string]: any };
+
+  /**
+   * A list of the types of payment methods (e.g., `card`) this Checkout Session can accept.
+   * Defaults to `["card"]`.
+   */
+  readonly payment_method_types?: PaymentMethodType[];
 
   /**
    * The ID of the Stripe price object purchased with this session. A session is guaranteed to
@@ -173,9 +268,25 @@ export interface Session {
   readonly price?: string;
 
   /**
+   * The promotion code to apply to this Session.
+   */
+  readonly promotion_code?: string;
+
+  /**
    * The quantity of item purchased. Defaults to 1.
    */
   readonly quantity?: number;
+
+  /**
+   * Controls tax ID collection settings for the session.
+   */
+  readonly tax_id_collection?: boolean;
+
+  /**
+   * Indicates if a plan’s `trial_period_days` should be applied to the subscription. Defaults
+   * to `true`.
+   */
+  readonly trial_from_plan?: boolean;
 }
 
 /**

@@ -16,7 +16,7 @@
 
 import { FirebaseApp, registerVersion } from "@firebase/app";
 
-registerVersion("@stripe/firestore-stripe-payments", "__VERSION__");
+registerVersion("firestore-stripe-payments", "__VERSION__");
 
 /**
  * Serves as the main entry point to this library. Initializes the client SDK,

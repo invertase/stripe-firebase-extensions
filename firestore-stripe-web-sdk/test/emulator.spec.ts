@@ -187,29 +187,59 @@ describe("Emulator tests", () => {
           },
         ];
         const session = await createCheckoutSession(payments, {
+          allow_promotion_codes: true,
+          automatic_tax: true,
           cancel_url: "https://example.com/cancel",
+          client_reference_id: "example",
           line_items: lineItems,
+          metadata: {
+            test: true,
+          },
           mode: "subscription",
+          payment_method_types: ["card"],
+          promotion_code: "discount",
           success_url: "https://example.com/success",
+          tax_id_collection: true,
+          trial_from_plan: true,
         });
 
         expect(backend.events).to.have.length(1);
         const { uid, docId, data, timestamp } = backend.events[0];
         expect(session).to.eql({
+          allow_promotion_codes: true,
+          automatic_tax: true,
           cancel_url: "https://example.com/cancel",
+          client_reference_id: "example",
           created_at: timestamp.toDate().toUTCString(),
           id: `test_session_${docId}`,
           line_items: lineItems,
+          metadata: {
+            test: true,
+          },
           mode: "subscription",
+          payment_method_types: ["card"],
+          promotion_code: "discount",
           success_url: "https://example.com/success",
+          tax_id_collection: true,
+          trial_from_plan: true,
           url: `https://example.stripe.com/session/${docId}`,
         });
         expect(uid).to.equal(currentUser);
         expect(data).to.eql({
+          allow_promotion_codes: true,
+          automatic_tax: true,
           cancel_url: "https://example.com/cancel",
+          client_reference_id: "example",
           line_items: lineItems,
+          metadata: {
+            test: true,
+          },
           mode: "subscription",
+          payment_method_types: ["card"],
+          promotion_code: "discount",
           success_url: "https://example.com/success",
+          tax_id_collection: true,
+          trial_from_plan: true,
         });
       });
 
@@ -240,32 +270,62 @@ describe("Emulator tests", () => {
 
       it("should create a session when called with all price ID parameters", async () => {
         const session = await createCheckoutSession(payments, {
+          allow_promotion_codes: true,
+          automatic_tax: true,
           cancel_url: "https://example.com/cancel",
+          client_reference_id: "example",
+          metadata: {
+            test: true,
+          },
           mode: "subscription",
+          payment_method_types: ["card"],
           price: "foo",
+          promotion_code: "discount",
           quantity: 5,
           success_url: "https://example.com/success",
+          tax_id_collection: true,
+          trial_from_plan: true,
         });
 
         expect(backend.events).to.have.length(1);
         const { uid, docId, data, timestamp } = backend.events[0];
         expect(session).to.eql({
+          allow_promotion_codes: true,
+          automatic_tax: true,
           cancel_url: "https://example.com/cancel",
+          client_reference_id: "example",
           created_at: timestamp.toDate().toUTCString(),
           id: `test_session_${docId}`,
+          metadata: {
+            test: true,
+          },
           mode: "subscription",
+          payment_method_types: ["card"],
           price: "foo",
+          promotion_code: "discount",
           quantity: 5,
           success_url: "https://example.com/success",
+          tax_id_collection: true,
+          trial_from_plan: true,
           url: `https://example.stripe.com/session/${docId}`,
         });
         expect(uid).to.equal(currentUser);
         expect(data).to.eql({
+          allow_promotion_codes: true,
+          automatic_tax: true,
           cancel_url: "https://example.com/cancel",
+          client_reference_id: "example",
+          metadata: {
+            test: true,
+          },
           mode: "subscription",
+          payment_method_types: ["card"],
           price: "foo",
+          promotion_code: "discount",
           quantity: 5,
           success_url: "https://example.com/success",
+          tax_id_collection: true,
+          trial_from_plan: true,
         });
       });
 
