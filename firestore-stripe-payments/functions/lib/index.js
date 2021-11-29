@@ -61,7 +61,7 @@ const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
         name: 'Firebase firestore-stripe-payments',
-        version: '0.2.2',
+        version: '0.2.3',
     },
 });
 admin.initializeApp();
@@ -113,7 +113,7 @@ exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
     var _a, _b;
-    const { client = 'web', amount, currency, mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types = ['card'], shipping_rates = [], metadata = {}, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, customer_update = {}, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
+    const { client = 'web', amount, currency, mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types, shipping_rates = [], metadata = {}, automatic_payment_methods = { enabled: true }, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, customer_update = {}, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -139,7 +139,6 @@ exports.createCheckoutSession = functions.firestore
                 billing_address_collection,
                 shipping_address_collection: { allowed_countries: shippingCountries },
                 shipping_rates,
-                payment_method_types,
                 customer,
                 customer_update,
                 line_items: line_items
@@ -155,6 +154,9 @@ exports.createCheckoutSession = functions.firestore
                 cancel_url,
                 locale,
             };
+            if (payment_method_types) {
+                sessionCreateParams.payment_method_types = payment_method_types;
+            }
             if (mode === 'subscription') {
                 sessionCreateParams.subscription_data = {
                     trial_from_plan,
@@ -209,18 +211,26 @@ exports.createCheckoutSession = functions.firestore
                 if (!amount || !currency) {
                     throw new Error(`When using 'client:mobile' and 'mode:payment' you must specify amount and currency!`);
                 }
-                const paymentIntent = await stripe.paymentIntents.create({
+                const paymentIntentCreateParams = {
                     amount,
                     currency,
                     customer,
                     metadata,
-                });
+                };
+                if (payment_method_types) {
+                    paymentIntentCreateParams.payment_method_types = payment_method_types;
+                }
+                else {
+                    paymentIntentCreateParams.automatic_payment_methods = automatic_payment_methods;
+                }
+                const paymentIntent = await stripe.paymentIntents.create(paymentIntentCreateParams);
                 paymentIntentClientSecret = paymentIntent.client_secret;
             }
             else if (mode === 'setup') {
                 const setupIntent = await stripe.setupIntents.create({
                     customer,
                     metadata,
+                    payment_method_types: payment_method_types !== null && payment_method_types !== void 0 ? payment_method_types : ['card'],
                 });
                 setupIntentClientSecret = setupIntent.client_secret;
             }
@@ -523,6 +533,8 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
         'price.updated',
         'price.deleted',
         'checkout.session.completed',
+        'checkout.session.async_payment_succeeded',
+        'checkout.session.async_payment_failed',
         'customer.subscription.created',
         'customer.subscription.updated',
         'customer.subscription.deleted',
@@ -581,6 +593,8 @@ exports.handleWebhookEvents = functions.handler.https.onRequest(async (req, resp
                     await manageSubscriptionStatusChange(subscription.id, subscription.customer, event.type === 'customer.subscription.created');
                     break;
                 case 'checkout.session.completed':
+                case 'checkout.session.async_payment_succeeded':
+                case 'checkout.session.async_payment_failed':
                     const checkoutSession = event.data
                         .object;
                     if (checkoutSession.mode === 'subscription') {

@@ -1,3 +1,7 @@
+## Version 0.2.3 - 2021-11-29
+
+[feat] Manage payment methods in the Dashboard: setting `payment_method_types` is now optional. By default, all payment methods enabled in your Stripe Dashboard will be presented on the Stripe Checkout page.
+
 ## Version 0.2.2 - 2021-11-09
 
 [RENAME] The extension has been renamed from `firestore-stripe-subscriptions` to `firestore-stripe-payments` to better reflect the support for both one time, and recurring payments.
