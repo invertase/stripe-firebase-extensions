@@ -1,4 +1,4 @@
-## Version 0.2.3 - 2021-11-22
+## Version 0.2.3 - 2021-11-29
 
 [feat] Manage payment methods in the Dashboard: setting `payment_method_types` is now optional. By default, all payment methods enabled in your Stripe Dashboard will be presented on the Stripe Checkout page.
 
