@@ -134,7 +134,7 @@ export interface Payment {
 export type PaymentMethodType = "card" | "acss_debit" | "afterpay_clearpay" | "alipay" | "bacs_debit" | "bancontact" | "boleto" | "eps" | "fpx" | "giropay" | "grabpay" | "ideal" | "klarna" | "oxxo" | "p24" | "sepa_debit" | "sofort" | "wechat_pay";
 
 // @public
-export type PaymentState = 'requires_payment_method' | 'requires_confirmation' | 'requires_action' | 'processing' | 'requires_capture' | 'cancelled' | 'succeeded';
+export type PaymentState = "requires_payment_method" | "requires_confirmation" | "requires_action" | "processing" | "requires_capture" | "cancelled" | "succeeded";
 
 // @public
 export interface Price {
