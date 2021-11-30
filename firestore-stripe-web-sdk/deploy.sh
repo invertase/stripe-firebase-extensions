@@ -8,6 +8,14 @@ RED_BG=$(tput setab 1)
 YELLOW=$(tput setaf 3)
 RESET=$(tput sgr 0)
 BOLD=$(tput bold)
+FIREBASE_WEB_SDK_DIR="firestore-stripe-web-sdk"
+MIN_NODE_VERSION="12"
+
+# verify we are in the correct directory for the script
+if [[ "${PWD##*/}" != "${FIREBASE_WEB_SDK_DIR}" ]]; then
+    echo "${RED}ERROR:${RESET} Please run this script in the ${FIREBASE_WEB_SDK_DIR} directory"
+    exit 1
+fi
 
 # verify we meant to run this script
 read -r -n 1 -p "${YELLOW}WARNING:${RESET} running this script deploys changes publicly. Are you sure you want to continue? [y/n] "
@@ -15,7 +23,22 @@ echo
 echo
 if [[ ! "${REPLY}" =~ ^[Yy]$ ]]; then exit 1; fi
 
-# verify the user has required permissions
+# verify that we have updated the patch/release version
+public_sdk_version=$(npm view @stripe/firestore-stripe-payments version)
+local_sdk_version=$(npm version | sed -n '2'p | cut -d : -f 2 | cut -d , -f 1 | cut -d \' -f 2)
+if [[ "${public_sdk_version}" == "${local_sdk_version}" ]]; then
+    echo "${RED}ERROR:${RESET} Your local web-sdk version matches the public web-sdk version. Please bump the version with ${BOLD}npm version patch${RESET} or a similar command"
+    exit 1
+fi
+
+echo "${GREEN}SUCCESS:${RESET} your local web-sdk version is different from the public web-sdk version"
+echo 
+echo "local web-sdk version is ${YELLOW}${local_sdk_version}${RESET}"
+echo "public web-sdk version is ${GREEN}${public_sdk_version}${RESET}"
+echo
+echo
+
+# verify the user has required npm permissions
 read -r -n 1 -p "Do you have a stripe npm account with 2FA? [y/n] "
 echo
 echo
@@ -25,14 +48,14 @@ if [[ ! "${REPLY}" =~ ^[Yy]$ ]]; then
 fi
 
 version=$(nodenv version | cut -d . -f 1)
-if [ ! "${version}" -gt "12" ]; then
-    echo "${RED}ERROR:${RESET} must have node version 12 or greater"
+if [ ! "${version}" -gt "${MIN_NODE_VERSION}" ]; then
+    echo "${RED}ERROR:${RESET} must have node version ${MIN_NODE_VERSION} or greater"
     echo "current version is ${YELLOW}$(nodenv version | cut -d ' ' -f 1)${RESET}"
     echo
-    echo "set new node version with ${BOLD}nodenv shell 14.7.0${RESET} or any other installed version 12 or greater to continue"
+    echo "set new node version with ${BOLD}nodenv shell 14.7.0${RESET} or any other installed version ${MIN_NODE_VERSION} or greater to continue"
     exit 1
 fi
-echo "${GREEN}SUCCESS:${RESET} your current node version is 12 or greater (${GREEN}$(nodenv version | cut -d ' ' -f 1)${RESET})"
+echo "${GREEN}SUCCESS:${RESET} your current node version is ${MIN_NODE_VERSION} or greater (${GREEN}$(nodenv version | cut -d ' ' -f 1)${RESET})"
 echo
 
 if ! npm team ls @stripe:developers &> /dev/null; then
@@ -76,10 +99,12 @@ echo
 echo "${GREEN}SUCCESS:${RESET} all tests have passed"
 echo 
 
-if ! rm stripe-firestore-stripe-payments-*.tgz; then
-    echo
-    echo "${RED}ERROR:${RESET} encountered an error removing old release artifacts"
-    exit 1
+if [[ $(ls stripe-firestore-stripe-payments-*.tgz) ]]; then
+    if ! rm stripe-firestore-stripe-payments-*.tgz; then
+        echo
+        echo "${RED}ERROR:${RESET} encountered an error removing old release artifacts"
+        exit 1
+    fi
 fi
 
 if ! npm run build; then
@@ -98,6 +123,7 @@ echo
 echo "${GREEN}SUCCESS:${RESET} built the release artifact"
 echo
 
+# verify one last time
 read -r -n 1 -p "Did you notify #developer-products and #developer-advocacy about this release? [y/n] "
 echo
 echo
