@@ -38,7 +38,13 @@ export {
   SessionCreateParams,
 } from "./session";
 
-export { Payment, PaymentState, getCurrentUserPayment } from "./payment";
+export {
+  GetPaymentsOptions,
+  Payment,
+  PaymentStatus,
+  getCurrentUserPayment,
+  getCurrentUserPayments,
+} from "./payment";
 
 export {
   GetProductOptions,
