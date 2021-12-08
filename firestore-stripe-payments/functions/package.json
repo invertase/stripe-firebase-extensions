@@ -1,0 +1,28 @@
+{
+  "name": "firestore-stripe-payments",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "./node_modules/.bin/tsc",
+    "clean": "rimraf lib",
+    "compile": "tsc",
+    "generate-readme": "firebase ext:info .. --markdown > ../README.md",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Stripe (https://stripe.com/)",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "firebase-admin": "^9.9.0",
+    "firebase-functions": "^3.14.1",
+    "stripe": "8.191.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.11",
+    "firebase-functions-test": "^0.1.6",
+    "typescript": "^3.9.9"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "printWidth": 80
+  },
+  "private": true
+}
