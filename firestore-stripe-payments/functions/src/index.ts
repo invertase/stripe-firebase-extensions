@@ -92,10 +92,9 @@ exports.createCustomer = functions.auth
     await createCustomerRecord({
       email,
       uid,
-      phone: phoneNumber
+      phone: phoneNumber,
     });
-  }
-);
+  });
 
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.
@@ -134,11 +133,13 @@ exports.createCheckoutSession = functions.firestore
       // Get stripe customer id
       let customerRecord = (await snap.ref.parent.parent.get()).data();
       if (!customerRecord?.stripeId) {
-        const { email, phoneNumber } = await admin.auth().getUser(context.params.uid);
+        const { email, phoneNumber } = await admin
+          .auth()
+          .getUser(context.params.uid);
         customerRecord = await createCustomerRecord({
           uid: context.params.uid,
           email,
-          phone: phoneNumber
+          phone: phoneNumber,
         });
       }
       const customer = customerRecord.stripeId;
