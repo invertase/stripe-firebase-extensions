@@ -39,6 +39,7 @@ import {
 } from "@firebase/firestore";
 import {
   createCheckoutSession,
+  getCurrentUserPayment,
   getCurrentUserSubscription,
   getCurrentUserSubscriptions,
   getPrice,
@@ -48,6 +49,7 @@ import {
   getStripePayments,
   onCurrentUserSubscriptionUpdate,
   LineItemParams,
+  Payment,
   Price,
   Product,
   Subscription,
@@ -57,9 +59,13 @@ import {
 } from "../src/index";
 import {
   economyPlan,
+  payment1,
+  payment2,
+  PaymentData,
   premiumPlan,
   premiumPlanPrice,
   ProductData,
+  rawPaymentData,
   rawProductData,
   rawSubscriptionData,
   standardPlan,
@@ -943,6 +949,62 @@ describe("Emulator tests", () => {
     });
   });
 
+  describe("getCurrentUserPayment()", () => {
+    let currentUser: string = "";
+
+    context("without user signed in", () => {
+      it("rejects when fetching a payment", async () => {
+        const err: any = await expect(
+          getCurrentUserPayment(payments, "pay1")
+        ).to.be.rejectedWith(
+          "Failed to determine currently signed in user. User not signed in."
+        );
+
+        expect(err).to.be.instanceOf(StripePaymentsError);
+        expect(err.code).to.equal("unauthenticated");
+        expect(err.cause).to.be.undefined;
+      });
+    });
+
+    context("with user signed in", () => {
+      before(async () => {
+        currentUser = (await signInAnonymously(auth)).user.uid;
+        await addUserData(currentUser);
+        await addPaymentData(currentUser, rawPaymentData);
+      });
+
+      after(async () => {
+        await signOut(auth);
+      });
+
+      it("should return a payment when called with a valid paymentId", async () => {
+        const payment: Payment = await getCurrentUserPayment(payments, "pay1");
+
+        const expected: Payment = { ...payment1, uid: currentUser };
+        expect(payment).to.eql(expected);
+      });
+
+      it("should return a fully populated payment when available", async () => {
+        const payment: Payment = await getCurrentUserPayment(payments, "pay2");
+
+        const expected: Payment = { ...payment2, uid: currentUser };
+        expect(payment).to.eql(expected);
+      });
+
+      it("should reject with not-found error when the specified payment does not exist", async () => {
+        const err: any = await expect(
+          getCurrentUserPayment(payments, "unavailable")
+        ).to.be.rejectedWith(
+          `No payment found with the ID: unavailable for user: ${currentUser}`
+        );
+
+        expect(err).to.be.instanceOf(StripePaymentsError);
+        expect(err.code).to.equal("not-found");
+        expect(err.cause).to.be.undefined;
+      });
+    });
+  });
+
   async function addProductData(
     productId: string,
     data: ProductData
@@ -978,6 +1040,18 @@ describe("Emulator tests", () => {
     await batch.commit();
   }
 
+  async function addPaymentData(uid: string, data: PaymentData): Promise<void> {
+    const batch: WriteBatch = writeBatch(db);
+    for (const [id, payment] of Object.entries(data)) {
+      batch.set(
+        doc(db, "customers", uid, "payments", id),
+        buildPaymentDocument(payment)
+      );
+    }
+
+    await batch.commit();
+  }
+
   async function deleteSubscriptions(uid: string): Promise<void> {
     const subs = await getDocs(
       collection(db, "customers", uid, "subscriptions")
@@ -1007,6 +1081,17 @@ describe("Emulator tests", () => {
         "prices",
         subscription.price
       ),
+      prices,
+    };
+  }
+
+  function buildPaymentDocument(payment: Record<string, any>): DocumentData {
+    const prices: DocumentReference[] = payment.prices.map(
+      (item: { product: string; price: string }) =>
+        doc(db, "products", item.product, "prices", item.price)
+    );
+    return {
+      ...payment,
       prices,
     };
   }

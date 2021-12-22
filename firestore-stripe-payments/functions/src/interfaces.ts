@@ -21,6 +21,7 @@ export interface CustomerData {
     firebaseUID: string;
   };
   email?: string;
+  phone?: string;
 }
 
 export interface Price {
