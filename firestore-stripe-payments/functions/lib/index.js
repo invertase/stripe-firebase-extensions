@@ -68,7 +68,7 @@ admin.initializeApp();
 /**
  * Create a customer object in Stripe when a user is created.
  */
-const createCustomerRecord = async ({ email, uid, }) => {
+const createCustomerRecord = async ({ email, uid, phone, }) => {
     try {
         logs.creatingCustomer(uid);
         const customerData = {
@@ -78,6 +78,8 @@ const createCustomerRecord = async ({ email, uid, }) => {
         };
         if (email)
             customerData.email = email;
+        if (phone)
+            customerData.phone = phone;
         const customer = await stripe.customers.create(customerData);
         // Add a mapping record in Cloud Firestore.
         const customerRecord = {
@@ -85,6 +87,8 @@ const createCustomerRecord = async ({ email, uid, }) => {
             stripeId: customer.id,
             stripeLink: `https://dashboard.stripe.com${customer.livemode ? '' : '/test'}/customers/${customer.id}`,
         };
+        if (phone)
+            customerRecord.phone = phone;
         await admin
             .firestore()
             .collection(config_1.default.customersCollectionPath)
@@ -103,8 +107,12 @@ exports.createCustomer = functions.auth
     .onCreate(async (user) => {
     if (!config_1.default.syncUsersOnCreate)
         return;
-    const { email, uid } = user;
-    await createCustomerRecord({ email, uid });
+    const { email, uid, phoneNumber } = user;
+    await createCustomerRecord({
+        email,
+        uid,
+        phone: phoneNumber,
+    });
 });
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.
@@ -119,10 +127,13 @@ exports.createCheckoutSession = functions.firestore
         // Get stripe customer id
         let customerRecord = (await snap.ref.parent.parent.get()).data();
         if (!(customerRecord === null || customerRecord === void 0 ? void 0 : customerRecord.stripeId)) {
-            const { email } = await admin.auth().getUser(context.params.uid);
+            const { email, phoneNumber } = await admin
+                .auth()
+                .getUser(context.params.uid);
             customerRecord = await createCustomerRecord({
                 uid: context.params.uid,
                 email,
+                phone: phoneNumber,
             });
         }
         const customer = customerRecord.stripeId;
@@ -218,10 +229,12 @@ exports.createCheckoutSession = functions.firestore
                     metadata,
                 };
                 if (payment_method_types) {
-                    paymentIntentCreateParams.payment_method_types = payment_method_types;
+                    paymentIntentCreateParams.payment_method_types =
+                        payment_method_types;
                 }
                 else {
-                    paymentIntentCreateParams.automatic_payment_methods = automatic_payment_methods;
+                    paymentIntentCreateParams.automatic_payment_methods =
+                        automatic_payment_methods;
                 }
                 const paymentIntent = await stripe.paymentIntents.create(paymentIntentCreateParams);
                 paymentIntentClientSecret = paymentIntent.client_secret;
