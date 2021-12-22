@@ -40,6 +40,7 @@ import {
 import {
   createCheckoutSession,
   getCurrentUserPayment,
+  getCurrentUserPayments,
   getCurrentUserSubscription,
   getCurrentUserSubscriptions,
   getPrice,
@@ -61,6 +62,7 @@ import {
   economyPlan,
   payment1,
   payment2,
+  payment3,
   PaymentData,
   premiumPlan,
   premiumPlanPrice,
@@ -1001,6 +1003,68 @@ describe("Emulator tests", () => {
         expect(err).to.be.instanceOf(StripePaymentsError);
         expect(err.code).to.equal("not-found");
         expect(err.cause).to.be.undefined;
+      });
+    });
+  });
+
+  describe("getCurrentUserPayments()", () => {
+    context("without user signed in", () => {
+      it("rejects when fetching payments", async () => {
+        const err: any = await expect(
+          getCurrentUserPayments(payments)
+        ).to.be.rejectedWith(
+          "Failed to determine currently signed in user. User not signed in."
+        );
+
+        expect(err).to.be.instanceOf(StripePaymentsError);
+        expect(err.code).to.equal("unauthenticated");
+        expect(err.cause).to.be.undefined;
+      });
+    });
+
+    context("with user signed in", () => {
+      let currentUser: string = "";
+
+      before(async () => {
+        currentUser = (await signInAnonymously(auth)).user.uid;
+        await addUserData(currentUser);
+        await addPaymentData(currentUser, rawPaymentData);
+      });
+
+      after(async () => {
+        await signOut(auth);
+      });
+
+      it("should return all payments when called without options", async () => {
+        const paymentData: Payment[] = await getCurrentUserPayments(payments);
+
+        const expected: Payment[] = [
+          { ...payment1, uid: currentUser },
+          { ...payment2, uid: currentUser },
+          { ...payment3, uid: currentUser },
+        ];
+        expect(paymentData).to.eql(expected);
+      });
+
+      it("should only return payments with the given status", async () => {
+        const paymentData: Payment[] = await getCurrentUserPayments(payments, {
+          status: "succeeded",
+        });
+
+        const expected: Payment[] = [{ ...payment1, uid: currentUser }];
+        expect(paymentData).to.eql(expected);
+      });
+
+      it("should only return payments with the given statuses", async () => {
+        const paymentData: Payment[] = await getCurrentUserPayments(payments, {
+          status: ["succeeded", "requires_action"],
+        });
+
+        const expected: Payment[] = [
+          { ...payment1, uid: currentUser },
+          { ...payment2, uid: currentUser },
+        ];
+        expect(paymentData).to.eql(expected);
       });
     });
   });

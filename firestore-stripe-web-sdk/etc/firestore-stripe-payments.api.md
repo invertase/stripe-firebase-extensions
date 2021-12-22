@@ -44,11 +44,19 @@ export interface CreateCheckoutSessionOptions {
 // @public
 export function getCurrentUserPayment(payments: StripePayments, paymentId: string): Promise<Payment>;
 
+// @public (undocumented)
+export function getCurrentUserPayments(payments: StripePayments, options?: GetPaymentsOptions): Promise<Payment[]>;
+
 // @public
 export function getCurrentUserSubscription(payments: StripePayments, subscriptionId: string): Promise<Subscription>;
 
 // @public
 export function getCurrentUserSubscriptions(payments: StripePayments, options?: GetSubscriptionsOptions): Promise<Subscription[]>;
+
+// @public
+export interface GetPaymentsOptions {
+    status?: PaymentStatus | PaymentStatus[];
+}
 
 // @public
 export function getPrice(payments: StripePayments, productId: string, priceId: string): Promise<Price>;
@@ -126,7 +134,7 @@ export interface Payment {
         product: string;
         price: string;
     }>;
-    readonly status: PaymentState;
+    readonly status: PaymentStatus;
     readonly uid: string;
 }
 
@@ -134,7 +142,7 @@ export interface Payment {
 export type PaymentMethodType = "card" | "acss_debit" | "afterpay_clearpay" | "alipay" | "bacs_debit" | "bancontact" | "boleto" | "eps" | "fpx" | "giropay" | "grabpay" | "ideal" | "klarna" | "oxxo" | "p24" | "sepa_debit" | "sofort" | "wechat_pay";
 
 // @public
-export type PaymentState = "requires_payment_method" | "requires_confirmation" | "requires_action" | "processing" | "requires_capture" | "cancelled" | "succeeded";
+export type PaymentStatus = "requires_payment_method" | "requires_confirmation" | "requires_action" | "processing" | "requires_capture" | "cancelled" | "succeeded";
 
 // @public
 export interface Price {
