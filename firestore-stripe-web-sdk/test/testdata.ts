@@ -15,7 +15,7 @@
  */
 
 import { Timestamp } from "@firebase/firestore";
-import { Price, Product, Subscription } from "../src/index";
+import { Payment, Price, Product, Subscription } from "../src/index";
 
 export const economyPlan: Product = {
   active: false,
@@ -259,6 +259,7 @@ export const subscription3: Subscription = {
 };
 
 export type SubscriptionData = Record<string, Record<string, any>>;
+export type PaymentData = Record<string, Record<string, any>>;
 
 export const rawSubscriptionData: SubscriptionData = {
   sub1: {
@@ -320,4 +321,93 @@ export const rawSubscriptionData: SubscriptionData = {
     trial_end: null,
     trial_start: null,
   },
+};
+
+export const rawPaymentData: PaymentData = {
+  pay1: {
+    amount: 999,
+    amount_capturable: 0,
+    amount_received: 0,
+    created: 1632951980,
+    currency: "USD",
+    customer: null,
+    description: null,
+    id: "pay1",
+    invoice: null,
+    metadata: {},
+    payment_method_types: ["card"],
+    prices: [
+      {
+        product: "premium",
+        price: "price1",
+      },
+    ],
+    product: "premium",
+    status: "succeeded",
+  },
+  pay2: {
+    amount: 999,
+    amount_capturable: 0,
+    amount_received: 0,
+    created: 1632951980,
+    currency: "USD",
+    customer: "alice",
+    description: "Test description",
+    id: "pay2",
+    invoice: "invoice2",
+    metadata: {},
+    payment_method_types: ["card"],
+    prices: [
+      {
+        product: "premium",
+        price: "price1",
+      },
+    ],
+    product: "premium",
+    status: "succeeded",
+  },
+};
+
+export const payment1: Payment = {
+  amount: 999,
+  amount_capturable: 0,
+  amount_received: 0,
+  created: "Wed, 29 Sep 2021 21:46:20 GMT",
+  currency: "USD",
+  customer: null,
+  description: null,
+  id: "pay1",
+  invoice: null,
+  metadata: {},
+  payment_method_types: ["card"],
+  prices: [
+    {
+      product: "premium",
+      price: "price1",
+    },
+  ],
+  status: "succeeded",
+  uid: "dynamic",
+};
+
+export const payment2: Payment = {
+  amount: 999,
+  amount_capturable: 0,
+  amount_received: 0,
+  created: "Wed, 29 Sep 2021 21:46:20 GMT",
+  currency: "USD",
+  customer: "alice",
+  description: "Test description",
+  id: "pay2",
+  invoice: "invoice2",
+  metadata: {},
+  payment_method_types: ["card"],
+  prices: [
+    {
+      product: "premium",
+      price: "price1",
+    },
+  ],
+  status: "succeeded",
+  uid: "dynamic",
 };

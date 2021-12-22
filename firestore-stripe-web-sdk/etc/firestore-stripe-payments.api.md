@@ -42,6 +42,9 @@ export interface CreateCheckoutSessionOptions {
 }
 
 // @public
+export function getCurrentUserPayment(payments: StripePayments, paymentId: string): Promise<Payment>;
+
+// @public
 export function getCurrentUserSubscription(payments: StripePayments, subscriptionId: string): Promise<Subscription>;
 
 // @public
@@ -103,7 +106,35 @@ export interface LineItemSessionCreateParams extends CommonSessionCreateParams {
 export function onCurrentUserSubscriptionUpdate(payments: StripePayments, onUpdate: (snapshot: SubscriptionSnapshot) => void, onError?: (error: StripePaymentsError) => void): () => void;
 
 // @public
+export interface Payment {
+    // (undocumented)
+    readonly [propName: string]: any;
+    readonly amount: number;
+    readonly amount_capturable: number;
+    readonly amount_received: number;
+    readonly created: string;
+    readonly currency: string;
+    readonly customer: string | null;
+    readonly description: string | null;
+    readonly id: string;
+    readonly invoice: string | null;
+    readonly metadata: {
+        [name: string]: string;
+    };
+    readonly payment_method_types: string[];
+    readonly prices: Array<{
+        product: string;
+        price: string;
+    }>;
+    readonly status: PaymentState;
+    readonly uid: string;
+}
+
+// @public
 export type PaymentMethodType = "card" | "acss_debit" | "afterpay_clearpay" | "alipay" | "bacs_debit" | "bancontact" | "boleto" | "eps" | "fpx" | "giropay" | "grabpay" | "ideal" | "klarna" | "oxxo" | "p24" | "sepa_debit" | "sofort" | "wechat_pay";
+
+// @public
+export type PaymentState = "requires_payment_method" | "requires_confirmation" | "requires_action" | "processing" | "requires_capture" | "cancelled" | "succeeded";
 
 // @public
 export interface Price {
