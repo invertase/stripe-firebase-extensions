@@ -111,6 +111,9 @@ export interface LineItemSessionCreateParams extends CommonSessionCreateParams {
 }
 
 // @public
+export function onCurrentUserPaymentUpdate(payments: StripePayments, onUpdate: (snapshot: PaymentSnapshot) => void, onError?: (error: StripePaymentsError) => void): () => void;
+
+// @public
 export function onCurrentUserSubscriptionUpdate(payments: StripePayments, onUpdate: (snapshot: SubscriptionSnapshot) => void, onError?: (error: StripePaymentsError) => void): () => void;
 
 // @public
@@ -139,7 +142,21 @@ export interface Payment {
 }
 
 // @public
+export type PaymentChangeType = "added" | "modified" | "removed";
+
+// @public
 export type PaymentMethodType = "card" | "acss_debit" | "afterpay_clearpay" | "alipay" | "bacs_debit" | "bancontact" | "boleto" | "eps" | "fpx" | "giropay" | "grabpay" | "ideal" | "klarna" | "oxxo" | "p24" | "sepa_debit" | "sofort" | "wechat_pay";
+
+// @public
+export interface PaymentSnapshot {
+    changes: Array<{
+        type: PaymentChangeType;
+        payment: Payment;
+    }>;
+    empty: boolean;
+    payments: Payment[];
+    size: number;
+}
 
 // @public
 export type PaymentStatus = "requires_payment_method" | "requires_confirmation" | "requires_action" | "processing" | "requires_capture" | "cancelled" | "succeeded";
