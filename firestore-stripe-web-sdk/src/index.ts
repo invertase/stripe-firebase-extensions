@@ -41,9 +41,12 @@ export {
 export {
   GetPaymentsOptions,
   Payment,
+  PaymentChangeType,
+  PaymentSnapshot,
   PaymentStatus,
   getCurrentUserPayment,
   getCurrentUserPayments,
+  onCurrentUserPaymentUpdate,
 } from "./payment";
 
 export {

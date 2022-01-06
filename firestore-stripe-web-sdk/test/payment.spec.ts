@@ -21,13 +21,14 @@ import {
   getCurrentUserPayment,
   getCurrentUserPayments,
   getStripePayments,
+  onCurrentUserPaymentUpdate,
   Payment,
   StripePayments,
   StripePaymentsError,
 } from "../src/index";
 import { payment1, payment2 } from "./testdata";
 import { setUserDAO, UserDAO } from "../src/user";
-import { PaymentDAO, setPaymentDAO } from "../src/payment";
+import { PaymentDAO, PaymentSnapshot, setPaymentDAO } from "../src/payment";
 
 use(require("chai-as-promised"));
 use(require("sinon-chai"));
@@ -197,6 +198,64 @@ describe("getCurrentUserPayments()", () => {
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(getCurrentUserPayments(payments)).to.be.rejectedWith(error);
+
+    expect(userFake).to.have.been.calledOnce;
+  });
+});
+
+describe("onCurrentUserPaymentUpdate()", () => {
+  it("should register a callback to receive payment updates", () => {
+    let canceled: boolean = false;
+    const fake: SinonSpy = sinonFake.returns(() => {
+      canceled = true;
+    });
+    setPaymentDAO(payments, testPaymentDAO("onPaymentUpdate", fake));
+    const userFake: SinonSpy = sinonFake.returns("alice");
+    setUserDAO(payments, testUserDAO(userFake));
+    const onUpdate: (snap: PaymentSnapshot) => void = () => {};
+
+    const cancel = onCurrentUserPaymentUpdate(payments, onUpdate);
+    cancel();
+
+    expect(canceled).to.be.true;
+    expect(fake).to.have.been.calledOnceWithExactly(
+      "alice",
+      onUpdate,
+      undefined
+    );
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+  });
+
+  it("should register a callback to receive errors when specified", () => {
+    let canceled: boolean = false;
+    const fake: SinonSpy = sinonFake.returns(() => {
+      canceled = true;
+    });
+    setPaymentDAO(payments, testPaymentDAO("onPaymentUpdate", fake));
+    const userFake: SinonSpy = sinonFake.returns("alice");
+    setUserDAO(payments, testUserDAO(userFake));
+    const onUpdate: (snap: PaymentSnapshot) => void = () => {};
+    const onError: (err: StripePaymentsError) => void = () => {};
+
+    const cancel = onCurrentUserPaymentUpdate(payments, onUpdate, onError);
+    cancel();
+
+    expect(canceled).to.be.true;
+    expect(fake).to.have.been.calledOnceWithExactly("alice", onUpdate, onError);
+    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+  });
+
+  it("should throw when the user data access object throws", () => {
+    const error: StripePaymentsError = new StripePaymentsError(
+      "unauthenticated",
+      "user not signed in"
+    );
+    const userFake: SinonSpy = sinonFake.throws(error);
+    setUserDAO(payments, testUserDAO(userFake));
+
+    expect(() => onCurrentUserPaymentUpdate(payments, () => {})).to.throw(
+      error
+    );
 
     expect(userFake).to.have.been.calledOnce;
   });

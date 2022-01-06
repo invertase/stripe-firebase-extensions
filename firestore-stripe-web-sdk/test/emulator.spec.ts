@@ -48,9 +48,11 @@ import {
   getProduct,
   getProducts,
   getStripePayments,
+  onCurrentUserPaymentUpdate,
   onCurrentUserSubscriptionUpdate,
   LineItemParams,
   Payment,
+  PaymentSnapshot,
   Price,
   Product,
   Subscription,
@@ -923,31 +925,6 @@ describe("Emulator tests", () => {
           empty: false,
         });
       });
-
-      async function until(
-        predicate: () => boolean,
-        intervalMillis: number = 50,
-        timeoutMillis: number = 5 * 1000
-      ) {
-        const start = Date.now();
-        let done = false;
-        // If the condition is already met, return without any delay.
-        if (predicate()) {
-          return;
-        }
-
-        // If not, start polling for the condition.
-        do {
-          await new Promise((resolve) => setTimeout(resolve, intervalMillis));
-          if (predicate()) {
-            done = true;
-          } else if (Date.now() > start + timeoutMillis) {
-            throw new Error(
-              `Timed out waiting for predicate after ${timeoutMillis} ms.`
-            );
-          }
-        } while (!done);
-      }
     });
   });
 
@@ -1069,6 +1046,271 @@ describe("Emulator tests", () => {
     });
   });
 
+  describe("onCurrentUserPaymentUpdate()", () => {
+    context("without user signed in", () => {
+      it("throws when registering a listener", async () => {
+        expect(() =>
+          onCurrentUserPaymentUpdate(payments, (snap: PaymentSnapshot) => {})
+        ).to.throw(
+          "Failed to determine currently signed in user. User not signed in."
+        );
+      });
+    });
+
+    context("with user signed in", () => {
+      let currentUser: string = "";
+      let cancelers: Array<() => void> = [];
+
+      before(async () => {
+        currentUser = (await signInAnonymously(auth)).user.uid;
+        await addUserData(currentUser);
+      });
+
+      after(async () => {
+        await signOut(auth);
+      });
+
+      beforeEach(async () => {
+        await addPaymentData(currentUser, rawPaymentData);
+      });
+
+      afterEach(async () => {
+        cancelers.forEach((cancel) => {
+          cancel();
+        });
+        cancelers = [];
+
+        await deletePayments(currentUser);
+      });
+
+      it("should fire an event with all existing payments", async () => {
+        const events: PaymentSnapshot[] = [];
+
+        const cancel = onCurrentUserPaymentUpdate(payments, (snapshot) => {
+          events.push(snapshot);
+        });
+        cancelers.push(cancel);
+        await until(() => events.length > 0);
+
+        expect(events.length).to.equal(1);
+        expect(events[0]).to.eql({
+          payments: [
+            { ...payment1, uid: currentUser },
+            { ...payment2, uid: currentUser },
+            { ...payment3, uid: currentUser },
+          ],
+          changes: [
+            {
+              type: "added",
+              payment: { ...payment1, uid: currentUser },
+            },
+            {
+              type: "added",
+              payment: { ...payment2, uid: currentUser },
+            },
+            {
+              type: "added",
+              payment: { ...payment3, uid: currentUser },
+            },
+          ],
+          size: 3,
+          empty: false,
+        });
+      });
+
+      it("should fire an event with empty snapshot when no payments are present", async () => {
+        await deletePayments(currentUser);
+        const events: PaymentSnapshot[] = [];
+
+        const cancel = onCurrentUserPaymentUpdate(payments, (snapshot) => {
+          events.push(snapshot);
+        });
+        cancelers.push(cancel);
+        await until(() => events.length > 0);
+
+        expect(events.length).to.equal(1);
+        expect(events[0]).to.eql({
+          payments: [],
+          changes: [],
+          size: 0,
+          empty: true,
+        });
+      });
+
+      it("should fire an event for each payment update", async () => {
+        const events: PaymentSnapshot[] = [];
+
+        const cancel = onCurrentUserPaymentUpdate(payments, (snapshot) => {
+          events.push(snapshot);
+        });
+        cancelers.push(cancel);
+        await until(() => events.length > 0);
+
+        expect(events.length).to.equal(1);
+
+        const pay2: DocumentReference = doc(
+          db,
+          "customers",
+          currentUser,
+          "payments",
+          "pay2"
+        );
+        await updateDoc(pay2, { status: "active" });
+        await until(() => events.length > 1);
+
+        expect(events.length).to.equal(2);
+        expect(events[1]).to.eql({
+          payments: [
+            { ...payment1, uid: currentUser },
+            { ...payment2, uid: currentUser, status: "active" },
+            { ...payment3, uid: currentUser },
+          ],
+          changes: [
+            {
+              type: "modified",
+              payment: {
+                ...payment2,
+                uid: currentUser,
+                status: "active",
+              },
+            },
+          ],
+          size: 3,
+          empty: false,
+        });
+
+        const pay3: DocumentReference = doc(
+          db,
+          "customers",
+          currentUser,
+          "payments",
+          "pay3"
+        );
+        await updateDoc(pay3, { status: "active" });
+        await until(() => events.length > 2);
+
+        expect(events.length).to.equal(3);
+        expect(events[2]).to.eql({
+          payments: [
+            { ...payment1, uid: currentUser },
+            { ...payment2, uid: currentUser, status: "active" },
+            { ...payment3, uid: currentUser, status: "active" },
+          ],
+          changes: [
+            {
+              type: "modified",
+              payment: {
+                ...payment3,
+                uid: currentUser,
+                status: "active",
+              },
+            },
+          ],
+          size: 3,
+          empty: false,
+        });
+      });
+
+      it("should fire an event when a payment is created", async () => {
+        const events: PaymentSnapshot[] = [];
+
+        const cancel = onCurrentUserPaymentUpdate(payments, (snapshot) => {
+          events.push(snapshot);
+        });
+        cancelers.push(cancel);
+        await until(() => events.length > 0);
+
+        const pay4: DocumentReference = doc(
+          db,
+          "customers",
+          currentUser,
+          "payments",
+          "pay4"
+        );
+        await setDoc(pay4, buildPaymentDocument(rawPaymentData.pay1));
+        await until(() => events.length > 1);
+
+        expect(events.length).to.equal(2);
+        expect(events[1]).to.eql({
+          payments: [
+            { ...payment1, uid: currentUser },
+            { ...payment2, uid: currentUser },
+            { ...payment3, uid: currentUser },
+            { ...payment1, uid: currentUser, id: "pay4" },
+          ],
+          changes: [
+            {
+              type: "added",
+              payment: { ...payment1, uid: currentUser, id: "pay4" },
+            },
+          ],
+          size: 4,
+          empty: false,
+        });
+      });
+
+      it("should fire an event when a payment is deleted", async () => {
+        const events: PaymentSnapshot[] = [];
+        const cancel = onCurrentUserPaymentUpdate(payments, (snapshot) => {
+          events.push(snapshot);
+        });
+        cancelers.push(cancel);
+        await until(() => events.length > 0);
+
+        const pay3: DocumentReference = doc(
+          db,
+          "customers",
+          currentUser,
+          "payments",
+          "pay3"
+        );
+        await deleteDoc(pay3);
+        await until(() => events.length > 1);
+
+        expect(events.length).to.equal(2);
+        expect(events[1]).to.eql({
+          payments: [
+            { ...payment1, uid: currentUser },
+            { ...payment2, uid: currentUser },
+          ],
+          changes: [
+            {
+              type: "removed",
+              payment: { ...payment3, uid: currentUser },
+            },
+          ],
+          size: 2,
+          empty: false,
+        });
+      });
+    });
+  });
+
+  async function until(
+    predicate: () => boolean,
+    intervalMillis: number = 50,
+    timeoutMillis: number = 5 * 1000
+  ) {
+    const start = Date.now();
+    let done = false;
+    // If the condition is already met, return without any delay.
+    if (predicate()) {
+      return;
+    }
+
+    // If not, start polling for the condition.
+    do {
+      await new Promise((resolve) => setTimeout(resolve, intervalMillis));
+      if (predicate()) {
+        done = true;
+      } else if (Date.now() > start + timeoutMillis) {
+        throw new Error(
+          `Timed out waiting for predicate after ${timeoutMillis} ms.`
+        );
+      }
+    } while (!done);
+  }
+
   async function addProductData(
     productId: string,
     data: ProductData
@@ -1120,6 +1362,16 @@ describe("Emulator tests", () => {
     const subs = await getDocs(
       collection(db, "customers", uid, "subscriptions")
     );
+    const batch: WriteBatch = writeBatch(db);
+    subs.forEach((sub) => {
+      batch.delete(sub.ref);
+    });
+
+    await batch.commit();
+  }
+
+  async function deletePayments(uid: string): Promise<void> {
+    const subs = await getDocs(collection(db, "customers", uid, "payments"));
     const batch: WriteBatch = writeBatch(db);
     subs.forEach((sub) => {
       batch.delete(sub.ref);
