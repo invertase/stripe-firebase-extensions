@@ -305,7 +305,7 @@ You can set a [promotion code](https://stripe.com/docs/billing/subscriptions/dis
 
 ```js
 const docRef = await db
-  .collection("customers")
+  .collection('${param:CUSTOMERS_COLLECTION}')
   .doc(currentUser.uid)
   .collection("checkout_sessions")
   .add({
@@ -326,7 +326,7 @@ Stripe Tax lets you calculate and collect sales tax, VAT, and GST. Know where to
 
 ```js
 const docRef = await db
-  .collection("customers")
+  .collection('${param:CUSTOMERS_COLLECTION}')
   .doc(currentUser.uid)
   .collection("checkout_sessions")
   .add({
@@ -344,7 +344,7 @@ Stripe Checkout supports applying the correct tax rate for customers in  US, GB,
 
 ```js
 const docRef = await db
-  .collection("customers")
+  .collection('${param:CUSTOMERS_COLLECTION}')
   .doc(currentUser)
   .collection("checkout_sessions")
   .add({
@@ -385,7 +385,7 @@ Secondly, you need to add `collect_shipping_address: true` to the Checkout Sessi
 
 ```js
 const docRef = await db
-  .collection("customers")
+  .collection('${param:CUSTOMERS_COLLECTION}')
   .doc(currentUser.uid)
   .collection("checkout_sessions")
   .add({
@@ -421,7 +421,7 @@ In addition to recurring prices, you can add one-time prices. These will only be
 
 ```js
 const docRef = await db
-    .collection('customers')
+    .collection('${param:CUSTOMERS_COLLECTION}')
     .doc(currentUser)
     .collection('checkout_sessions')
     .add({
