@@ -57,6 +57,7 @@
 |  Type Alias | Description |
 |  --- | --- |
 |  [LineItemParams](./firestore-stripe-payments.lineitemparams.md) | Parameters for creating a new line item. |
+|  [PaymentMethodType](./firestore-stripe-payments.paymentmethodtype.md) | Supported payment methods. |
 |  [SessionCreateParams](./firestore-stripe-payments.sessioncreateparams.md) | Parameters for creating a new session. |
 |  [StripePaymentsErrorCode](./firestore-stripe-payments.stripepaymentserrorcode.md) | Union of possible error codes. |
 |  [SubscriptionChangeType](./firestore-stripe-payments.subscriptionchangetype.md) | Different types of changes that may occur on a subscription object. |

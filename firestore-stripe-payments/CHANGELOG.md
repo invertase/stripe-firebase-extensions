@@ -1,6 +1,10 @@
+## Version 0.2.4 - 2021-12-22
+
+[feat] Add support to bring phone numbers saved on Firebase users into Stripe when creating a checkout session for a subscription. (#251)
+
 ## Version 0.2.3 - 2021-11-29
 
-[feat] Manage payment methods in the Dashboard: setting `payment_method_types` is now optional. By default, all payment methods enabled in your Stripe Dashboard will be presented on the Stripe Checkout page.
+[feat] Manage payment methods in the Dashboard: setting `payment_method_types` is now optional. By default, all payment methods enabled in your Stripe Dashboard will be presented on the Stripe Checkout page. (#246)
 
 ## Version 0.2.2 - 2021-11-09
 
