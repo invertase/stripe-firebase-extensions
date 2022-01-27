@@ -16,19 +16,29 @@
 
 import { FirebaseApp } from "@firebase/app";
 import {
+  collection,
+  CollectionReference,
   doc,
+  DocumentChange,
   DocumentData,
   DocumentReference,
   DocumentSnapshot,
   Firestore,
   FirestoreDataConverter,
+  FirestoreError,
   getDoc,
+  getDocs,
   getFirestore,
+  onSnapshot,
+  query,
+  Query,
   QueryDocumentSnapshot,
+  QuerySnapshot,
+  where,
 } from "@firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
-import { getCurrentUser } from "./user";
-import { checkNonEmptyString } from "./utils";
+import { getCurrentUser, getCurrentUserSync } from "./user";
+import { checkNonEmptyArray, checkNonEmptyString } from "./utils";
 
 /**
  * Interface of a Stripe payment stored in the app database.
@@ -103,7 +113,7 @@ export interface Payment {
   /**
    * Status of this payment.
    */
-  readonly status: PaymentState;
+  readonly status: PaymentStatus;
 
   /**
    * Firebase Auth UID of the user that created the payment.
@@ -116,7 +126,7 @@ export interface Payment {
 /**
  * Possible states a payment can be in.
  */
-export type PaymentState =
+export type PaymentStatus =
   | "requires_payment_method"
   | "requires_confirmation"
   | "requires_action"
@@ -145,6 +155,105 @@ export function getCurrentUserPayment(
 }
 
 /**
+ * Optional parameters for the {@link getCurrentUserPayments} function.
+ */
+export interface GetPaymentsOptions {
+  /**
+   * Specify one or more payment status values to retrieve. When set only the payments
+   * with the given status are returned.
+   */
+  status?: PaymentStatus | PaymentStatus[];
+}
+
+export function getCurrentUserPayments(
+  payments: StripePayments,
+  options?: GetPaymentsOptions
+): Promise<Payment[]> {
+  const queryOptions: { status?: PaymentStatus[] } = {};
+  if (typeof options?.status !== "undefined") {
+    queryOptions.status = getStatusAsArray(options.status);
+  }
+
+  return getCurrentUser(payments).then((uid: string) => {
+    const dao: PaymentDAO = getOrInitPaymentDAO(payments);
+    return dao.getPayments(uid, queryOptions);
+  });
+}
+
+/**
+ * Different types of changes that may occur on a payment object.
+ */
+export type PaymentChangeType = "added" | "modified" | "removed";
+
+/**
+ * Represents the current state of a set of payments owned by a user.
+ */
+export interface PaymentSnapshot {
+  /**
+   * A list of all currently available payments ordered by the payment ID. Empty
+   * if no payments are available.
+   */
+  payments: Payment[];
+
+  /**
+   * The list of changes in the payments since the last snapshot.
+   */
+  changes: Array<{
+    type: PaymentChangeType;
+    payment: Payment;
+  }>;
+
+  /**
+   * Number of currently available payments. This is same as the length of the
+   * `payments` array in the snapshot.
+   */
+  size: number;
+
+  /**
+   * True if there are no payments available. False whenever at least one payment is
+   * present. When True, the `payments` array is empty, and the `size` is 0.
+   */
+  empty: boolean;
+}
+
+/**
+ * Registers a listener to receive payment update events for the currently signed in
+ * user. If the user is not signed in throws an `unauthenticated` error, and no listener is
+ * registered.
+ *
+ * Upon successful registration, the `onUpdate` callback will fire once with
+ * the current state of all the payments. From then onwards, each update to a payment
+ * will fire the `onUpdate` callback with the latest state of the payments.
+ *
+ * @param payments - A valid {@link StripePayments} object.
+ * @param onUpdate - A callback that will fire whenever the current user's payments
+ *   are updated.
+ * @param onError - A callback that will fire whenever an error occurs while listening to
+ *   payment updates.
+ * @returns A function that can be called to cancel and unregister the listener.
+ */
+export function onCurrentUserPaymentUpdate(
+  payments: StripePayments,
+  onUpdate: (snapshot: PaymentSnapshot) => void,
+  onError?: (error: StripePaymentsError) => void
+): () => void {
+  const uid: string = getCurrentUserSync(payments);
+  const dao: PaymentDAO = getOrInitPaymentDAO(payments);
+  return dao.onPaymentUpdate(uid, onUpdate, onError);
+}
+
+function getStatusAsArray(
+  status: PaymentStatus | PaymentStatus[]
+): PaymentStatus[] {
+  if (typeof status === "string") {
+    return [status];
+  }
+
+  checkNonEmptyArray(status, "status must be a non-empty array.");
+  return status;
+}
+
+/**
  * Internal interface for all database interactions pertaining to Stripe payments. Exported
  * for testing.
  *
@@ -152,6 +261,15 @@ export function getCurrentUserPayment(
  */
 export interface PaymentDAO {
   getPayment(uid: string, paymentId: string): Promise<Payment>;
+  getPayments(
+    uid: string,
+    options?: { status?: PaymentStatus[] }
+  ): Promise<Payment[]>;
+  onPaymentUpdate(
+    uid: string,
+    onUpdate: (snapshot: PaymentSnapshot) => void,
+    onError?: (error: StripePaymentsError) => void
+  ): () => void;
 }
 
 const PAYMENT_CONVERTER: FirestoreDataConverter<Payment> = {
@@ -209,6 +327,67 @@ class FirestorePaymentDAO implements PaymentDAO {
     return snap.data();
   }
 
+  public async getPayments(
+    uid: string,
+    options?: { status?: PaymentStatus[] }
+  ): Promise<Payment[]> {
+    const querySnap: QuerySnapshot<Payment> = await this.getPaymentSnapshots(
+      uid,
+      options?.status
+    );
+    const payments: Payment[] = [];
+    querySnap.forEach((snap: QueryDocumentSnapshot<Payment>) => {
+      payments.push(snap.data());
+    });
+
+    return payments;
+  }
+
+  public onPaymentUpdate(
+    uid: string,
+    onUpdate: (snapshot: PaymentSnapshot) => void,
+    onError?: (error: StripePaymentsError) => void
+  ): () => void {
+    const payments: CollectionReference<Payment> = collection(
+      this.firestore,
+      this.customersCollection,
+      uid,
+      PAYMENTS_COLLECTION
+    ).withConverter(PAYMENT_CONVERTER);
+    return onSnapshot(
+      payments,
+      (querySnap: QuerySnapshot<Payment>) => {
+        const snapshot: PaymentSnapshot = {
+          payments: [],
+          changes: [],
+          size: querySnap.size,
+          empty: querySnap.empty,
+        };
+        querySnap.forEach((snap: QueryDocumentSnapshot<Payment>) => {
+          snapshot.payments.push(snap.data());
+        });
+        querySnap.docChanges().forEach((change: DocumentChange<Payment>) => {
+          snapshot.changes.push({
+            type: change.type,
+            payment: change.doc.data(),
+          });
+        });
+
+        onUpdate(snapshot);
+      },
+      (err: FirestoreError) => {
+        if (onError) {
+          const arg: StripePaymentsError = new StripePaymentsError(
+            "internal",
+            `Error while listening to database updates: ${err.message}`,
+            err
+          );
+          onError(arg);
+        }
+      }
+    );
+  }
+
   private async getPaymentSnapshotIfExists(
     uid: string,
     paymentId: string
@@ -231,6 +410,23 @@ class FirestorePaymentDAO implements PaymentDAO {
     }
 
     return snapshot;
+  }
+
+  private async getPaymentSnapshots(
+    uid: string,
+    status?: PaymentStatus[]
+  ): Promise<QuerySnapshot<Payment>> {
+    let paymentsQuery: Query<Payment> = collection(
+      this.firestore,
+      this.customersCollection,
+      uid,
+      PAYMENTS_COLLECTION
+    ).withConverter(PAYMENT_CONVERTER);
+    if (status) {
+      paymentsQuery = query(paymentsQuery, where("status", "in", status));
+    }
+
+    return await this.queryFirestore(() => getDocs(paymentsQuery));
   }
 
   private async queryFirestore<T>(fn: () => Promise<T>): Promise<T> {
