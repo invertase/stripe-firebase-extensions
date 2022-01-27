@@ -332,7 +332,6 @@ export const rawPaymentData: PaymentData = {
     currency: "USD",
     customer: null,
     description: null,
-    id: "pay1",
     invoice: null,
     metadata: {},
     payment_method_types: ["card"],
@@ -353,7 +352,6 @@ export const rawPaymentData: PaymentData = {
     currency: "USD",
     customer: "alice",
     description: "Test description",
-    id: "pay2",
     invoice: "invoice2",
     metadata: {},
     payment_method_types: ["card"],
@@ -364,7 +362,27 @@ export const rawPaymentData: PaymentData = {
       },
     ],
     product: "premium",
-    status: "succeeded",
+    status: "requires_action",
+  },
+  pay3: {
+    amount: 999,
+    amount_capturable: 0,
+    amount_received: 0,
+    created: 1632951980,
+    currency: "USD",
+    customer: "alice",
+    description: "Test description",
+    invoice: "invoice3",
+    metadata: {},
+    payment_method_types: ["card"],
+    prices: [
+      {
+        product: "premium",
+        price: "price1",
+      },
+    ],
+    product: "premium",
+    status: "processing",
   },
 };
 
@@ -408,6 +426,28 @@ export const payment2: Payment = {
       price: "price1",
     },
   ],
-  status: "succeeded",
+  status: "requires_action",
+  uid: "dynamic",
+};
+
+export const payment3: Payment = {
+  amount: 999,
+  amount_capturable: 0,
+  amount_received: 0,
+  created: "Wed, 29 Sep 2021 21:46:20 GMT",
+  currency: "USD",
+  customer: "alice",
+  description: "Test description",
+  id: "pay3",
+  invoice: "invoice3",
+  metadata: {},
+  payment_method_types: ["card"],
+  prices: [
+    {
+      product: "premium",
+      price: "price1",
+    },
+  ],
+  status: "processing",
   uid: "dynamic",
 };
