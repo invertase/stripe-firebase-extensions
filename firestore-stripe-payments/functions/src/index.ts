@@ -127,6 +127,7 @@ exports.createCheckoutSession = functions.firestore
       locale = 'auto',
       promotion_code,
       client_reference_id,
+      setup_future_usage,
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -191,6 +192,7 @@ exports.createCheckoutSession = functions.firestore
         } else if (mode === 'payment') {
           sessionCreateParams.payment_intent_data = {
             metadata,
+            ...(setup_future_usage && { setup_future_usage }),
           };
         }
         if (automatic_tax) {
@@ -244,6 +246,7 @@ exports.createCheckoutSession = functions.firestore
             currency,
             customer,
             metadata,
+            ...(setup_future_usage && { setup_future_usage }),
           };
           if (payment_method_types) {
             paymentIntentCreateParams.payment_method_types =
