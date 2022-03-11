@@ -20,6 +20,7 @@ import Stripe from 'stripe';
 import { InvoicePayload, OrderItem } from './interfaces';
 import * as logs from './logs';
 import config from './config';
+import { relevantInvoiceEvents } from './events';
 
 const stripe = new Stripe(config.stripeSecretKey, {
   apiVersion: '2020-03-02',
@@ -138,8 +139,9 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
       }
 
       // Check to see if there's a Stripe customer associated with the email address
-      let customers: Stripe.ApiList<Stripe.Customer> =
-        await stripe.customers.list({ email });
+      let customers: Stripe.ApiList<Stripe.Customer> = await stripe.customers.list(
+        { email }
+      );
       let customer: Stripe.Customer;
 
       if (customers.data.length) {
@@ -177,10 +179,12 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
 
       if (invoice) {
         // Email the invoice to the customer
-        const finalizedInvoice: Stripe.Invoice =
-          await stripe.invoices.sendInvoice(invoice.id, {
+        const finalizedInvoice: Stripe.Invoice = await stripe.invoices.sendInvoice(
+          invoice.id,
+          {
             idempotencyKey: `invoices-sendInvoice-${eventId}`,
-          });
+          }
+        );
         if (finalizedInvoice.status === 'open') {
           // Successfully emailed the invoice
           logs.invoiceSent(
@@ -210,16 +214,6 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
     return;
   }
 );
-
-const relevantInvoiceEvents = new Set([
-  'invoice.created',
-  'invoice.finalized',
-  'invoice.payment_failed',
-  'invoice.payment_succeeded',
-  'invoice.payment_action_required',
-  'invoice.voided',
-  'invoice.marked_uncollectible',
-]);
 
 /* A Stripe webhook that updates each invoice's status in Cloud Firestore */
 export const updateInvoice = functions.handler.https.onRequest(
