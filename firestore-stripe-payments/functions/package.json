@@ -2,8 +2,10 @@
   "name": "firestore-stripe-payments",
   "main": "lib/index.js",
   "scripts": {
-    "build": "./node_modules/.bin/tsc",
+    "prepare": "npm run build",
     "clean": "rimraf lib",
+    "build": "npm run clean && tsc",
+    "build:watch": "tsc --watch",
     "compile": "tsc",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,12 +15,14 @@
   "dependencies": {
     "firebase-admin": "^9.9.0",
     "firebase-functions": "^3.14.1",
-    "stripe": "8.191.0"
+    "stripe": "8.191.0",
+    "typescript": "^3.9.9",
+    "rimraf": "^3.0.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.11",
-    "firebase-functions-test": "^0.1.6",
-    "typescript": "^3.9.9"
+    "firebase-functions-test": "^0.1.6"
+
   },
   "prettier": {
     "singleQuote": true,
