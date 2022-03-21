@@ -12,5 +12,5 @@ done
 echo "Firestore emulator is online!" 
 
 do
-wait jest 
+wait jest --coverage --detectOpenHandles --forceExit
 done

@@ -30,9 +30,3 @@ jobs:
           retry_wait_seconds: 60
           max_attempts: 3
           command: npm i -g firebase-tools
-      - name: Run tests with coverage
-        run: npm run test-coverage
-      - name: Submit coverage
-        run: ./node_modules/.bin/codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -11,7 +11,8 @@
     "test:ci":  "firebase ext:dev:emulators:exec ./node_modules/.bin/jest --test-params=./__tests__/test-params.env --project=extensions-testing  --test-config=./__tests__/firebase.json",
     "test:watch": "ts-node ./__tests__/run-script-watch.ts",
     "setup:emulator": "firebase ext:dev:emulators:start  --test-params=./__tests__/test-params.env --project=extensions-testing --test-config=./__tests__/firebase.json",
-    "setup:webhooks": "ts-node ./__tests__/helpers/setupProxy.ts"
+    "setup:webhooks": "ts-node ./__tests__/helpers/setupProxy.ts",
+    "test-coverage": "jest --coverage --detectOpenHandles --forceExit"
   },
   "author": "Stripe (https://stripe.com/)",
   "license": "Apache-2.0",
