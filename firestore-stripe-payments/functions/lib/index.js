@@ -48,7 +48,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onCustomerDataDeleted = exports.onUserDeleted = exports.handleWebhookEvents = void 0;
+exports.onCustomerDataDeleted = exports.onUserDeleted = exports.handleWebhookEvents = exports.createPortalLink = void 0;
 const admin = __importStar(require("firebase-admin"));
 const functions = __importStar(require("firebase-functions"));
 const stripe_1 = __importDefault(require("stripe"));
