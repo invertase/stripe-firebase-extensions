@@ -43,6 +43,7 @@ const functions = __importStar(require("firebase-functions"));
 const stripe_1 = __importDefault(require("stripe"));
 const logs = __importStar(require("./logs"));
 const config_1 = __importDefault(require("./config"));
+const events_1 = require("./events");
 const stripe = new stripe_1.default(config_1.default.stripeSecretKey, {
     apiVersion: '2020-03-02',
     // Register extension as a Stripe plugin
@@ -178,15 +179,6 @@ exports.sendInvoice = functions.handler.firestore.document.onCreate(async (snap,
     }
     return;
 });
-const relevantInvoiceEvents = new Set([
-    'invoice.created',
-    'invoice.finalized',
-    'invoice.payment_failed',
-    'invoice.payment_succeeded',
-    'invoice.payment_action_required',
-    'invoice.voided',
-    'invoice.marked_uncollectible',
-]);
 /* A Stripe webhook that updates each invoice's status in Cloud Firestore */
 exports.updateInvoice = functions.handler.https.onRequest(async (req, resp) => {
     let event;
@@ -213,7 +205,7 @@ exports.updateInvoice = functions.handler.https.onRequest(async (req, resp) => {
         resp.status(400).send(`Webhook Error: ${err.message}`);
         return;
     }
-    if (!relevantInvoiceEvents.has(eventType)) {
+    if (!events_1.relevantInvoiceEvents.has(eventType)) {
         logs.ignoreEvent(eventType);
         // Return a response to Stripe to acknowledge receipt of the event
         resp.json({ received: true });
