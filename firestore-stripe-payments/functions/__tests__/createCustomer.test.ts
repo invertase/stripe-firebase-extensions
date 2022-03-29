@@ -1,7 +1,12 @@
 import * as admin from 'firebase-admin';
-import config from '../src/config';
+import { DocumentData } from '@google-cloud/firestore';
+
 import setupEmulator from './helpers/setupEmulator';
-import { cleanupCustomers } from './helpers/cleanup';
+import { UserRecord } from 'firebase-functions/v1/auth';
+import {
+  createFirebaseUser,
+  waitForDocumentToExistInCollection,
+} from './helpers/utils';
 
 admin.initializeApp({ projectId: 'extensions-testing' });
 setupEmulator();
@@ -9,25 +14,22 @@ setupEmulator();
 const firestore = admin.firestore();
 
 describe('createCustomer', () => {
-  afterEach(async () => {
-    // await cleanupCustomers();
-  }, 60000);
-  test('successfully creates a new customer', async () => {
-    const email = `${Math.random().toString(36).substr(2, 5)}@google.com`;
-    await admin.auth().createUser({ email });
+  let user: UserRecord;
+  beforeEach(async () => {
+    user = await createFirebaseUser();
+  });
 
+  test('successfully creates a new customer', async () => {
     const collection = firestore.collection('customers');
 
-    return new Promise((resolve, reject) => {
-      const unsubscribe = collection.onSnapshot((snapshot) => {
-        const docs = snapshot.docChanges().map(($) => $.doc.data());
-        const hasCustomer = docs.filter(($) => $.email === email).length;
+    const customer: DocumentData = await waitForDocumentToExistInCollection(
+      collection,
+      'email',
+      user.email
+    );
 
-        if (hasCustomer) {
-          unsubscribe();
-          resolve(true);
-        }
-      });
-    });
+    const doc = collection.doc(customer.doc.id);
+
+    expect(doc.id).toBeDefined();
   });
 });

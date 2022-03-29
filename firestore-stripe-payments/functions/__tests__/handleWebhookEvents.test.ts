@@ -1,9 +1,13 @@
 import * as admin from 'firebase-admin';
-import config from '../src/config';
+import { DocumentData } from '@google-cloud/firestore';
 import { Product } from '../src/interfaces';
 import setupEmulator from './helpers/setupEmulator';
 
 import { createRandomProduct, updateProduct } from './helpers/setupProducts';
+import {
+  waitForDocumentToExistInCollection,
+  waitForDocumentUpdate,
+} from './helpers/utils';
 
 admin.initializeApp({ projectId: 'extensions-testing' });
 setupEmulator();
@@ -19,27 +23,13 @@ describe('webhook events', () => {
     });
     test('successfully creates a new product', async () => {
       const collection = firestore.collection('products');
+      const productDoc: DocumentData = await waitForDocumentToExistInCollection(
+        collection,
+        'name',
+        product.name
+      );
 
-      return new Promise((resolve, reject) => {
-        const unsubscribeCustomers = collection.onSnapshot(async (snapshot) => {
-          const docs = snapshot.docChanges();
-
-          const productDocument = docs.filter(
-            ($) => $.doc.data().name === product.name
-          )[0];
-
-          if (productDocument) {
-            const { name, description } = productDocument.doc.data();
-
-            if (name) {
-              expect(name).toBe(product.name);
-
-              unsubscribeCustomers();
-              resolve(true);
-            }
-          }
-        });
-      });
+      expect(productDoc.doc.data().name).toBe(product.name);
     });
 
     test('successfully updates an existing product', async () => {
@@ -47,20 +37,15 @@ describe('webhook events', () => {
         name: `updated_${product.name}`,
       });
 
-      const collection = firestore.collection('products').doc(product.id);
+      const doc = firestore.collection('products').doc(product.id);
 
-      return new Promise((resolve, reject) => {
-        const unsubscribe = collection.onSnapshot(async (snapshot) => {
-          const doc = snapshot.data();
+      const updated = await waitForDocumentUpdate(
+        doc,
+        'name',
+        `updated_${product.name}`
+      );
 
-          if (doc && doc.name === updatedProduct.name) {
-            expect(doc.name).toBe(updatedProduct.name);
-
-            unsubscribe();
-            resolve(true);
-          }
-        });
-      });
+      expect(updated.data().name).toBe(updatedProduct.name);
     });
   });
 });

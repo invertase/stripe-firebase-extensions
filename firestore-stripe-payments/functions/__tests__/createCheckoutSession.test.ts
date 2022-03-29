@@ -1,7 +1,13 @@
 import * as admin from 'firebase-admin';
-import { cleanupCustomers } from './helpers/cleanup';
+import { DocumentReference, DocumentData } from '@google-cloud/firestore';
+import { UserRecord } from 'firebase-functions/v1/auth';
 import setupEmulator from './helpers/setupEmulator';
 import { generateRecurringPrice } from './helpers/setupProducts';
+import {
+  createFirebaseUser,
+  waitForDocumentToExistInCollection,
+  waitForDocumentToExistWithField,
+} from './helpers/utils';
 
 admin.initializeApp({ projectId: 'extensions-testing' });
 setupEmulator();
@@ -9,28 +15,34 @@ setupEmulator();
 const firestore = admin.firestore();
 
 describe('createCheckoutSession', () => {
+  let user: UserRecord;
   let price = null;
 
   beforeEach(async () => {
     price = await generateRecurringPrice();
+    user = await createFirebaseUser();
   });
 
-  afterAll(async () => {
-    // await cleanupCustomers();
-  }, 60000);
+  afterEach(async () => {
+    await admin.auth().deleteUser(user.uid);
+  });
+
   describe('using a web client', () => {
     test('successfully creates a checkout session', async () => {
-      const email = `${Math.random().toString(36).substr(2, 5)}@google.com`;
-      await admin.auth().createUser({ email });
-
       const collection = firestore.collection('customers');
 
-      const checkSession = async (customerId) => {
-        const checkoutSessionCollection = collection
-          .doc(customerId)
-          .collection('checkout_sessions');
+      const customer: DocumentData = await waitForDocumentToExistInCollection(
+        collection,
+        'email',
+        user.email
+      );
 
-        const checkoutSessionDocument = await checkoutSessionCollection.add({
+      const checkoutSessionCollection = collection
+        .doc(customer.doc.id)
+        .collection('checkout_sessions');
+
+      const checkoutSessionDocument: DocumentReference =
+        await checkoutSessionCollection.add({
           success_url: 'http://test.com/success',
           cancel_url: 'http://test.com/cancel',
           line_items: [
@@ -41,36 +53,15 @@ describe('createCheckoutSession', () => {
           ],
         });
 
-        return new Promise((resolve, reject) => {
-          const unsubscribeDoc = checkoutSessionDocument.onSnapshot(
-            async (snapshot) => {
-              const doc = snapshot.data();
-              if (doc.created) {
-                expect(doc.client).toBe('web');
-                expect(doc.success_url).toBe('http://test.com/success');
-                unsubscribeDoc();
-                resolve(true);
-              }
-            }
-          );
-        });
-      };
+      const customerDoc = await waitForDocumentToExistWithField(
+        checkoutSessionDocument,
+        'created'
+      );
 
-      return new Promise((resolve, reject) => {
-        const unsubscribeCustomers = collection.onSnapshot(async (snapshot) => {
-          const docs = snapshot.docChanges();
+      const { client, success_url } = customerDoc.data();
 
-          const customerDocument = docs.filter(
-            ($) => $.doc.data().email === email
-          )[0];
-
-          if (customerDocument) {
-            await checkSession(customerDocument.doc.id);
-            unsubscribeCustomers();
-            resolve(true);
-          }
-        });
-      });
+      expect(client).toBe('web');
+      expect(success_url).toBe('http://test.com/success');
     });
 
     test.skip('throws an error when success_url has not been provided', async () => {});

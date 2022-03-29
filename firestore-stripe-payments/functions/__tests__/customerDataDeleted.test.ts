@@ -1,9 +1,14 @@
 import * as admin from 'firebase-admin';
-import config from '../src/config';
+import { DocumentData } from '@google-cloud/firestore';
 import setupEmulator from './helpers/setupEmulator';
-import { cleanupCustomers } from './helpers/cleanup';
 import { findCustomer } from './helpers/stripeApi/customers';
-import { repeat } from './helpers/utils';
+import {
+  repeat,
+  waitForDocumentToExistWithField,
+  waitForDocumentToExistInCollection,
+  createFirebaseUser,
+} from './helpers/utils';
+import { UserRecord } from 'firebase-functions/v1/auth';
 
 admin.initializeApp({ projectId: 'extensions-testing' });
 setupEmulator();
@@ -11,53 +16,27 @@ setupEmulator();
 const firestore = admin.firestore();
 
 describe('customerDataDeleted', () => {
-  test('successfully creates a new customer', async () => {
-    const email = `${Math.random().toString(36).substr(2, 5)}@google.com`;
-    await admin.auth().createUser({ email });
+  let user: UserRecord;
+  beforeEach(async () => {
+    user = await createFirebaseUser();
+  });
 
+  test('successfully deletes a stripe customer', async () => {
     const collection = firestore.collection('customers');
 
-    const checkCustomer = async (id) => {
-      return new Promise(async (resolve) => {
-        let stripeId;
-        const doc = collection.doc(id);
+    const customer: DocumentData = await waitForDocumentToExistInCollection(
+      collection,
+      'email',
+      user.email
+    );
 
-        const unsubscribe = doc.onSnapshot(async (snapshot) => {
-          if (snapshot.exists) {
-            stripeId = snapshot.data().stripeId;
-          }
+    const doc = collection.doc(customer.doc.id);
+    const userDoc = await waitForDocumentToExistWithField(doc, 'stripeId');
 
-          if (!snapshot.exists && stripeId) {
-            const check = ($) => {
-              return $?.deleted;
-            };
+    await admin.auth().deleteUser(customer.doc.id);
 
-            const toRun = () => findCustomer(stripeId);
-            await repeat(toRun, check, 5, 2000);
-
-            unsubscribe();
-            resolve(true);
-          }
-
-          if (stripeId) await doc.delete();
-        });
-      });
-    };
-
-    return new Promise((resolve, reject) => {
-      const unsubscribe = collection.onSnapshot(async (snapshot) => {
-        const docs = snapshot.docChanges().map(($) => $.doc);
-
-        const customer: FirebaseFirestore.DocumentData = docs.filter(
-          ($) => $.data().email === email
-        )[0];
-
-        if (customer) {
-          await checkCustomer(customer.id);
-          unsubscribe();
-          resolve(true);
-        }
-      });
-    });
+    const check = ($) => $?.deleted;
+    const toRun = () => findCustomer(userDoc.data().stripeId);
+    await repeat(toRun, check, 5, 2000);
   });
 });
