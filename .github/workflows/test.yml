@@ -33,4 +33,4 @@ jobs:
       - name: Run tests with coverage
         run: npm run test
         env: 
-          credentials: ${{ secrets.STRIPE_API_KEY }}
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
