@@ -10,7 +10,7 @@ import {
 } from './helpers/utils';
 import { UserRecord } from 'firebase-functions/v1/auth';
 
-admin.initializeApp({ projectId: 'extensions-testing' });
+admin.initializeApp({ projectId: 'demo-project' });
 setupEmulator();
 
 const firestore = admin.firestore();

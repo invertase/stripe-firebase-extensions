@@ -9,7 +9,7 @@ import {
   waitForDocumentToExistWithField,
 } from './helpers/utils';
 
-admin.initializeApp({ projectId: 'extensions-testing' });
+admin.initializeApp({ projectId: 'demo-project' });
 setupEmulator();
 
 const firestore = admin.firestore();

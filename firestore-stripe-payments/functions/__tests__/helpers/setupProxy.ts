@@ -34,7 +34,7 @@ async function setEnv(key, value) {
 export const setupProxy = async () => {
   const PROXY_URL = await ngrok.connect(5001);
   const webhook = await setupWebhooks(
-    `${PROXY_URL}/extensions-testing/us-central1/handleWebhookEvents`
+    `${PROXY_URL}/demo-project/us-central1/handleWebhookEvents`
   );
 
   await setEnv('STRIPE_WEBHOOK_SECRET', webhook.secret);

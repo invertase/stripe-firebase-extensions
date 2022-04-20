@@ -6,7 +6,7 @@ import { findCustomer } from './helpers/stripeApi/customers';
 import { repeat } from './helpers/utils';
 import { auth } from 'firebase-admin';
 
-admin.initializeApp({ projectId: 'extensions-testing' });
+admin.initializeApp({ projectId: 'demo-project' });
 setupEmulator();
 
 const firestore = admin.firestore();

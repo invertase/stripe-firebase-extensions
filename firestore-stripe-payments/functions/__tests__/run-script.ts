@@ -5,12 +5,12 @@ import { setupProxy, cleanupProxy } from './helpers/setupProxy';
 (async () => {
   const proxyId = await setupProxy();
 
-  // await concurrently([
-  //   {
-  //     command: 'npx kill-port 5001, npx kill-port 8080',
-  //     name: 'Ready ports',
-  //   },
-  // ]);
+  await concurrently([
+    {
+      command: 'npx kill-port 5001 && npx kill-port 8080 && kill-port 9099',
+      name: 'Ready ports',
+    },
+  ]);
 
   const { result } = await concurrently(
     [

@@ -8,7 +8,7 @@ import {
   waitForDocumentToExistInCollection,
 } from './helpers/utils';
 
-admin.initializeApp({ projectId: 'extensions-testing' });
+admin.initializeApp({ projectId: 'demo-project' });
 setupEmulator();
 
 const firestore = admin.firestore();
@@ -19,7 +19,7 @@ describe('createCustomer', () => {
     user = await createFirebaseUser();
   });
 
-  test('successfully creates a new customer', async () => {
+  test('successfully creates a new customers', async () => {
     const collection = firestore.collection('customers');
 
     const customer: DocumentData = await waitForDocumentToExistInCollection(
