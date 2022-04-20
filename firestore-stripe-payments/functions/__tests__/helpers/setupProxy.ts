@@ -32,6 +32,7 @@ async function setEnv(key, value) {
 }
 
 export const setupProxy = async () => {
+  await setEnv('STRIPE_API_KEY', process.env.STRIPE_API_KEY);
   const PROXY_URL = await ngrok.connect(5001);
   const webhook = await setupWebhooks(
     `${PROXY_URL}/demo-project/us-central1/handleWebhookEvents`

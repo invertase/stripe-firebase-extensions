@@ -32,3 +32,5 @@ jobs:
           command: npm i -g firebase-tools
       - name: Run tests with coverage
         run: npm run test
+        env: 
+          credentials: ${{ secrets.STRIPE_API_KEY }}
