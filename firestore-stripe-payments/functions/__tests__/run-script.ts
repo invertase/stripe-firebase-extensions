@@ -7,7 +7,7 @@ import { setupProxy, cleanupProxy } from './helpers/setupProxy';
 
   await concurrently([
     {
-      command: 'npx kill-port 5001 && npx kill-port 8080 && npx kill-port 9099 && exit 0',
+      command: 'npx kill-port 5001 & npx kill-port 8080 & npx kill-port 9099 & exit 0',
       name: 'Ready ports',
     },
   ]);
