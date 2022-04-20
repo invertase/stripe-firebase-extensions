@@ -127,6 +127,11 @@ exports.createCheckoutSession = functions.firestore
       locale = 'auto',
       promotion_code,
       client_reference_id,
+      setup_future_usage,
+      after_expiration = {},
+      consent_collection = {},
+      expires_at,
+      phone_number_collection = {},
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -176,6 +181,10 @@ exports.createCheckoutSession = functions.firestore
           success_url,
           cancel_url,
           locale,
+          after_expiration,
+          consent_collection,
+          phone_number_collection,
+          ...(expires_at && { expires_at }),
         };
         if (payment_method_types) {
           sessionCreateParams.payment_method_types = payment_method_types;
@@ -191,6 +200,7 @@ exports.createCheckoutSession = functions.firestore
         } else if (mode === 'payment') {
           sessionCreateParams.payment_intent_data = {
             metadata,
+            ...(setup_future_usage && { setup_future_usage }),
           };
         }
         if (automatic_tax) {
@@ -244,6 +254,7 @@ exports.createCheckoutSession = functions.firestore
             currency,
             customer,
             metadata,
+            ...(setup_future_usage && { setup_future_usage }),
           };
           if (payment_method_types) {
             paymentIntentCreateParams.payment_method_types =

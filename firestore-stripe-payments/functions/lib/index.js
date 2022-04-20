@@ -121,7 +121,7 @@ exports.createCheckoutSession = functions.firestore
     .document(`/${config_1.default.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
     .onCreate(async (snap, context) => {
     var _a, _b;
-    const { client = 'web', amount, currency, mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types, shipping_rates = [], metadata = {}, automatic_payment_methods = { enabled: true }, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, customer_update = {}, locale = 'auto', promotion_code, client_reference_id, } = snap.data();
+    const { client = 'web', amount, currency, mode = 'subscription', price, success_url, cancel_url, quantity = 1, payment_method_types, shipping_rates = [], metadata = {}, automatic_payment_methods = { enabled: true }, automatic_tax = false, tax_rates = [], tax_id_collection = false, allow_promotion_codes = false, trial_from_plan = true, line_items, billing_address_collection = 'required', collect_shipping_address = false, customer_update = {}, locale = 'auto', promotion_code, client_reference_id, setup_future_usage, after_expiration = {}, consent_collection = {}, expires_at, phone_number_collection = {}, } = snap.data();
     try {
         logs.creatingCheckoutSession(context.params.id);
         // Get stripe customer id
@@ -146,25 +146,22 @@ exports.createCheckoutSession = functions.firestore
                     config_1.default.productsCollectionPath)
                     .doc('shipping_countries')
                     .get()).data()) === null || _a === void 0 ? void 0 : _a['allowed_countries']) !== null && _b !== void 0 ? _b : [] : [];
-            const sessionCreateParams = {
-                billing_address_collection,
-                shipping_address_collection: { allowed_countries: shippingCountries },
-                shipping_rates,
+            const sessionCreateParams = Object.assign({ billing_address_collection, shipping_address_collection: { allowed_countries: shippingCountries }, shipping_rates,
                 customer,
-                customer_update,
-                line_items: line_items
+                customer_update, line_items: line_items
                     ? line_items
                     : [
                         {
                             price,
                             quantity,
                         },
-                    ],
-                mode,
+                    ], mode,
                 success_url,
                 cancel_url,
                 locale,
-            };
+                after_expiration,
+                consent_collection,
+                phone_number_collection }, (expires_at && { expires_at }));
             if (payment_method_types) {
                 sessionCreateParams.payment_method_types = payment_method_types;
             }
@@ -178,9 +175,7 @@ exports.createCheckoutSession = functions.firestore
                 }
             }
             else if (mode === 'payment') {
-                sessionCreateParams.payment_intent_data = {
-                    metadata,
-                };
+                sessionCreateParams.payment_intent_data = Object.assign({ metadata }, (setup_future_usage && { setup_future_usage }));
             }
             if (automatic_tax) {
                 sessionCreateParams.automatic_tax = {
@@ -222,12 +217,10 @@ exports.createCheckoutSession = functions.firestore
                 if (!amount || !currency) {
                     throw new Error(`When using 'client:mobile' and 'mode:payment' you must specify amount and currency!`);
                 }
-                const paymentIntentCreateParams = {
-                    amount,
+                const paymentIntentCreateParams = Object.assign({ amount,
                     currency,
                     customer,
-                    metadata,
-                };
+                    metadata }, (setup_future_usage && { setup_future_usage }));
                 if (payment_method_types) {
                     paymentIntentCreateParams.payment_method_types =
                         payment_method_types;
