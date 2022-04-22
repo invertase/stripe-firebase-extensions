@@ -40,7 +40,7 @@ billingRequired: true # this extension makes requests to a third party API (Stri
 
 externalServices:
   - name: Stripe
-  - pricingUri: https://stripe.com/pricing
+    pricingUri: https://stripe.com/pricing
 
 roles:
   - role: firebaseauth.viewer
@@ -159,6 +159,9 @@ params:
       What is the default number of days the customer has before their payment is due?
       The invoice automatically closes after this number of days.
       You can override this default value for each invoice.
+    validationRegex: "^[0-9]+$"
+    validationErrorMessage: >
+      Please enter a valid number
     default: 7
     required: true
 
