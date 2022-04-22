@@ -20,6 +20,7 @@ import Stripe from 'stripe';
 import { InvoicePayload, OrderItem } from './interfaces';
 import * as logs from './logs';
 import config from './config';
+import { relevantInvoiceEvents } from './events';
 
 const stripe = new Stripe(config.stripeSecretKey, {
   apiVersion: '2020-03-02',
@@ -210,16 +211,6 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
     return;
   }
 );
-
-const relevantInvoiceEvents = new Set([
-  'invoice.created',
-  'invoice.finalized',
-  'invoice.payment_failed',
-  'invoice.payment_succeeded',
-  'invoice.payment_action_required',
-  'invoice.voided',
-  'invoice.marked_uncollectible',
-]);
 
 /* A Stripe webhook that updates each invoice's status in Cloud Firestore */
 export const updateInvoice = functions.handler.https.onRequest(
