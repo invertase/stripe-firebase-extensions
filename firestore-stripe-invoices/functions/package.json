@@ -4,7 +4,7 @@
   "scripts": {
     "prepare": "npm run build",
     "build": "npm run clean && tsc",
-    "build:watch": "tsc --watch",
+    "build:watch": "npm run clean && tsc --watch",
     "clean": "rimraf lib",
     "compile": "tsc",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md",
