@@ -131,6 +131,7 @@ exports.createCheckoutSession = functions.firestore
       after_expiration = {},
       consent_collection = {},
       expires_at,
+      phone_number_collection = {},
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -182,6 +183,7 @@ exports.createCheckoutSession = functions.firestore
           locale,
           after_expiration,
           consent_collection,
+          phone_number_collection,
           ...(expires_at && { expires_at }),
         };
         if (payment_method_types) {
