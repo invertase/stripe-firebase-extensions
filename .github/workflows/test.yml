@@ -36,5 +36,5 @@ jobs:
         run: echo "::add-mask::$STRIPE_WEBHOOK_SECRET"
       - name: Run tests with coverage
         run: npm run test
-        env: 
+        env:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}

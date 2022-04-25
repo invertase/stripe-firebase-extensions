@@ -1,23 +1,23 @@
 {
+  "functions": {
+    "source": "functions"
+  },
+  "emulators": {
     "functions": {
-      "source": "functions"
-    },
-    "emulators": {
-      "functions": {
-        "port": 5001
-      },
-      "firestore": {
-        "port": 8080
-      },
-      "auth": {
-        "port": 9099
-      },
-      "ui": {
-        "enabled": true
-      }
+      "port": 5001
     },
     "firestore": {
-      "rules": "firestore.rules",
-      "indexes": "firestore.indexes.json"
+      "port": 8080
+    },
+    "auth": {
+      "port": 9099
+    },
+    "ui": {
+      "enabled": true
     }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   }
+}

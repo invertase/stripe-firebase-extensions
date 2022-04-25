@@ -1,4 +1,4 @@
-import { faker } from "@faker-js/faker";
+import { faker } from '@faker-js/faker';
 import config from '../../lib/config';
 import { Product } from '../../src/interfaces';
 
