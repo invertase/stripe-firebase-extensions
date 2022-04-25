@@ -66,4 +66,4 @@ node_modules/
 # dotenv environment variables file
 .env
 # firebase.json
-# test-params.env
+test-params.env
