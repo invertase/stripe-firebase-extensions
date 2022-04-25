@@ -1,7 +1,6 @@
 import * as admin from 'firebase-admin';
 import config from '../src/config';
 import setupEmulator from './helpers/setupEmulator';
-import { cleanupCustomers } from './helpers/cleanup';
 import { findCustomer } from './helpers/stripeApi/customers';
 import { repeat } from './helpers/utils';
 import { auth } from 'firebase-admin';
