@@ -7,7 +7,7 @@
     "clean": "rimraf lib",
     "compile": "tsc",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md",
-    "test": "ts-node ./__tests__/run-script.ts && killall ngrok",
+    "test": "ts-node ./__tests__/run-script.ts",
     "test:ci": "firebase ext:dev:emulators:exec ./node_modules/.bin/jest --test-params=./__tests__/test-params.env --project=demo-project  --test-config=./__tests__/firebase.json",
     "test:watch": "ts-node ./__tests__/run-script-watch.ts",
     "setup:emulator": "firebase ext:dev:emulators:start  --test-params=./__tests__/test-params.env --project=demo-project --test-config=./__tests__/firebase.json",
