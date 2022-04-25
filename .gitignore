@@ -1,7 +1,7 @@
 .vscode
 node_modules/
 *.env
-!test-params.env
+!__tests__/test-params.env
 firebase-debug.log
 .DS_Store
 mods-test-data/key.json
