@@ -19,12 +19,11 @@ async function setEnv(key, value) {
       }
       var result = parse(data);
       result[key] = value;
-      console.log(result);
+
       fs.writeFile(pathToenvFile, stringify(result), (err) => {
         if (err) {
           return reject(err);
         }
-        console.log('File Saved');
         return resolve('Completed');
       });
     });
@@ -41,11 +40,11 @@ export const setupProxy = async () => {
     `${PROXY_URL}/demo-project/us-central1/handleWebhookEvents`
   );
 
-  await setEnv('STRIPE_WEBHOOK_SECRET', webhook.secret);
-  await setEnv('WEBHOOK_URL', webhook.url);
-  await setEnv('WEBHOOK_ID', webhook.id);
-
-  console.log('Done!', webhook.url);
+  await Promise.all([
+    await setEnv('STRIPE_WEBHOOK_SECRET', webhook.secret),
+    await setEnv('WEBHOOK_URL', webhook.url),
+    await setEnv('WEBHOOK_ID', webhook.id),
+  ])
 
   return webhook.id;
 };
