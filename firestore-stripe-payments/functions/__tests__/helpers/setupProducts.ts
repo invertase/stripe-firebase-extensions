@@ -1,6 +1,7 @@
-const { faker } = require('@faker-js/faker');
+import { faker } from "@faker-js/faker";
 import config from '../../lib/config';
 import { Product } from '../../src/interfaces';
+
 const stripe = require('stripe')(config.stripeSecretKey);
 
 export const generateRecurringPrice = async () => {

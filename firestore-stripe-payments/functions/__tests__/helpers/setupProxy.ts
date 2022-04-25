@@ -44,6 +44,12 @@ export const setupProxy = async () => {
     await setEnv('STRIPE_WEBHOOK_SECRET', webhook.secret),
     await setEnv('WEBHOOK_URL', webhook.url),
     await setEnv('WEBHOOK_ID', webhook.id),
+    await setEnv('LOCATION', "us-central1"),
+    await setEnv('PROJECT_ID', "demo-project"),
+    await setEnv('PRODUCTS_COLLECTION', "products"),
+    await setEnv('CUSTOMERS_COLLECTION', "customers"),
+    await setEnv('SYNC_USERS_ON_CREATE', "Sync"),
+    await setEnv('DELETE_STRIPE_CUSTOMERS', "Auto delete"),
   ])
 
   return webhook.id;
