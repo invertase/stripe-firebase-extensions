@@ -1,3 +1,7 @@
+## Version 0.2.0 - 2022-04-26
+
+[feat] - Add `invoice.paid`, `invoice.updated` to permitted webhook events list. #356
+
 ## Version 0.1.6 - 2021-02-11
 
 [feat] - Add `stripeInvoiceUrl` to the invoice object in Cloud Firestore. #132
