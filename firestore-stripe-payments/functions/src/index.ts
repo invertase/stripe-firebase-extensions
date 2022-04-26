@@ -314,43 +314,45 @@ exports.createCheckoutSession = functions.firestore
 /**
  * Create a billing portal link
  */
-exports.createPortalLink = functions.https.onCall(async (data, context) => {
-  // Checking that the user is authenticated.
-  if (!context.auth) {
-    // Throwing an HttpsError so that the client gets the error details.
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'The function must be called while authenticated!'
-    );
-  }
-  const uid = context.auth.uid;
-  try {
-    if (!uid) throw new Error('Not authenticated!');
-    const { returnUrl: return_url, locale = 'auto', configuration } = data;
-    // Get stripe customer id
-    const customer = (
-      await admin
-        .firestore()
-        .collection(config.customersCollectionPath)
-        .doc(uid)
-        .get()
-    ).data().stripeId;
-    const params: Stripe.BillingPortal.SessionCreateParams = {
-      customer,
-      return_url,
-      locale,
-    };
-    if (configuration) {
-      params.configuration = configuration;
+export const createPortalLink = functions.https.onCall(
+  async (data, context) => {
+    // Checking that the user is authenticated.
+    if (!context.auth) {
+      // Throwing an HttpsError so that the client gets the error details.
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'The function must be called while authenticated!'
+      );
     }
-    const session = await stripe.billingPortal.sessions.create(params);
-    logs.createdBillingPortalLink(uid);
-    return session;
-  } catch (error) {
-    logs.billingPortalLinkCreationError(uid, error);
-    throw new functions.https.HttpsError('internal', error.message);
+    const uid = context.auth.uid;
+    try {
+      if (!uid) throw new Error('Not authenticated!');
+      const { returnUrl: return_url, locale = 'auto', configuration } = data;
+      // Get stripe customer id
+      const customer = (
+        await admin
+          .firestore()
+          .collection(config.customersCollectionPath)
+          .doc(uid)
+          .get()
+      ).data().stripeId;
+      const params: Stripe.BillingPortal.SessionCreateParams = {
+        customer,
+        return_url,
+        locale,
+      };
+      if (configuration) {
+        params.configuration = configuration;
+      }
+      const session = await stripe.billingPortal.sessions.create(params);
+      logs.createdBillingPortalLink(uid);
+      return session;
+    } catch (error) {
+      logs.billingPortalLinkCreationError(uid, error);
+      throw new functions.https.HttpsError('internal', error.message);
+    }
   }
-});
+);
 
 /**
  * Prefix Stripe metadata keys with `stripe_metadata_` to be spread onto Product and Price docs in Cloud Firestore.

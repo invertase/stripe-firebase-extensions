@@ -16,7 +16,7 @@
     "ext:install": "npm run build && firebase ext:install ./$npm_config_ext/ --params=.env --project=$npm_config_project",
     "ext:update": "npm run build && firebase ext:update $npm_config_ext ./$npm_config_ext/ --project=$npm_config_project",
     "ext:uninstall": "firebase ext:uninstall $npm_config_ext --project=$npm_config_project",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "lerna run test --stream --concurrency 1"
   },
   "repository": {
     "type": "git",

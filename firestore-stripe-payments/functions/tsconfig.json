@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "lib": ["es2017"],
+    "types": ["./node_modules/stripe/types/2020-08-27", "jest", "node"],
+    "module": "commonjs",
+    "noImplicitReturns": true,
+    "outDir": "lib",
+    "sourceMap": true,
+    "target": "es2017",
+    "esModuleInterop": true,
+    "moduleResolution": "Node"
+  },
+  "compileOnSave": true,
+  "include": ["src", "__tests__"],
+  "exclude": ["__tests__"]
+}
