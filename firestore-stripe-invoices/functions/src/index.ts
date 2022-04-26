@@ -28,7 +28,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-invoices',
-    version: '0.1.6',
+    version: '0.2.0',
   },
 });
 
