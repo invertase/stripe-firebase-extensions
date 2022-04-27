@@ -2,9 +2,10 @@
   "name": "firestore-stripe-payments",
   "main": "lib/index.js",
   "scripts": {
-    "build": "npm run clean && ./node_modules/.bin/tsc",
-    "build:watch": "npm run clean &&  ./node_modules/.bin/tsc --watch",
+    "prepare": "npm run build",
     "clean": "rimraf lib",
+    "build": "npm run clean && tsc",
+    "build:watch": "tsc --watch",
     "compile": "tsc",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md",
     "test": "ts-node ./__tests__/run-script.ts",
