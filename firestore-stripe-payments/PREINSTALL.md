@@ -35,6 +35,10 @@ applications would want to implement using the extension.
 Use a package manager like NPM to install the above package, and use it in conjunction with
 the Firebase Web SDK.
 
+### Events
+
+This extension emits events, which allows you to listen to and run custom logic at different trigger points during the functioning of the extension. For example you can listen to events when a product has been added via the `product.created` event, or whenever a payment has succeeded through the `invoice.payment_succeeded` event.
+
 #### Additional setup
 
 Before installing this extension, set up the following Firebase services in your Firebase project:

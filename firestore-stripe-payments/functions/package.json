@@ -18,8 +18,8 @@
   "author": "Stripe (https://stripe.com/)",
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase-admin": "^9.9.0",
-    "firebase-functions": "^3.19.0",
+    "firebase-admin": "^10.2.0",
+    "firebase-functions": "^3.20.1",
     "stripe": "8.191.0"
   },
   "devDependencies": {
