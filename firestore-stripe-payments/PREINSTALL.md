@@ -60,10 +60,11 @@ This extension uses the following Firebase services which may have associated ch
 - Cloud Functions
 - Cloud Secret Manager
 - Firebase Authentication
+- If you enable events [Eventarc fees apply](https://cloud.google.com/eventarc/pricing).
 
 This extension also uses the following third-party services:
 
-- Stripe Payments ([pricing information](https://stripe.com/pricing)) 
+- Stripe Payments ([pricing information](https://stripe.com/pricing))
 - Stripe Billing (when using subscriptions. [pricing information](https://stripe.com/pricing#billing-pricing))
 
 You are responsible for any costs associated with your use of these services.
