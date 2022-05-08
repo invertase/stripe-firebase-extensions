@@ -15,7 +15,7 @@
  */
 
 import * as admin from 'firebase-admin';
-import { getEventarc } from 'firebase-admin/lib/eventarc';
+import { getEventarc } from 'firebase-admin/eventarc';
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
 import {
@@ -785,7 +785,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
             );
         }
 
-        eventChannel?.publish({
+        await eventChannel?.publish({
           type: `com.stripe.v1.${event.type}`,
           data: event.data.object,
         });

@@ -20,4 +20,8 @@ module.exports = {
     '!**/test-data/**',
   ],
   setupFiles: ['<rootDir>/__tests__/jest.setup.ts'],
+  moduleNameMapper: {
+    'firebase-admin/eventarc':
+      '<rootDir>/node_modules/firebase-admin/lib/eventarc/index.js',
+  },
 };
