@@ -55,7 +55,7 @@ resources:
       Creates a Stripe customer object when a new user signs up.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/firebase.auth/eventTypes/user.create
         resource: projects/${PROJECT_ID}
@@ -66,7 +66,7 @@ resources:
       Creates a Checkout session to collect the customer's payment details.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.create
         resource: projects/${PROJECT_ID}/databases/(default)/documents/${CUSTOMERS_COLLECTION}/{uid}/checkout_sessions/{id}
@@ -77,7 +77,7 @@ resources:
       Creates links to the customer portal for the user to manage their payment & subscription details.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs14
       httpsTrigger: {}
 
   - name: handleWebhookEvents
@@ -86,7 +86,7 @@ resources:
       Handles Stripe webhook events to keep subscription statuses in sync and update custom claims.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs14
       httpsTrigger: {}
 
   - name: onUserDeleted
@@ -95,7 +95,7 @@ resources:
       Deletes the Stripe customer object and cancels all their subscriptions when the user is deleted in Firebase Authentication.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/firebase.auth/eventTypes/user.delete
         resource: projects/${PROJECT_ID}
@@ -106,7 +106,7 @@ resources:
       Deletes the Stripe customer object and cancels all their subscriptions when the customer doc in Cloud Firestore is deleted.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.delete
         resource: projects/${PROJECT_ID}/databases/(default)/documents/${CUSTOMERS_COLLECTION}/{uid}
@@ -246,3 +246,52 @@ params:
       and configuring this value.
     example: whsec_1234567890
     required: false
+events:
+  - type: com.stripe.v1.product.created
+    description: Occurs whenever a product is created.
+  - type: com.stripe.v1.product.updated
+    description: Occurs whenever a product is updated.
+  - type: com.stripe.v1.product.deleted
+    description: Occurs whenever a product is deleted.
+  - type: com.stripe.v1.price.created
+    description: Occurs whenever a price is created.
+  - type: com.stripe.v1.price.updated
+    description: Occurs whenever a price is updated.
+  - type: com.stripe.v1.price.deleted
+    description: Occurs whenever a price is deleted.
+  - type: com.stripe.v1.checkout.session.completed
+    description: Occurs when a Checkout Session has been successfully completed.
+  - type: com.stripe.v1.checkout.session.async_payment_succeeded
+    description: Occurs when a payment intent using a delayed payment method finally succeeds.
+  - type: com.stripe.v1.checkout.session.async_payment_failed
+    description: Occurs when a payment intent using a delayed payment method fails.
+  - type: com.stripe.v1.customer.subscription.created
+    description: Occurs whenever a customer is signed up for a new plan.
+  - type: com.stripe.v1.customer.subscription.updated
+    description: Occurs whenever a subscription changes (e.g., switching from one plan to another, or changing the status from trial to active).
+  - type: com.stripe.v1.customer.subscription.deleted
+    description: Occurs whenever a customer's subscription ends.
+  - type: com.stripe.v1.tax_rate.created
+    description: Occurs whenever a new tax rate is created.
+  - type: com.stripe.v1.tax_rate.updated
+    description: Occurs whenever a tax rate is updated.
+  - type: com.stripe.v1.invoice.paid
+    description: Occurs whenever an invoice payment attempt succeeds or an invoice is marked as paid out-of-band.
+  - type: com.stripe.v1.invoice.payment_succeeded
+    description: Occurs whenever an invoice payment attempt succeeds.
+  - type: com.stripe.v1.invoice.payment_failed
+    description: Occurs whenever an invoice payment attempt fails, due either to a declined payment or to the lack of a stored payment method.
+  - type: com.stripe.v1.invoice.upcoming
+    description: Occurs X number of days before a subscription is scheduled to create an invoice that is automatically charged—where X is determined by your subscriptions settings.
+  - type: com.stripe.v1.invoice.marked_uncollectible
+    description: Occurs whenever an invoice is marked uncollectible.
+  - type: com.stripe.v1.invoice.payment_action_required
+    description: Occurs whenever an invoice payment attempt requires further user action to complete.
+  - type: com.stripe.v1.payment_intent.processing
+    description: Occurs when a PaymentIntent has started processing.
+  - type: com.stripe.v1.payment_intent.succeeded
+    description: Occurs when a PaymentIntent has successfully completed payment.
+  - type: com.stripe.v1.payment_intent.canceled
+    description: Occurs when a PaymentIntent is canceled.
+  - type: com.stripe.v1.payment_intent.payment_failed
+    description: Occurs when a PaymentIntent has failed the attempt to create a payment method or a payment.

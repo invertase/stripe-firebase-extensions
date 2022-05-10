@@ -15,6 +15,7 @@
  */
 
 import * as admin from 'firebase-admin';
+import { getEventarc } from 'firebase-admin/eventarc';
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
 import {
@@ -39,6 +40,12 @@ const stripe = new Stripe(config.stripeSecretKey, {
 });
 
 admin.initializeApp();
+
+const eventChannel =
+  process.env.EVENTARC_CHANNEL &&
+  getEventarc().channel(process.env.EVENTARC_CHANNEL, {
+    allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
+  });
 
 /**
  * Create a customer object in Stripe when a user is created.
@@ -777,6 +784,12 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
               event.type
             );
         }
+
+        await eventChannel?.publish({
+          type: `com.stripe.v1.${event.type}`,
+          data: event.data.object,
+        });
+
         logs.webhookHandlerSucceeded(event.id, event.type);
       } catch (error) {
         logs.webhookHandlerError(error, event.id, event.type);
