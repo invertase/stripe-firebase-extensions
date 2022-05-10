@@ -35,7 +35,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-payments',
-    version: '0.2.5',
+    version: '0.2.6',
   },
 });
 

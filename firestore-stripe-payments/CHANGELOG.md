@@ -1,11 +1,14 @@
+## Version 0.2.6 - 2022-05-10
+[feat] Added Stripe extension events. This extension emits events, which allows you to listen to and run custom logic at different trigger points during the functioning of the extension. For example you can listen to events when a product has been added via the `product.created` event, or whenever a payment has succeeded through the `invoice.payment_succeeded` event.
+
 ## Version 0.2.5 - 2022-04-20
-[feat] Add parameter to enable phone number collection. 
+[feat] Add parameter to enable phone number collection. (#371)
 
-[feat] Add parameters to enable expired Checkout Session recovery. 
+[feat] Add parameters to enable expired Checkout Session recovery. (#350)
 
-[feat] Add `setup_future_usage` parameter for one-time payment flows.
+[feat] Add `setup_future_usage` parameter for one-time payment flows. (#347)
 
-[feat] Use dynamic parameter reference in README.
+[feat] Use dynamic parameter reference in README. (#336)
 
 ## Version 0.2.4 - 2021-12-22
 
