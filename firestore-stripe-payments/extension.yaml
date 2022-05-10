@@ -55,7 +55,7 @@ resources:
       Creates a Stripe customer object when a new user signs up.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/firebase.auth/eventTypes/user.create
         resource: projects/${PROJECT_ID}
@@ -66,7 +66,7 @@ resources:
       Creates a Checkout session to collect the customer's payment details.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.create
         resource: projects/${PROJECT_ID}/databases/(default)/documents/${CUSTOMERS_COLLECTION}/{uid}/checkout_sessions/{id}
@@ -77,7 +77,7 @@ resources:
       Creates links to the customer portal for the user to manage their payment & subscription details.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs14
       httpsTrigger: {}
 
   - name: handleWebhookEvents
@@ -86,7 +86,7 @@ resources:
       Handles Stripe webhook events to keep subscription statuses in sync and update custom claims.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs14
       httpsTrigger: {}
 
   - name: onUserDeleted
@@ -95,7 +95,7 @@ resources:
       Deletes the Stripe customer object and cancels all their subscriptions when the user is deleted in Firebase Authentication.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/firebase.auth/eventTypes/user.delete
         resource: projects/${PROJECT_ID}
@@ -106,7 +106,7 @@ resources:
       Deletes the Stripe customer object and cancels all their subscriptions when the customer doc in Cloud Firestore is deleted.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs14
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.delete
         resource: projects/${PROJECT_ID}/databases/(default)/documents/${CUSTOMERS_COLLECTION}/{uid}
