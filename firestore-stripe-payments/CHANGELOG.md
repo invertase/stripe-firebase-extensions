@@ -1,5 +1,5 @@
 ## Version 0.2.6 - 2022-05-10
-[feat] Added Stripe extension events. This extension emits events, which allows you to listen to and run custom logic at different trigger points during the functioning of the extension. For example you can listen to events when a product has been added via the `product.created` event, or whenever a payment has succeeded through the `invoice.payment_succeeded` event.
+[feat] Added Stripe extension events. This extension emits events, which allows you to listen to and run custom logic at different trigger points during the functioning of the extension. For example you can listen to events when a product has been added via the `product.created` event, or whenever a payment has succeeded through the `invoice.payment_succeeded` event. (#386)
 
 ## Version 0.2.5 - 2022-04-20
 [feat] Add parameter to enable phone number collection. (#371)
