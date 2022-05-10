@@ -1,3 +1,12 @@
+## Version 0.2.5 - 2022-04-20
+[feat] Add parameter to enable phone number collection. 
+
+[feat] Add parameters to enable expired Checkout Session recovery. 
+
+[feat] Add `setup_future_usage` parameter for one-time payment flows.
+
+[feat] Use dynamic parameter reference in README.
+
 ## Version 0.2.4 - 2021-12-22
 
 [feat] Add support to bring phone numbers saved on Firebase users into Stripe when creating a checkout session for a subscription. (#251)
