@@ -1,20 +1,40 @@
-name: Test
+name: Testing
 
 on:
+  push:
+    branches:
+      - "**"
   pull_request:
-    paths:
-      - "firestore-stripe-web-sdk/**"
     branches:
       - "**"
 
 jobs:
-  testing:
+  nodejs:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["12", "14"]
+    name: node.js_${{ matrix.node }}_test
     steps:
-      - uses: actions/checkout@v1
-      - name: NPM Install
-        run: npm i
-      - name: Unit Test
-        run: lerna run --scope @stripe/firestore-stripe-payments test
-      - name: API Report
-        run: lerna run --scope @stripe/firestore-stripe-payments api-extractor
+      - uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - name: NPM install
+        run: npm install
+      - name: Install firebase CLI
+        uses: nick-invision/retry@v1
+        with:
+          timeout_minutes: 10
+          retry_wait_seconds: 60
+          max_attempts: 3
+          command: npm i -g firebase-tools
+      - name: Use extension commands
+        run: firebase --open-sesame extdev
+      - name: mask env paramaters
+        run: echo "::add-mask::$STRIPE_WEBHOOK_SECRET"
+      - name: Run tests with coverage
+        run: npm run test
+        env:
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}

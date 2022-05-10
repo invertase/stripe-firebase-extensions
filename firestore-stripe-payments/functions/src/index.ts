@@ -15,6 +15,7 @@
  */
 
 import * as admin from 'firebase-admin';
+import { getEventarc } from 'firebase-admin/eventarc';
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
 import {
@@ -34,11 +35,17 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-payments',
-    version: '0.2.5',
+    version: '0.2.6',
   },
 });
 
 admin.initializeApp();
+
+const eventChannel =
+  process.env.EVENTARC_CHANNEL &&
+  getEventarc().channel(process.env.EVENTARC_CHANNEL, {
+    allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
+  });
 
 /**
  * Create a customer object in Stripe when a user is created.
@@ -314,43 +321,45 @@ exports.createCheckoutSession = functions.firestore
 /**
  * Create a billing portal link
  */
-exports.createPortalLink = functions.https.onCall(async (data, context) => {
-  // Checking that the user is authenticated.
-  if (!context.auth) {
-    // Throwing an HttpsError so that the client gets the error details.
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'The function must be called while authenticated!'
-    );
-  }
-  const uid = context.auth.uid;
-  try {
-    if (!uid) throw new Error('Not authenticated!');
-    const { returnUrl: return_url, locale = 'auto', configuration } = data;
-    // Get stripe customer id
-    const customer = (
-      await admin
-        .firestore()
-        .collection(config.customersCollectionPath)
-        .doc(uid)
-        .get()
-    ).data().stripeId;
-    const params: Stripe.BillingPortal.SessionCreateParams = {
-      customer,
-      return_url,
-      locale,
-    };
-    if (configuration) {
-      params.configuration = configuration;
+export const createPortalLink = functions.https.onCall(
+  async (data, context) => {
+    // Checking that the user is authenticated.
+    if (!context.auth) {
+      // Throwing an HttpsError so that the client gets the error details.
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'The function must be called while authenticated!'
+      );
     }
-    const session = await stripe.billingPortal.sessions.create(params);
-    logs.createdBillingPortalLink(uid);
-    return session;
-  } catch (error) {
-    logs.billingPortalLinkCreationError(uid, error);
-    throw new functions.https.HttpsError('internal', error.message);
+    const uid = context.auth.uid;
+    try {
+      if (!uid) throw new Error('Not authenticated!');
+      const { returnUrl: return_url, locale = 'auto', configuration } = data;
+      // Get stripe customer id
+      const customer = (
+        await admin
+          .firestore()
+          .collection(config.customersCollectionPath)
+          .doc(uid)
+          .get()
+      ).data().stripeId;
+      const params: Stripe.BillingPortal.SessionCreateParams = {
+        customer,
+        return_url,
+        locale,
+      };
+      if (configuration) {
+        params.configuration = configuration;
+      }
+      const session = await stripe.billingPortal.sessions.create(params);
+      logs.createdBillingPortalLink(uid);
+      return session;
+    } catch (error) {
+      logs.billingPortalLinkCreationError(uid, error);
+      throw new functions.https.HttpsError('internal', error.message);
+    }
   }
-});
+);
 
 /**
  * Prefix Stripe metadata keys with `stripe_metadata_` to be spread onto Product and Price docs in Cloud Firestore.
@@ -775,6 +784,12 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
               event.type
             );
         }
+
+        await eventChannel?.publish({
+          type: `com.stripe.v1.${event.type}`,
+          data: event.data.object,
+        });
+
         logs.webhookHandlerSucceeded(event.id, event.type);
       } catch (error) {
         logs.webhookHandlerError(error, event.id, event.type);
