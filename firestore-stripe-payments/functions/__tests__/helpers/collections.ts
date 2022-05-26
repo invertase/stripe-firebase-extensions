@@ -5,30 +5,40 @@ import {
   waitForDocumentToExistWithField,
 } from './utils';
 import { UserRecord } from 'firebase-functions/v1/auth';
+import setupEmulator from './setupEmulator';
 
 if (admin.apps.length === 0) {
   admin.initializeApp({ projectId: 'demo-project' });
 }
 
+setupEmulator();
+
 const firestore = admin.firestore();
 
-export const customerCollection = firestore.collection('customers');
+function customerCollection() {
+  return firestore.collection('customers');
+}
 
-export const paymentsCollection = (userId) => {
+function paymentsCollection(userId) {
   return firestore.collection('customers').doc(userId).collection('payments');
-};
+}
 
-export const findCustomerInCollection = async (user: UserRecord) => {
-  const doc = customerCollection.doc(user.uid);
-  const customerDoc = await waitForDocumentToExistWithField(doc, 'stripeId');
+export async function findCustomerInCollection(user: UserRecord) {
+  const doc = firestore.collection('customers').doc(user.uid);
 
-  return { docId: user.uid, ...customerDoc.data() };
-};
+  const customerDoc = await waitForDocumentToExistWithField(
+    doc,
+    'stripeId',
+    60000
+  );
 
-export const findCustomerPaymentInCollection = async (
+  return Promise.resolve({ docId: user.uid, ...customerDoc.data() });
+}
+
+export async function findCustomerPaymentInCollection(
   userId: string,
   stripeId: string
-) => {
+) {
   const paymentDoc: DocumentData = await waitForDocumentToExistInCollection(
     paymentsCollection(userId),
     'customer',
@@ -43,10 +53,10 @@ export const findCustomerPaymentInCollection = async (
   );
 
   return updatedPaymentDoc.data();
-};
+}
 
-export const createCheckoutSession = async (userId, subscription) => {
-  const checkoutSessionCollection = customerCollection
+export async function createCheckoutSession(userId, subscription) {
+  const checkoutSessionCollection = customerCollection()
     .doc(userId)
     .collection('checkout_sessions');
 
@@ -63,4 +73,4 @@ export const createCheckoutSession = async (userId, subscription) => {
   );
 
   return checkoutSessionDoc.data();
-};
+}
