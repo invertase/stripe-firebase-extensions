@@ -1,13 +1,13 @@
 import * as admin from 'firebase-admin';
 import { DocumentData } from '@google-cloud/firestore';
-import setupEmulator from './helpers/setupEmulator';
-import { findCustomer } from './helpers/stripeApi/customers';
+import setupEmulator from './../../helpers/setupEmulator';
+import { findCustomer } from './../../helpers/stripeApi/customers';
 import {
   repeat,
   waitForDocumentToExistWithField,
   waitForDocumentToExistInCollection,
   createFirebaseUser,
-} from './helpers/utils';
+} from './../../helpers/utils';
 import { UserRecord } from 'firebase-functions/v1/auth';
 
 admin.initializeApp({ projectId: 'demo-project' });

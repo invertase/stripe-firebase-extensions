@@ -1,13 +1,13 @@
 import * as admin from 'firebase-admin';
 import { DocumentReference, DocumentData } from '@google-cloud/firestore';
 import { UserRecord } from 'firebase-functions/v1/auth';
-import setupEmulator from './helpers/setupEmulator';
-import { generateRecurringPrice } from './helpers/setupProducts';
+import setupEmulator from '../../helpers/setupEmulator';
+import { generateRecurringPrice } from '../../helpers/setupProducts';
 import {
   createFirebaseUser,
   waitForDocumentToExistInCollection,
   waitForDocumentToExistWithField,
-} from './helpers/utils';
+} from '../../helpers/utils';
 
 admin.initializeApp({ projectId: 'demo-project' });
 setupEmulator();

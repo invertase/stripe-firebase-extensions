@@ -1,14 +1,14 @@
 import * as admin from 'firebase-admin';
 import { DocumentData } from '@google-cloud/firestore';
 import functions from 'firebase-functions-test';
-import * as cloudFunctions from '../src';
-import setupEmulator from './helpers/setupEmulator';
+import * as cloudFunctions from '../../../src';
+import setupEmulator from '../../helpers/setupEmulator';
 
 import {
   createFirebaseUser,
   waitForDocumentToExistInCollection,
   waitForDocumentToExistWithField,
-} from './helpers/utils';
+} from '../../helpers/utils';
 import { UserRecord } from 'firebase-functions/v1/auth';
 
 const testEnv = functions({ projectId: 'demo-project' });
