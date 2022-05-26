@@ -29,7 +29,7 @@ jobs:
           timeout_minutes: 10
           retry_wait_seconds: 60
           max_attempts: 3
-          command: npm i -g firebase-tools
+          command: npm i -g firebase-tools@10.9.2
       - name: Use extension commands
         run: firebase --open-sesame extdev
       - name: mask env paramaters
