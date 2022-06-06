@@ -23,7 +23,7 @@ import config from './config';
 import { relevantInvoiceEvents } from './events';
 
 const stripe = new Stripe(config.stripeSecretKey, {
-  apiVersion: '2020-03-02',
+  apiVersion: '2020-08-27',
   // Register extension as a Stripe plugin
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
@@ -43,6 +43,7 @@ const createInvoice = async function ({
   default_tax_rates = [],
   transfer_data,
   description = '',
+  on_behalf_of = '',
 }: {
   customer: Stripe.Customer;
   orderItems: Array<OrderItem>;
@@ -54,6 +55,7 @@ const createInvoice = async function ({
     amount?: number;
   };
   description?: string;
+  on_behalf_of?: string;
 }) {
   try {
     // Create an invoice item for each item in the document
@@ -85,6 +87,7 @@ const createInvoice = async function ({
       description,
     };
     if (transfer_data) invoiceCreateParams.transfer_data = transfer_data;
+    if (on_behalf_of) invoiceCreateParams.on_behalf_of = on_behalf_of;
     const invoice: Stripe.Invoice = await stripe.invoices.create(
       invoiceCreateParams,
       { idempotencyKey: `invoices-create-${idempotencyKey}` }
