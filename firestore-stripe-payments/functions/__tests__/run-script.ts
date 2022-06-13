@@ -8,7 +8,7 @@ import { setupProxy, cleanupProxy } from './helpers/setupProxy';
   const { result } = await concurrently(
     [
       {
-        command: 'npm run test:ci',
+        command: 'npm run exec:emulator',
         name: 'testing',
       },
     ],
