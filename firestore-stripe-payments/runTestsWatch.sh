@@ -11,6 +11,5 @@ done
 
 echo "Firestore emulator is online!" 
 
-do
-wait jest --coverage --detectOpenHandles --forceExit
-done
+cd ../functions
+jest --watch
