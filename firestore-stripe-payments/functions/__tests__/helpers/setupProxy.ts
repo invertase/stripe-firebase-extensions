@@ -32,7 +32,9 @@ async function setEnv(key: string, value, isSecret?: boolean) {
 
 export const setupProxy = async () => {
   /** Set Stripe secret if provided or running in CI */
-  await setEnv('STRIPE_API_KEY', process.env.STRIPE_API_KEY, true);
+  if (process.env.STRIPE_API_KEY) {
+    await setEnv('STRIPE_API_KEY', process.env.STRIPE_API_KEY, true);
+  }
 
   /** Load Stripe key before initialisation */
   fs.readFile(pathTosecretsFile, 'utf8', (err, data) => {
