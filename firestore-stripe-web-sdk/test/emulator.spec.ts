@@ -94,7 +94,7 @@ use(require("chai-as-promised"));
 describe("Emulator tests", () => {
   const app: FirebaseApp = initializeApp({
     apiKey: "fake-api-key",
-    projectId: "fake-project-id",
+    projectId: "demo-project",
   });
 
   const payments: StripePayments = getStripePayments(app, {

@@ -1,26 +1,26 @@
 const ngrok = require('ngrok');
 const fs = require('fs');
-const path = require('path');
-
-const pathToenvFile = path.resolve(__dirname, '../test-params.env');
-
-require('dotenv').config({
-  path: path.resolve(pathToenvFile),
-});
 const { parse, stringify } = require('envfile');
 
 import { clearWebhooks, setupWebhooks } from './webhooks';
+import { pathTosecretsFile, pathToenvFile } from './setupEnvironment';
+import { setupEnvironment } from './setupEnvironment';
 
-async function setEnv(key, value) {
+async function setEnv(key: string, value, isSecret?: boolean) {
   return new Promise((resolve, reject) => {
-    fs.readFile(pathToenvFile, 'utf8', function (err, data) {
+    /** Load Stripe key into env */
+    setupEnvironment();
+
+    const path = isSecret ? pathTosecretsFile : pathToenvFile;
+
+    fs.readFile(path, 'utf8', function (err, data) {
       if (err) {
         return reject(err);
       }
       var result = parse(data);
       result[key] = value;
 
-      fs.writeFile(pathToenvFile, stringify(result), (err) => {
+      fs.writeFile(path, stringify(result), (err) => {
         if (err) {
           return reject(err);
         }
@@ -31,17 +31,24 @@ async function setEnv(key, value) {
 }
 
 export const setupProxy = async () => {
+  /** Set Stripe secret if provided or running in CI */
   if (process.env.STRIPE_API_KEY) {
-    await setEnv('STRIPE_API_KEY', process.env.STRIPE_API_KEY);
+    await setEnv('STRIPE_API_KEY', process.env.STRIPE_API_KEY, true);
   }
+
+  /** Load Stripe key before initialisation */
+  fs.readFile(pathTosecretsFile, 'utf8', (err, data) => {
+    const { STRIPE_API_KEY } = parse(data);
+    process.env.STRIPE_API_KEY = STRIPE_API_KEY;
+  });
 
   const PROXY_URL = await ngrok.connect(5001);
   const webhook = await setupWebhooks(
-    `${PROXY_URL}/demo-project/us-central1/handleWebhookEvents`
+    `${PROXY_URL}/demo-project/us-central1/ext-firestore-stripe-payments-handleWebhookEvents`
   );
 
   await Promise.all([
-    await setEnv('STRIPE_WEBHOOK_SECRET', webhook.secret),
+    await setEnv('STRIPE_WEBHOOK_SECRET', webhook.secret, true),
     await setEnv('WEBHOOK_URL', webhook.url),
     await setEnv('WEBHOOK_ID', webhook.id),
     await setEnv('LOCATION', 'us-central1'),
@@ -51,6 +58,9 @@ export const setupProxy = async () => {
     await setEnv('SYNC_USERS_ON_CREATE', 'Sync'),
     await setEnv('DELETE_STRIPE_CUSTOMERS', 'Auto delete'),
   ]);
+
+  /** Load additional key into env */
+  setupEnvironment();
 
   return webhook.id;
 };

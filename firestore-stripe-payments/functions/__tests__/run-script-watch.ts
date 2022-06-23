@@ -23,11 +23,11 @@ import { setupProxy, cleanupProxy } from './helpers/setupProxy';
   await concurrently(
     [
       {
-        command: 'npm run setup:emulator',
-        name: 'testing',
+        command: 'npm run start:emulator',
+        name: 'emulator',
       },
       {
-        command: 'sh ./__tests__/runTestsWatch.sh',
+        command: 'sh ../runTestsWatch.sh',
         name: 'testing',
       },
     ],
