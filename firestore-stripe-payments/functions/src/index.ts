@@ -139,6 +139,8 @@ exports.createCheckoutSession = functions.firestore
       consent_collection = {},
       expires_at,
       phone_number_collection = {},
+      trial_end,
+      trial_period_days
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -203,6 +205,12 @@ exports.createCheckoutSession = functions.firestore
           };
           if (!automatic_tax) {
             sessionCreateParams.subscription_data.default_tax_rates = tax_rates;
+          }
+          if (trial_end) {
+            sessionCreateParams.subscription_data.trial_end = trial_end;
+          }
+          if (trial_period_days) {
+            sessionCreateParams.subscription_data.trial_period_days = trial_period_days;
           }
         } else if (mode === 'payment') {
           sessionCreateParams.payment_intent_data = {
