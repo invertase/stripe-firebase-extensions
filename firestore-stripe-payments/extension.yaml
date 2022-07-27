@@ -248,7 +248,7 @@ params:
     required: false
 
   - param: CREATE_CHECKOUT_SESSION_MIN_INSTANCES
-    label: Minimum instances for create checkout handler
+    label: Minimum instances for createCheckoutSession function
     type: secret
     description: >-
       How many instances should be always ready to process checkout requests?
