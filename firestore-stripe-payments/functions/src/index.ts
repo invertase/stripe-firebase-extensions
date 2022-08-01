@@ -155,6 +155,7 @@ exports.createCheckoutSession = functions.firestore
         });
       }
       const customer = customerRecord.stripeId;
+
       if (client === 'web') {
         // Get shipping countries
         const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] =
@@ -282,9 +283,26 @@ exports.createCheckoutSession = functions.firestore
           });
           setupIntentClientSecret = setupIntent.client_secret;
         } else {
-          throw new Error(
-            `Mode '${mode} is not supported for 'client:mobile'!`
-          );
+          const subscription = await stripe.subscriptions.create({
+            customer,
+            items: [{ plan: price }],
+            payment_behavior: 'default_incomplete',
+            expand: ['latest_invoice.payment_intent'],
+            metadata: {
+              firebaseUserUID: context.params.id,
+            },
+          });
+
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount: subscription.items.data[0].plan.amount,
+            currency: 'gbp',
+            customer: customer.id,
+            automatic_payment_methods: {
+              enabled: true,
+            },
+          });
+
+          paymentIntentClientSecret = paymentIntent.client_secret;
         }
         const ephemeralKey = await stripe.ephemeralKeys.create(
           { customer },
@@ -298,7 +316,6 @@ exports.createCheckoutSession = functions.firestore
             created: admin.firestore.Timestamp.now(),
             ephemeralKeySecret: ephemeralKey.secret,
             paymentIntentClientSecret,
-            setupIntentClientSecret,
           },
           { merge: true }
         );

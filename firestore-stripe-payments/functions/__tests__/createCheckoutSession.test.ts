@@ -47,6 +47,7 @@ describe('createCheckoutSession', () => {
           cancel_url: 'http://test.com/cancel',
           line_items: [
             {
+              //@ts-ignore
               price: price.id,
               quantity: 1,
             },
@@ -69,5 +70,50 @@ describe('createCheckoutSession', () => {
     test.skip('throws an error when cancel_url has not been provided', async () => {});
     test.skip('throws an error when a line items parameter has not been provided', async () => {});
     test.skip('throws an error when a subscription data array parameter has not been provided', async () => {});
+  });
+
+  describe.only('using a mobile client', () => {
+    test('successfully creates a checkout session', async () => {
+      const collection = firestore.collection('customers');
+
+      const customer: DocumentData = await waitForDocumentToExistInCollection(
+        collection,
+        'email',
+        user.email
+      );
+
+      const checkoutSessionCollection = collection
+        .doc(customer.doc.id)
+        .collection('checkout_sessions');
+
+      const checkoutSessionDocument: DocumentReference =
+        await checkoutSessionCollection.add({
+          client: 'mobile',
+          mode: 'subscription',
+          success_url: 'http://test.com/success',
+          cancel_url: 'http://test.com/cancel',
+          price: 'price_1LMBMRIl6Q31mK3X483xUwh5',
+        });
+
+      const customerDoc = await waitForDocumentToExistWithField(
+        checkoutSessionDocument,
+        'created'
+      );
+
+      const {
+        amount,
+        client,
+        success_url,
+        ephemeralKeySecret,
+        paymentIntentClientSecret,
+        error,
+      } = customerDoc.data();
+
+      expect(client).toBe('mobile');
+      expect(success_url).toBe('http://test.com/success');
+      expect(paymentIntentClientSecret).toBeDefined();
+      expect(ephemeralKeySecret).toBeDefined();
+      expect(error).toBeUndefined();
+    });
   });
 });
