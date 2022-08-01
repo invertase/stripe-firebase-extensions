@@ -802,10 +802,12 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
             );
         }
 
-        await eventChannel?.publish({
-          type: `com.stripe.v1.${event.type}`,
-          data: event.data.object,
-        });
+        if (eventChannel) {
+          await eventChannel?.publish({
+            type: `com.stripe.v1.${event.type}`,
+            data: event.data.object,
+          });
+        }
 
         logs.webhookHandlerSucceeded(event.id, event.type);
       } catch (error) {
