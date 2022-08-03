@@ -526,7 +526,6 @@ Check out some of these other extensions:
 
 - [Check out the Cloud Functions for Firebase codelab](https://codelabs.developers.google.com/codelabs/firebase-cloud-functions/#0)
 - [Create Stripe customers and charge them on Firestore write](https://github.com/firebase/functions-samples/tree/master/stripe)
-- [Firebase mobile payments: Android & iOS with Cloud Functions for Firebase](https://github.com/stripe-samples/firebase-mobile-payments)
 
 ### Learn more about Stripe
 
