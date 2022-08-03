@@ -2,12 +2,17 @@ import * as admin from 'firebase-admin';
 import { DocumentReference, DocumentData } from '@google-cloud/firestore';
 import { UserRecord } from 'firebase-functions/v1/auth';
 import setupEmulator from './helpers/setupEmulator';
-import { generateRecurringPrice } from './helpers/setupProducts';
+import {
+  createRandomProduct,
+  createRandomSubscription,
+  generateRecurringPrice,
+} from './helpers/setupProducts';
 import {
   createFirebaseUser,
   waitForDocumentToExistInCollection,
   waitForDocumentToExistWithField,
 } from './helpers/utils';
+import { Subscription } from '../src/interfaces';
 
 admin.initializeApp({ projectId: 'demo-project' });
 setupEmulator();
@@ -73,6 +78,11 @@ describe('createCheckoutSession', () => {
   });
 
   describe('using a mobile client', () => {
+    let price: Subscription;
+    beforeEach(async () => {
+      price = await generateRecurringPrice();
+    });
+
     test('successfully creates a checkout session', async () => {
       const collection = firestore.collection('customers');
 
@@ -92,7 +102,8 @@ describe('createCheckoutSession', () => {
           mode: 'subscription',
           success_url: 'http://test.com/success',
           cancel_url: 'http://test.com/cancel',
-          price: 'price_1LMBMRIl6Q31mK3X483xUwh5',
+          //@ts-ignore
+          price: price.id,
         });
 
       const customerDoc = await waitForDocumentToExistWithField(
