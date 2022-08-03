@@ -293,16 +293,9 @@ exports.createCheckoutSession = functions.firestore
             },
           });
 
-          const paymentIntent = await stripe.paymentIntents.create({
-            amount: subscription.items.data[0].plan.amount,
-            currency: 'gbp',
-            customer: customer.id,
-            automatic_payment_methods: {
-              enabled: true,
-            },
-          });
-
-          paymentIntentClientSecret = paymentIntent.client_secret;
+          paymentIntentClientSecret =
+            //@ts-ignore
+            subscription.latest_invoice.payment_intent.client_secret;
         }
         const ephemeralKey = await stripe.ephemeralKeys.create(
           { customer },
