@@ -21,16 +21,6 @@ export const generateRecurringPrice = async () => {
   return price;
 };
 
-export const createRandomSubscription = async (): Promise<Subscription> => {
-  const name = faker.commerce.product();
-  const subscription: Subscription = await stripe.subscriptions.create({
-    name,
-    description: `Description for ${name}`,
-  });
-
-  return Promise.resolve(subscription);
-};
-
 export const createRandomProduct = async (): Promise<Product> => {
   const name = faker.commerce.product();
   const product: Product = await stripe.products.create({

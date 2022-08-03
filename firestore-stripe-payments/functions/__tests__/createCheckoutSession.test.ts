@@ -2,11 +2,7 @@ import * as admin from 'firebase-admin';
 import { DocumentReference, DocumentData } from '@google-cloud/firestore';
 import { UserRecord } from 'firebase-functions/v1/auth';
 import setupEmulator from './helpers/setupEmulator';
-import {
-  createRandomProduct,
-  createRandomSubscription,
-  generateRecurringPrice,
-} from './helpers/setupProducts';
+import { generateRecurringPrice } from './helpers/setupProducts';
 import {
   createFirebaseUser,
   waitForDocumentToExistInCollection,
