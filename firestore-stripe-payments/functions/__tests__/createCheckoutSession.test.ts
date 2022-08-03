@@ -72,7 +72,7 @@ describe('createCheckoutSession', () => {
     test.skip('throws an error when a subscription data array parameter has not been provided', async () => {});
   });
 
-  describe.only('using a mobile client', () => {
+  describe('using a mobile client', () => {
     test('successfully creates a checkout session', async () => {
       const collection = firestore.collection('customers');
 
