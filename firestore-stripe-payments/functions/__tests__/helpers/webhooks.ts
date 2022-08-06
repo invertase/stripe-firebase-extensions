@@ -34,5 +34,6 @@ export const setupWebhooks = async (url) => {
 
 export const clearWebhooks = async (id) => {
   const stripe = require('stripe')(process.env.STRIPE_API_KEY);
-  return stripe.webhookEndpoints.del(id);
+
+  return stripe.webhookEndpoints.del(process.env.WEBHOOK_ID);
 };
