@@ -3,34 +3,26 @@ const concurrently = require('concurrently');
 import { setupProxy, cleanupProxy } from './helpers/setupProxy';
 
 (async () => {
+  /** Clear all webhooks with ngrok.io,
+   * useful for clearing any failed ci testing
+   */
+  // await cleanupAllWebhooks();
+
   const proxyId = await setupProxy();
 
-  /* clean stripe webhook on exit */
-  process.on('SIGINT', () => {
-    cleanupProxy(proxyId).then(() => {
-      console.log('Removed webhook ', proxyId);
-      process.exit(0);
-    });
-  });
-
-  await concurrently([
-    {
-      command: 'npx kill-port 5001, npx kill-port 8080',
-      name: 'Ready ports',
-    },
-  ]);
-
-  await concurrently(
+  const { result } = await concurrently(
     [
       {
-        command: 'npm run start:emulator',
-        name: 'emulator',
-      },
-      {
-        command: 'sh ../runTestsWatch.sh',
+        command: 'npm run exec:emulator:watch',
         name: 'testing',
       },
     ],
     {}
   );
+
+  await result.then(async () => {
+    await cleanupProxy(proxyId);
+    console.log('Removed webhook ', proxyId);
+    process.exit(0);
+  });
 })();
