@@ -251,9 +251,9 @@ params:
     label: Minimum instances for createCheckoutSession function
     type: secret
     description: >-
-      How many instances should be always ready to process checkout requests?
+      Set the minimum number of function instances that should be always be available to create Checkout Sessions.
       This number can be adjusted to reduce cold starts and increase the responsiveness
-      of checkout creation requests.  Suggested values are 0 or 1.
+      of Checkout Session creation requests. Suggested values are 0 or 1. Please note this setting will likely incur billing costss, see the [Firebase documentation](https://firebase.google.com/docs/functions/manage-functions#reduce_the_number_of_cold_starts) for more information.
     default: 0
     required: true
 
