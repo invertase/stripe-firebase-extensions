@@ -106,7 +106,9 @@ exports.createCustomer = functions.auth
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.
  */
-exports.createCheckoutSession = functions.firestore
+exports.createCheckoutSession = functions.runWith({
+      minInstances: config.minCheckoutInstances,
+   }).firestore
   .document(`/${config.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
   .onCreate(async (snap, context) => {
     const {
