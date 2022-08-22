@@ -12,12 +12,11 @@
     "compile": "tsc",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md",
     "test": "ts-node ./__tests__/run-script.ts",
-    "test:local": "ts-node ./__tests__/run-script-watch.ts",
-    "test:watch": "concurrently \"npm run setup:emulator\" \"jest --watch\"",
+    "test:watch": "ts-node ./__tests__/run-script-watch.ts",
     "start:emulator": "cd ../_emulator && firebase emulators:start -P demo-project",
     "exec:emulator": "cd ../_emulator && firebase emulators:exec \"../runTests.sh\" -P demo-project",
-    "setup:webhooks": "ts-node ./__tests__/helpers/setupProxy.ts",
-    "test-coverage": "jest --coverage --detectOpenHandles --forceExit"
+    "exec:emulator:watch": "cd ../_emulator && firebase emulators:exec \"../runTestsWatch.sh\" -P demo-project",
+    "setup:webhooks": "ts-node ./__tests__/helpers/setupProxy.ts"
   },
   "author": "Stripe (https://stripe.com/)",
   "license": "Apache-2.0",
