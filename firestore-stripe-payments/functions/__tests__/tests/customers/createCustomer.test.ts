@@ -1,12 +1,12 @@
 import * as admin from 'firebase-admin';
 import { DocumentData } from '@google-cloud/firestore';
 
-import setupEmulator from './helpers/setupEmulator';
+import setupEmulator from '../../helpers/setupEmulator';
 import { UserRecord } from 'firebase-functions/v1/auth';
 import {
   createFirebaseUser,
   waitForDocumentToExistInCollection,
-} from './helpers/utils';
+} from '../../helpers/utils';
 
 admin.initializeApp({ projectId: 'demo-project' });
 setupEmulator();
