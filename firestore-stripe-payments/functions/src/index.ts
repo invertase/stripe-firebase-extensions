@@ -819,7 +819,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
         }
 
         if (eventChannel) {
-          await eventChannel?.publish({
+          await eventChannel.publish({
             type: `com.stripe.v1.${event.type}`,
             data: event.data.object,
           });
