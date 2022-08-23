@@ -8,6 +8,7 @@ import {
   waitForDocumentToExistInCollection,
   waitForDocumentToExistWithField,
 } from '../../helpers/utils';
+import { Subscription } from '../../../src/interfaces';
 
 admin.initializeApp({ projectId: 'demo-project' });
 setupEmulator();
