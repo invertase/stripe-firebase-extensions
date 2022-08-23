@@ -314,6 +314,7 @@ exports.createCheckoutSession = functions
             created: admin.firestore.Timestamp.now(),
             ephemeralKeySecret: ephemeralKey.secret,
             paymentIntentClientSecret,
+            setupIntentClientSecret,
           },
           { merge: true }
         );
