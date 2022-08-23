@@ -551,6 +551,7 @@ const manageSubscriptionStatusChange = async (
       : null,
   };
   await subsDbRef.set(subscriptionData);
+
   logs.firestoreDocCreated('subscriptions', subscription.id);
 
   // Update their custom claims
@@ -607,6 +608,24 @@ const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
     .collection('invoices')
     .doc(invoice.id)
     .set(invoice);
+
+  const prices = [];
+  for (const item of invoice.lines.data) {
+    prices.push(
+      admin
+        .firestore()
+        .collection(config.productsCollectionPath)
+        .doc(item.price.product as string)
+        .collection('prices')
+        .doc(item.price.id)
+    );
+  }
+
+  // Update subscription payment with price data
+  await customersSnap.docs[0].ref
+    .collection('payments')
+    .doc(invoice.payment_intent as string)
+    .set({ prices }, { merge: true });
   logs.firestoreDocCreated('invoices', invoice.id);
 };
 
