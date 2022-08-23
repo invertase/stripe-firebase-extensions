@@ -1,6 +1,6 @@
 ### Client SDK
 
-You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/web-sdk/firestore-stripe-web-sdk/README.md)
+You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/next/firestore-stripe-web-sdk/README.md)
 JavaScript package to easily access this extension from web clients. This client SDK provides
 TypeScript type definitions and high-level convenience APIs for most common operations client
 applications would want to implement using the extension.
