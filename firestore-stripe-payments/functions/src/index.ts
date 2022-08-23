@@ -329,16 +329,15 @@ exports.createCheckoutSession = functions
 export const createPortalLink = functions.https.onCall(
   async (data, context) => {
     // Checking that the user is authenticated.
-    if (!context.auth) {
+    const uid = context.auth?.uid;
+    if (!uid) {
       // Throwing an HttpsError so that the client gets the error details.
       throw new functions.https.HttpsError(
-        'failed-precondition',
+        'unauthenticated',
         'The function must be called while authenticated!'
       );
     }
-    const uid = context.auth.uid;
     try {
-      if (!uid) throw new Error('Not authenticated!');
       const { returnUrl: return_url, locale = 'auto', configuration } = data;
       // Get stripe customer id
       const customer = (
