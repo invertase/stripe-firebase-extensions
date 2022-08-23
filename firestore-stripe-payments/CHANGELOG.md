@@ -5,6 +5,9 @@
 
 [feat] Add Price object IDs from invoice line items for subscription payments to payments Firestore collection. [#393]
 
+## Version 0.2.7 - 2022-05-10
+[chore] Updated package-lock.json that was causing install errors.
+
 ## Version 0.2.6 - 2022-05-10
 [feat] Added Stripe extension events. This extension emits events, which allows you to listen to and run custom logic at different trigger points during the functioning of the extension. For example you can listen to events when a product has been added via the `product.created` event, or whenever a payment has succeeded through the `invoice.payment_succeeded` event. (#386)
 
