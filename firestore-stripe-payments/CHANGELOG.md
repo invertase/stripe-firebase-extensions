@@ -1,3 +1,10 @@
+## Version 0.3.0 - 2022-08-23
+[feat] Allow configurable minimum instances for `createCheckoutSession` function. [#375]
+
+[feat] Throw an `unauthenticated` Firebase error from `creatPortalLink` function. [#420]
+
+[feat] Add Price object IDs from invoice line items for subscription payments to payments Firestore collection. [#393]
+
 ## Version 0.2.6 - 2022-05-10
 [feat] Added Stripe extension events. This extension emits events, which allows you to listen to and run custom logic at different trigger points during the functioning of the extension. For example you can listen to events when a product has been added via the `product.created` event, or whenever a payment has succeeded through the `invoice.payment_succeeded` event. (#386)
 
@@ -267,7 +274,7 @@ db.collection("products")
 
 Previously, only subscriptions created via Stripe Checkout were synced to Cloud Firestore. By additionally listening to the `customer.subscription.created` event, the extension now also captures subscriptions created via the Stripe Dashboard or directly via the API. For this to work, Firebase Authentication users need to be synced with Stripe customer objects and the customers collection in Cloud Firestore (new configuration added in version `0.1.7`).
 
-[docs] - Add snippet on importing Stripe.js as an ES module when using a build toolchain for your client application (e.g. Angular, React, TypeScript, etc.) to `POSTINSTALL.md`. (#74)
+ - Add snippet on importing Stripe.js as an ES module when using a build toolchain for your client application (e.g. Angular, React, TypeScript, etc.) to `POSTINSTALL.md`. (#74)
 
 ## Version 0.1.6 - 2020-09-10
 
@@ -390,7 +397,7 @@ type: "one_time" | "recurring";
 
 [feat] - Add support for discounts, coupons, promotion codes:
 
-You can create customer-facing promotion codes in the [Stripe Dashboard](https://dashboard.stripe.com/coupons/create). Refer to the [docs](https://stripe.com/docs/billing/subscriptions/discounts/codes) for a detailed guide on how to set these up.
+You can create customer-facing promotion codes in the [Stripe Dashboard](https://dashboard.stripe.com/coupons/create). Refer to the (https://stripe.com/docs/billing/subscriptions/discounts/codes) for a detailed guide on how to set these up.
 
 To show the promotion code redemption box on the checkout page, set `allow_promotion_codes: true` when creating the `checkout_sessions` document:
 
