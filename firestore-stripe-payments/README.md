@@ -48,7 +48,7 @@ Before installing this extension, set up the following Firebase services in your
 
 Then, in the [Stripe Dashboard](https://dashboard.stripe.com):
 
-- Create a new [restricted key](https://stripe.com/docs/keys#limit-access) with write access for the "Customers", "Checkout Sessions" and "Customer portal" resources, and read-only access for the "Subscriptions" and "Plans" resources.
+- Create a new [restricted key](https://stripe.com/docs/keys#limit-access) with write access for the "Customers", "Checkout Sessions" and "Customer portal" resources, and read-only access for the "Subscriptions" and "Prices" resources.
 
 #### Billing
 

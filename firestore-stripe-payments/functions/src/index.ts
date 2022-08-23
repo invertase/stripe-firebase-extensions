@@ -35,7 +35,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-payments',
-    version: '0.2.7',
+    version: '0.3.0',
   },
 });
 
@@ -106,8 +106,13 @@ exports.createCustomer = functions.auth
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.
  */
-exports.createCheckoutSession = functions.firestore
-  .document(`/${config.customersCollectionPath}/{uid}/checkout_sessions/{id}`)
+exports.createCheckoutSession = functions
+  .runWith({
+    minInstances: config.minCheckoutInstances,
+  })
+  .firestore.document(
+    `/${config.customersCollectionPath}/{uid}/checkout_sessions/{id}`
+  )
   .onCreate(async (snap, context) => {
     const {
       client = 'web',
@@ -324,16 +329,15 @@ exports.createCheckoutSession = functions.firestore
 export const createPortalLink = functions.https.onCall(
   async (data, context) => {
     // Checking that the user is authenticated.
-    if (!context.auth) {
+    const uid = context.auth?.uid;
+    if (!uid) {
       // Throwing an HttpsError so that the client gets the error details.
       throw new functions.https.HttpsError(
-        'failed-precondition',
+        'unauthenticated',
         'The function must be called while authenticated!'
       );
     }
-    const uid = context.auth.uid;
     try {
-      if (!uid) throw new Error('Not authenticated!');
       const { returnUrl: return_url, locale = 'auto', configuration } = data;
       // Get stripe customer id
       const customer = (
@@ -546,6 +550,7 @@ const manageSubscriptionStatusChange = async (
       : null,
   };
   await subsDbRef.set(subscriptionData);
+
   logs.firestoreDocCreated('subscriptions', subscription.id);
 
   // Update their custom claims
@@ -602,6 +607,24 @@ const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
     .collection('invoices')
     .doc(invoice.id)
     .set(invoice);
+
+  const prices = [];
+  for (const item of invoice.lines.data) {
+    prices.push(
+      admin
+        .firestore()
+        .collection(config.productsCollectionPath)
+        .doc(item.price.product as string)
+        .collection('prices')
+        .doc(item.price.id)
+    );
+  }
+
+  // Update subscription payment with price data
+  await customersSnap.docs[0].ref
+    .collection('payments')
+    .doc(invoice.payment_intent as string)
+    .set({ prices }, { merge: true });
   logs.firestoreDocCreated('invoices', invoice.id);
 };
 

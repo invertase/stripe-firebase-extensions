@@ -12,21 +12,21 @@
     "compile": "tsc",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md",
     "test": "ts-node ./__tests__/run-script.ts",
-    "test:ci": "firebase ext:dev:emulators:exec ./node_modules/.bin/jest --test-params=./__tests__/test-params.env --project=demo-project  --test-config=./__tests__/firebase.json",
     "test:watch": "ts-node ./__tests__/run-script-watch.ts",
-    "setup:emulator": "firebase ext:dev:emulators:start  --test-params=./__tests__/test-params.env --project=demo-project --test-config=./__tests__/firebase.json",
-    "setup:webhooks": "ts-node ./__tests__/helpers/setupProxy.ts",
-    "test-coverage": "jest --coverage --detectOpenHandles --forceExit"
+    "start:emulator": "cd ../_emulator && firebase emulators:start -P demo-project",
+    "exec:emulator": "cd ../_emulator && firebase emulators:exec \"../runTests.sh\" -P demo-project",
+    "exec:emulator:watch": "cd ../_emulator && firebase emulators:exec \"../runTestsWatch.sh\" -P demo-project",
+    "setup:webhooks": "ts-node ./__tests__/helpers/setupProxy.ts"
   },
   "author": "Stripe (https://stripe.com/)",
   "license": "Apache-2.0",
   "dependencies": {
+    "@types/jest": "^24.9.1",
     "firebase-admin": "^10.2.0",
-    "firebase-functions": "^3.20.1",
+    "firebase-functions": "^3.21.2",
     "rimraf": "^3.0.2",
     "stripe": "8.191.0",
-    "typescript": "^3.9.9",
-    "@types/jest": "^24.9.1"
+    "typescript": "^3.9.9"
   },
   "devDependencies": {
     "@faker-js/faker": "^6.0.0",
@@ -36,11 +36,13 @@
     "dotenv": "^16.0.0",
     "envfile": "^6.17.0",
     "firebase-functions-test": "^0.3.3",
+    "jest": "^24.9.0",
+    "localtunnel": "^2.0.2",
     "mocked-env": "^1.3.5",
     "ngrok": "^4.3.1",
+    "puppeteer": "^14.1.1",
     "ts-jest": "^24.1.0",
-    "ts-node": "^10.7.0",
-    "jest": "^24.9.0"
+    "ts-node": "^10.7.0"
   },
   "prettier": {
     "singleQuote": true,

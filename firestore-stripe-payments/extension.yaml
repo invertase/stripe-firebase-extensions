@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firestore-stripe-payments
-version: 0.2.7
+version: 0.3.0
 specVersion: v1beta
 
 displayName: Run Payments with Stripe
@@ -212,8 +212,8 @@ params:
   - param: DELETE_STRIPE_CUSTOMERS
     label: Automatically delete Stripe customer objects
     description: >-
-      Do you want to automatically delete customer objects in Stripe? 
-      When a user is deleted in Firebase Authentication or in Cloud Firestore and set to 'Auto delete' 
+      Do you want to automatically delete customer objects in Stripe?
+      When a user is deleted in Firebase Authentication or in Cloud Firestore and set to 'Auto delete'
       the extension will delete their customer object in Stripe which will immediately cancel all subscriptions for the user.
     type: select
     options:
@@ -228,7 +228,7 @@ params:
     label: Stripe API key with restricted access
     type: secret
     description: >-
-      What is your Stripe API key? 
+      What is your Stripe API key?
       We recommend creating a new [restricted key](https://stripe.com/docs/keys#limit-access)
       with write access only for the "Customers", "Checkout Sessions" and "Customer portal" resources.
       And read-only access for the "Subscriptions" and "Plans" resources.
@@ -239,13 +239,24 @@ params:
     label: Stripe webhook secret
     type: secret
     description: >-
-      This is your signing secret for a Stripe-registered webhook. 
+      This is your signing secret for a Stripe-registered webhook.
       This webhook can only be registered after installation.
-      Leave this value untouched during installation, then follow the 
+      Leave this value untouched during installation, then follow the
       postinstall instructions for registering your webhook
       and configuring this value.
     example: whsec_1234567890
     required: false
+
+  - param: CREATE_CHECKOUT_SESSION_MIN_INSTANCES
+    label: Minimum instances for createCheckoutSession function
+    type: secret
+    description: >-
+      Set the minimum number of function instances that should be always be available to create Checkout Sessions.
+      This number can be adjusted to reduce cold starts and increase the responsiveness
+      of Checkout Session creation requests. Suggested values are 0 or 1. Please note this setting will likely incur billing costss, see the [Firebase documentation](https://firebase.google.com/docs/functions/manage-functions#reduce_the_number_of_cold_starts) for more information.
+    default: 0
+    required: true
+
 events:
   - type: com.stripe.v1.product.created
     description: Occurs whenever a product is created.
