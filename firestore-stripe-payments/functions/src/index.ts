@@ -287,7 +287,7 @@ exports.createCheckoutSession = functions
             payment_method_types: payment_method_types ?? ['card'],
           });
           setupIntentClientSecret = setupIntent.client_secret;
-        } else {
+        } else if (mode === 'subscription') {
           const subscription = await stripe.subscriptions.create({
             customer,
             items: [{ price }],
@@ -301,6 +301,10 @@ exports.createCheckoutSession = functions
           paymentIntentClientSecret =
             //@ts-ignore
             subscription.latest_invoice.payment_intent.client_secret;
+        } else {
+          throw new Error(
+            `Mode '${mode} is not supported for 'client:mobile'!`
+          );
         }
         const ephemeralKey = await stripe.ephemeralKeys.create(
           { customer },
