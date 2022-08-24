@@ -35,7 +35,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase firestore-stripe-payments',
-    version: '0.3.0',
+    version: '0.3.1',
   },
 });
 
@@ -808,10 +808,12 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
             );
         }
 
-        await eventChannel?.publish({
-          type: `com.stripe.v1.${event.type}`,
-          data: event.data.object,
-        });
+        if (eventChannel) {
+          await eventChannel.publish({
+            type: `com.stripe.v1.${event.type}`,
+            data: event.data.object,
+          });
+        }
 
         logs.webhookHandlerSucceeded(event.id, event.type);
       } catch (error) {

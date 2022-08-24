@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firestore-stripe-payments
-version: 0.3.0
+version: 0.3.1
 specVersion: v1beta
 
 displayName: Run Payments with Stripe
@@ -249,7 +249,6 @@ params:
 
   - param: CREATE_CHECKOUT_SESSION_MIN_INSTANCES
     label: Minimum instances for createCheckoutSession function
-    type: secret
     description: >-
       Set the minimum number of function instances that should be always be available to create Checkout Sessions.
       This number can be adjusted to reduce cold starts and increase the responsiveness
