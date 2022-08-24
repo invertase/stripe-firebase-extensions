@@ -1,6 +1,20 @@
 export const setupWebhooks = async (url) => {
   const stripe = require('stripe')(process.env.STRIPE_API_KEY);
 
+  /** cleanup any existing webhooks (if over 6 remaining?) */
+
+  const currentWebhooks = await stripe.webhookEndpoints.list({ limit: 100 });
+
+  if (currentWebhooks.data.length > 6) {
+    await Promise.all(
+      currentWebhooks.data.map((webhook) => {
+        return stripe.webhookEndpoints.del(webhook.id);
+      })
+    );
+  }
+
+  console.log(`removed ${currentWebhooks.data.length} webhooks`);
+
   const webhook = await stripe.webhookEndpoints.create({
     url,
     enabled_events: [
