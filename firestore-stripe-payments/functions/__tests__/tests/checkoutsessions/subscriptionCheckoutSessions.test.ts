@@ -5,7 +5,10 @@ import { UserRecord } from 'firebase-functions/v1/auth';
 import { Subscription } from '../../../src/interfaces';
 import setupEmulator from '../../helpers/setupEmulator';
 import { createRandomSubscription } from '../../helpers/stripeApi/subscriptions';
-import { createFirebaseUser } from '../../helpers/utils';
+import {
+  createFirebaseUser,
+  waitForDocumentToExistInCollection,
+} from '../../helpers/utils';
 
 import {
   findCustomerInCollection,
@@ -19,11 +22,17 @@ if (admin.apps.length === 0) {
 
 setupEmulator();
 
+const firestore = admin.firestore();
+const collection = firestore.collection('customers');
+
 describe('createSubscriptionCheckoutSession', () => {
   let user: UserRecord;
 
   beforeEach(async () => {
     user = await createFirebaseUser();
+
+    /** Wait for Stripe user sync before starting tests */
+    await waitForDocumentToExistInCollection(collection, 'email', user.email);
   });
 
   afterEach(async () => {

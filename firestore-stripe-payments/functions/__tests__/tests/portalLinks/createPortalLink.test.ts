@@ -16,6 +16,7 @@ const createPortalLink = testEnv.wrap(cloudFunctions.createPortalLink);
 setupEmulator();
 
 const firestore = admin.firestore();
+const collection = firestore.collection('customers');
 
 function request(uid: string, returnUrl: string) {
   return createPortalLink(
@@ -33,6 +34,9 @@ describe('createPortalLink', () => {
   let user: UserRecord;
   beforeEach(async () => {
     user = await createFirebaseUser();
+
+    /** Wait for Stripe user sync before starting tests */
+    await waitForDocumentToExistInCollection(collection, 'email', user.email);
   });
 
   afterEach(async () => {
