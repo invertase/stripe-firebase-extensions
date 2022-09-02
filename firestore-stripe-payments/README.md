@@ -50,6 +50,16 @@ Then, in the [Stripe Dashboard](https://dashboard.stripe.com):
 
 - Create a new [restricted key](https://stripe.com/docs/keys#limit-access) with write access for the "Customers", "Checkout Sessions" and "Customer portal" resources, and read-only access for the "Subscriptions" and "Prices" resources.
 
+#### Installing via Firebase CLI
+
+When installing via the CLI, be sure to pin the version. 
+
+```
+firebase ext:install stripe/firestore-stripe-payments@0.3.1 --project=projectId_or_alias
+```
+
+The current version can be found in [extension.yaml](extension.yaml). 
+
 #### Billing
 
 This extension uses the following Firebase services which may have associated charges:
