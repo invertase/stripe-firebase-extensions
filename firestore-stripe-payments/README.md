@@ -50,7 +50,7 @@ Then, in the [Stripe Dashboard](https://dashboard.stripe.com):
 
 - Create a new [restricted key](https://stripe.com/docs/keys#limit-access) with write access for the "Customers", "Checkout Sessions" and "Customer portal" resources, and read-only access for the "Subscriptions" and "Prices" resources.
 
-#### Installing via Firebase CLI
+#### Installing via Firebase CLI 
 
 When installing via the CLI, be sure to pin the version. 
 
@@ -59,6 +59,33 @@ firebase ext:install stripe/firestore-stripe-payments@0.3.1 --project=projectId_
 ```
 
 The current version can be found in [extension.yaml](extension.yaml). 
+
+#### Using webhooks locally
+
+If you wish to test the webhooks **locally**, use the following command to configure the extension:
+
+```
+firebase ext:configure firestore-stripe-payments --local
+```
+
+Be sure to configure your test mode [API Key](https://stripe.com/docs/keys) and webhook [signing secret](https://stripe.com/docs/webhooks/signatures#:~:text=Before%20you%20can%20verify%20signatures,secret%20key%20for%20each%20endpoint.) when prompted. 
+
+Start the firebase emulator with:
+
+```
+firebase emulators:start
+```
+
+Find the functions path associated with the stripe extension, typically it looks like this:
+
+`http://localhost:3999/{projectId}/{region}/ext-firestore-stripe-payments-handleWebhookEvents`
+
+
+You can tunnel your local endpoint using a tool like [ngrok](https://ngrok.com/). In this case you will tunnel the localhost domain and port `http://localhost:3999`. Replace `localhost:3999` with your tunnel url. The end result would look something like `https://1234-1234-1234.ngrok.io/{projectId}/{region}/ext-firestore-stripe-payments-handleWebhookEvents`
+
+Configure your test mode stripe [webhook endpoint](https://stripe.com/docs/webhooks) with the url you just constructed. 
+
+Your local webhooks are now set up. 
 
 #### Billing
 
