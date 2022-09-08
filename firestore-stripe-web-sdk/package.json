@@ -3,6 +3,7 @@
   "version": "0.0.6",
   "description": "Client SDK for the firestore-stripe-payments Firebase Extension",
   "main": "./lib/index.js",
+  "type": "module",
   "typings": "./lib/index.d.ts",
   "scripts": {
     "api-documenter": "api-documenter markdown --input-folder temp --output-folder markdown",
