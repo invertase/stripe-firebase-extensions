@@ -1,13 +1,16 @@
 import * as admin from 'firebase-admin';
 import { DocumentData } from '@google-cloud/firestore';
-import { Product } from '../src/interfaces';
-import setupEmulator from './helpers/setupEmulator';
+import { Product } from '../../../src/interfaces';
+import setupEmulator from '../../helpers/setupEmulator';
 
-import { createRandomProduct, updateProduct } from './helpers/setupProducts';
+import {
+  createRandomProduct,
+  updateProduct,
+} from '../../helpers/setupProducts';
 import {
   waitForDocumentToExistInCollection,
   waitForDocumentUpdate,
-} from './helpers/utils';
+} from '../../helpers/utils';
 
 admin.initializeApp({ projectId: 'demo-project' });
 setupEmulator();

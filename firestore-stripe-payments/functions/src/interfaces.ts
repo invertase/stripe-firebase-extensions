@@ -96,6 +96,7 @@ export interface TaxRate extends Stripe.TaxRate {
 }
 
 export interface Subscription {
+  id?: string;
   /**
    * Set of key-value pairs that you can attach to an object.
    * This can be useful for storing additional information about the object in a structured format.
@@ -122,6 +123,8 @@ export interface Subscription {
   prices: Array<
     FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>
   >;
+  payment_method?: string;
+  latest_invoice?: string;
   /**
    * The status of the subscription object
    */

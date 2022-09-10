@@ -10,9 +10,9 @@ module.exports = {
     },
   },
   preset: 'ts-jest',
-  testMatch: ['**/__tests__/*.test.ts'],
+  testMatch: ['**/__tests__/tests/**/*.test.ts'],
   testEnvironment: 'node',
-  testTimeout: 16000,
+  testTimeout: 120000,
   collectCoverage: true,
   collectCoverageFrom: [
     '**/*.{ts,tsx}',

@@ -30,7 +30,11 @@ export const waitForDocumentToExistWithField = (
     let timedOut = false;
     const timer = setTimeout(() => {
       timedOut = true;
-      reject(new Error('Timeout waiting for firestore document'));
+      reject(
+        new Error(
+          `Timeout waiting for firestore document to exist with field ${field}`
+        )
+      );
     }, timeout);
     const unsubscribe = document.onSnapshot(async (snapshot: DocumentData) => {
       if (snapshot.exists && snapshot.data()[field]) {
@@ -54,7 +58,11 @@ export const waitForDocumentUpdate = (
     let timedOut = false;
     const timer = setTimeout(() => {
       timedOut = true;
-      reject(new Error('Timeout waiting for firestore document'));
+      reject(
+        new Error(
+          `Timeout waiting for firestore document to update with ${field}`
+        )
+      );
     }, timeout);
     const unsubscribe = document.onSnapshot(async (snapshot: DocumentData) => {
       if (snapshot.exists && snapshot.data()[field] === value) {
@@ -78,8 +86,13 @@ export const waitForDocumentToExistInCollection = (
     let timedOut = false;
     const timer = setTimeout(() => {
       timedOut = true;
-      reject(new Error('Timeout waiting for firestore document'));
+      reject(
+        new Error(
+          `Timeout waiting for firestore document to exist with field ${field} in collection`
+        )
+      );
     }, timeout);
+
     const unsubscribe = query.onSnapshot(async (snapshot) => {
       const docs = snapshot.docChanges();
 
