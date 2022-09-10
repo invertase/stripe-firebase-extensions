@@ -8,7 +8,11 @@
     "clean": "rimraf lib",
     "compile": "tsc",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md",
-    "test": "echo \"Error: no test specified\" && exit 0"
+    "test": "npm run exec:emulator",
+    "test:watch": "ts-node ./__tests__/run-script-watch.ts",
+    "start:emulator": "cd ../_emulator && firebase emulators:start -P demo-project",
+    "exec:emulator": "cd ../_emulator && firebase emulators:exec \"../runTests.sh\" -P demo-project",
+    "exec:emulator:watch": "cd ../_emulator && firebase emulators:exec \"../runTestsWatch.sh\" -P demo-project"
   },
   "author": "Stripe (https://stripe.com/)",
   "license": "Apache-2.0",
@@ -17,11 +21,16 @@
     "firebase-functions": "^3.14.1",
     "rimraf": "^3.0.2",
     "stripe": "8.56.0",
-    "typescript": "^3.4.0"
+    "typescript": "^3.4.0",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.1.0",
+    "@types/jest": "^24.9.1"
   },
   "devDependencies": {
-    "firebase-functions-test": "^0.1.6",
-    "@types/express": "^4.17.3"
+    "@types/express": "^4.17.3",
+    "concurrently": "^7.4.0",
+    "dotenv": "^16.0.2",
+    "firebase-functions-test": "^0.1.6"
   },
   "prettier": {
     "singleQuote": true,
