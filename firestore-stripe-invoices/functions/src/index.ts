@@ -255,7 +255,7 @@ export const updateInvoice = functions.handler.https.onRequest(
 
     logs.startInvoiceUpdate(eventType);
 
-    let invoicesInFirestore = await admin
+    const invoicesInFirestore = await admin
       .firestore()
       .collection(config.invoicesCollectionPath)
       .where('stripeInvoiceId', '==', invoice.id)
