@@ -74,7 +74,7 @@ const createInvoice = async function ({
     );
 
     // Create the individual invoice items for this customer from the items in payload
-    const items: Array<Stripe.InvoiceItem> = await Promise.all(itemPromises);
+    await Promise.all(itemPromises);
 
     const invoiceCreateParams: Stripe.InvoiceCreateParams = {
       customer: customer.id,
