@@ -127,6 +127,8 @@ params:
         value: us-east1
       - label: Northern Virginia (us-east4)
         value: us-east4
+      - label: Oregon (us-west1)
+        value: us-west1        
       - label: Los Angeles (us-west2)
         value: us-west2
       - label: Salt Lake City (us-west3)
