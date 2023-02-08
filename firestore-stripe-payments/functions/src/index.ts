@@ -144,6 +144,7 @@ exports.createCheckoutSession = functions
       consent_collection = {},
       expires_at,
       phone_number_collection = {},
+      payment_method_collection
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -196,6 +197,7 @@ exports.createCheckoutSession = functions
           after_expiration,
           consent_collection,
           phone_number_collection,
+          payment_method_collection,
           ...(expires_at && { expires_at }),
         };
         if (payment_method_types) {
