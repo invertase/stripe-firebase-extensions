@@ -621,10 +621,12 @@ const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
   }
 
   // Update subscription payment with price data
-  await customersSnap.docs[0].ref
-    .collection('payments')
-    .doc(invoice.payment_intent as string)
-    .set({ prices }, { merge: true });
+  if (invoice.payment_intent !== null) {
+    await customersSnap.docs[0].ref
+      .collection('payments')
+      .doc(invoice.payment_intent as string)
+      .set({ prices }, { merge: true });
+  }
   logs.firestoreDocCreated('invoices', invoice.id);
 };
 
