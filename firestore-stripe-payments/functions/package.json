@@ -22,11 +22,12 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@types/jest": "^24.9.1",
+    "@types/node": "^18.15.3",
     "firebase-admin": "^10.2.0",
     "firebase-functions": "^3.21.2",
     "rimraf": "^3.0.2",
     "stripe": "8.191.0",
-    "typescript": "^3.9.9"
+    "typescript": "^4.9.5"
   },
   "devDependencies": {
     "@faker-js/faker": "^6.0.0",
@@ -42,7 +43,7 @@
     "ngrok": "^4.3.1",
     "puppeteer": "^14.1.1",
     "ts-jest": "^24.1.0",
-    "ts-node": "^10.7.0"
+    "ts-node": "^10.9.1"
   },
   "prettier": {
     "singleQuote": true,
