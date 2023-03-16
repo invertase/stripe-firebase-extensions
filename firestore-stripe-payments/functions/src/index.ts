@@ -620,10 +620,13 @@ const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
     );
   }
 
+  // An Invoice object does not always have an associated Payment Intent
+  const recordId: string = (invoice.payment_intent as string) ?? invoice.id;
+
   // Update subscription payment with price data
   await customersSnap.docs[0].ref
     .collection('payments')
-    .doc(invoice.payment_intent as string)
+    .doc(recordId)
     .set({ prices }, { merge: true });
   logs.firestoreDocCreated('invoices', invoice.id);
 };
