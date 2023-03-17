@@ -11,9 +11,13 @@ on:
 jobs:
   nodejs:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}
+      cancel-in-progress: false
     strategy:
       matrix:
         node: ["14", "16"]
+      max-parallel: 1
     name: node.js_${{ matrix.node }}_test
     steps:
       - uses: actions/checkout@v2
