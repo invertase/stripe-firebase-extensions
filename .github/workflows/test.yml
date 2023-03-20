@@ -28,7 +28,7 @@ jobs:
       - name: NPM install
         run: npm install
       - name: Install firebase CLI
-        uses: nick-invision/retry@v1
+        uses: nick-invision/retry@v2
         with:
           timeout_minutes: 10
           retry_wait_seconds: 60
