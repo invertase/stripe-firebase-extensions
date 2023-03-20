@@ -11,20 +11,24 @@ on:
 jobs:
   nodejs:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}
+      cancel-in-progress: false
     strategy:
       matrix:
         node: ["14", "16"]
+      max-parallel: 1
     name: node.js_${{ matrix.node }}_test
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
       - name: NPM install
         run: npm install
       - name: Install firebase CLI
-        uses: nick-invision/retry@v1
+        uses: nick-invision/retry@v2
         with:
           timeout_minutes: 10
           retry_wait_seconds: 60

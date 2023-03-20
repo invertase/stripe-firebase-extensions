@@ -28,7 +28,7 @@ The design for Stripe Checkout and the customer portal can be customized in your
 #### Recommended usage
 
 If you're building on the web platform, you can use this extension for any of your payment use cases.
-You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/web-sdk/firestore-stripe-web-sdk/README.md)
+You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/next/firestore-stripe-web-sdk/README.md)
 JavaScript package to easily access this extension from web clients. This client SDK provides
 TypeScript type definitions and high-level convenience APIs for most common operations client
 applications would want to implement using the extension.
@@ -85,7 +85,7 @@ Starting August 17 2020, you will be billed a small amount (typically less than 
 
 * Automatically delete Stripe customer objects: Do you want to automatically delete customer objects in Stripe?  When a user is deleted in Firebase Authentication or in Cloud Firestore and set to 'Auto delete'  the extension will delete their customer object in Stripe which will immediately cancel all subscriptions for the user.
 
-* Stripe API key with restricted access: What is your Stripe API key?  We recommend creating a new [restricted key](https://stripe.com/docs/keys#limit-access) with write access only for the "Customers", "Checkout Sessions" and "Customer portal" resources. And read-only access for the "Subscriptions" and "Plans" resources.
+* Stripe API key with restricted access: What is your Stripe API key?  We recommend creating a new [restricted key](https://stripe.com/docs/keys#limit-access) with write access only for the "Customers", "Checkout Sessions" and "Customer portal" resources. And read-only access for the "Subscriptions" and "Prices" resources.
 
 * Stripe webhook secret: This is your signing secret for a Stripe-registered webhook.  This webhook can only be registered after installation. Leave this value untouched during installation, then follow the  postinstall instructions for registering your webhook and configuring this value.
 

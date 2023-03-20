@@ -1,3 +1,6 @@
+## Version 0.3.3 - 2023-03-20
+[fix] Address issue where `insertInvoiceRecord` function fails. [#511]
+
 ## Version 0.3.2 - 2022-11-30
 [chore] Added support for `us-west1` as a deployable region for Firebase functions. [#464]
 

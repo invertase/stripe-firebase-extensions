@@ -27,7 +27,7 @@ For all other scenarios you can use the [stripe-android](https://github.com/stri
 
 #### Client SDK
 
-You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/web-sdk/firestore-stripe-web-sdk/README.md)
+You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/next/firestore-stripe-web-sdk/README.md)
 JavaScript package to easily access this extension from web clients. This client SDK provides
 TypeScript type definitions and high-level convenience APIs for most common operations client
 applications would want to implement using the extension.
@@ -50,7 +50,7 @@ Before installing this extension, set up the following Firebase services in your
 
 Then, in the [Stripe Dashboard](https://dashboard.stripe.com):
 
-- Create a new [restricted key](https://stripe.com/docs/keys#limit-access) with write access for the "Customers", "Checkout Sessions" and "Customer portal" resources, and read-only access for the "Subscriptions" and "Plans" resources.
+- Create a new [restricted key](https://stripe.com/docs/keys#limit-access) with write access for the "Customers", "Checkout Sessions" and "Customer portal" resources, and read-only access for the "Subscriptions" and "Prices" resources.
 
 #### Billing
 

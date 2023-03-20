@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firestore-stripe-payments
-version: 0.3.2
+version: 0.3.3
 specVersion: v1beta
 
 displayName: Run Payments with Stripe
@@ -233,7 +233,7 @@ params:
       What is your Stripe API key?
       We recommend creating a new [restricted key](https://stripe.com/docs/keys#limit-access)
       with write access only for the "Customers", "Checkout Sessions" and "Customer portal" resources.
-      And read-only access for the "Subscriptions" and "Plans" resources.
+      And read-only access for the "Subscriptions" and "Prices" resources.
     example: rk_live_1234567890
     required: true
 
