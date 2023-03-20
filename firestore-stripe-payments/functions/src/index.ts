@@ -28,7 +28,7 @@ import {
 import * as logs from './logs';
 import config from './config';
 
-const apiVersion = '2020-08-27';
+const apiVersion = '2022-11-15';
 const stripe = new Stripe(config.stripeSecretKey, {
   apiVersion,
   // Register extension as a Stripe plugin
