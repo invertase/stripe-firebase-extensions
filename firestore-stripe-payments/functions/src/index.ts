@@ -196,11 +196,10 @@ exports.createCheckoutSession = functions
           after_expiration,
           consent_collection,
           phone_number_collection,
+          payment_method_types,
           ...(expires_at && { expires_at }),
         };
-        if (payment_method_types) {
-          sessionCreateParams.payment_method_types = payment_method_types;
-        }
+
         if (mode === 'subscription') {
           sessionCreateParams.subscription_data = {
             trial_from_plan,
@@ -214,6 +213,10 @@ exports.createCheckoutSession = functions
             metadata,
             ...(setup_future_usage && { setup_future_usage }),
           };
+        } else if (mode === 'setup') {
+          sessionCreateParams.payment_method_types = payment_method_types ?? [
+            'card',
+          ];
         }
         if (automatic_tax) {
           sessionCreateParams.automatic_tax = {
