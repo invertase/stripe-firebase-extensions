@@ -64,6 +64,37 @@ describe('createCheckoutSession', () => {
       expect(success_url).toBe('http://test.com/success');
     });
 
+    test('successfully creates a checkout session in setup mode', async () => {
+      const collection = firestore.collection('customers');
+
+      const customer: DocumentData = await waitForDocumentToExistInCollection(
+        collection,
+        'email',
+        user.email
+      );
+
+      const checkoutSessionCollection = collection
+        .doc(customer.doc.id)
+        .collection('checkout_sessions');
+
+      const checkoutSessionDocument: DocumentReference =
+        await checkoutSessionCollection.add({
+          success_url: 'http://test.com/success',
+          cancel_url: 'http://test.com/cancel',
+          mode: 'setup',
+        });
+
+      const customerDoc = await waitForDocumentToExistWithField(
+        checkoutSessionDocument,
+        'created'
+      );
+
+      const { client, success_url } = customerDoc.data();
+
+      expect(client).toBe('web');
+      expect(success_url).toBe('http://test.com/success');
+    });
+
     test.skip('throws an error when success_url has not been provided', async () => {});
 
     test.skip('throws an error when cancel_url has not been provided', async () => {});

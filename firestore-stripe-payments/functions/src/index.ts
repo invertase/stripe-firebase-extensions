@@ -233,7 +233,7 @@ exports.createCheckoutSession = functions
         }
         if (promotion_code) {
           sessionCreateParams.discounts = [{ promotion_code }];
-        } else {
+        } else if (mode !== 'setup') {
           sessionCreateParams.allow_promotion_codes = allow_promotion_codes;
         }
         if (client_reference_id)
