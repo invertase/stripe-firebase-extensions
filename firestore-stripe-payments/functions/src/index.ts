@@ -500,6 +500,8 @@ const manageSubscriptionStatusChange = async (
   }
   const product: Stripe.Product = price.product as Stripe.Product;
   const role = product.metadata.firebaseRole ?? null;
+  const roleName = product.metadata.firebaseRoleName ?? "stripeRole";
+
   // Get reference to subscription doc in Cloud Firestore.
   const subsDbRef = customersSnap.docs[0].ref
     .collection('subscriptions')
@@ -560,15 +562,21 @@ const manageSubscriptionStatusChange = async (
       const { customClaims } = await admin.auth().getUser(uid);
       // Set new role in custom claims as long as the subs status allows
       if (['trialing', 'active'].includes(subscription.status)) {
-        logs.userCustomClaimSet(uid, 'stripeRole', role);
+        var cl = { ...customClaims };
+        cl[roleName] = role;
+
+        logs.userCustomClaimSet(uid, roleName, role);
         await admin
           .auth()
-          .setCustomUserClaims(uid, { ...customClaims, stripeRole: role });
+          .setCustomUserClaims(uid, cl);
       } else {
-        logs.userCustomClaimSet(uid, 'stripeRole', 'null');
+        var cl = { ...customClaims };
+        cl[roleName] = null;
+
+        logs.userCustomClaimSet(uid, roleName, 'null');
         await admin
           .auth()
-          .setCustomUserClaims(uid, { ...customClaims, stripeRole: null });
+          .setCustomUserClaims(uid, cl);
       }
     } catch (error) {
       // User has been deleted, simply return.
