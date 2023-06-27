@@ -123,7 +123,7 @@ import { onCurrentUserSubscriptionUpdate } from "@stripe/firestore-stripe-paymen
 onCurrentUserSubscriptionUpdate(
   payments,
   (snapshot) => {
-    for (const change in snapshot.changes) {
+    for (const change of snapshot.changes) {
       if (change.type === "added") {
         console.log(`New subscription added with ID: ${change.subscription.id}`);
       }
