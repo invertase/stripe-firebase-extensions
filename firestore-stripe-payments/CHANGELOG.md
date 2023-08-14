@@ -1,3 +1,6 @@
+## 0.3.4 - 2023-08-14
+This extension has been formally transferred to Invertase. See the updated README for more details.
+
 ## Version 0.3.3 - 2023-03-20
 [fix] Address issue where `insertInvoiceRecord` function fails. [#511]
 
