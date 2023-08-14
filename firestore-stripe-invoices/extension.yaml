@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firestore-stripe-invoices
-version: 0.2.2
+version: 0.2.3
 specVersion: v1beta
 
 displayName: Send Invoices using Stripe
@@ -25,8 +25,8 @@ sourceUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/fire
 releaseNotesUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-invoices/CHANGELOG.md
 
 author:
-  authorName: Stripe
-  url: https://stripe.com
+  authorName: Invertase
+  url: https://invertase.io
 
 contributors:
   - authorName: Adrienne Dreyfus

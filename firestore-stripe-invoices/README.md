@@ -1,6 +1,6 @@
 # Send Invoices using Stripe
 
-**Author**: Stripe (**[https://stripe.com](https://stripe.com)**)
+**Author**: Invertase (**[https://invertase.io](https://invertase.io)**)
 
 **Description**: Creates and sends brandable customer invoices using the Stripe payments platform.
 
