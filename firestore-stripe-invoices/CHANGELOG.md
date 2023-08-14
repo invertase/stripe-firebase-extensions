@@ -1,3 +1,6 @@
+## Version 0.2.2 - 2023-08-14
+This extension has been formally transferred to Invertase. See the updated README for more details.
+
 ## Version 0.2.1 - 2022-08-24
 [chore] Added `package-lock.json` to version control to prevent installation issues. [#426]
 
