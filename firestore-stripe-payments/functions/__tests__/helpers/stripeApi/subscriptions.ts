@@ -29,7 +29,7 @@ export const createRandomSubscription = async (
     card: {
       number: '4242424242424242',
       exp_month: 5,
-      exp_year: 2023,
+      exp_year: new Date().getFullYear() + 1,
       cvc: '314',
     },
   });
