@@ -19,6 +19,8 @@ specVersion: v1beta
 displayName: Send Invoices using Stripe
 description: Creates and sends brandable customer invoices using the Stripe payments platform.
 
+icon: icon.png
+
 license: Apache-2.0
 
 sourceUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-invoices
