@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firestore-stripe-payments
-version: 0.3.4
+version: 0.3.5
 specVersion: v1beta
 
 displayName: Run Payments with Stripe
@@ -25,8 +25,8 @@ sourceUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/fire
 releaseNotesUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-payments/CHANGELOG.md
 
 author:
-  authorName: Stripe
-  url: https://stripe.com
+  authorName: Invertase
+  url: https://invertase.io
 
 contributors:
   - authorName: Thorsten Schaeff
