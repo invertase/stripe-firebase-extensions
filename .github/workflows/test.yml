@@ -16,7 +16,7 @@ jobs:
       cancel-in-progress: false
     strategy:
       matrix:
-        node: ["14", "16"]
+        node: ["18"]
       max-parallel: 1
     name: node.js_${{ matrix.node }}_test
     steps:
@@ -34,8 +34,6 @@ jobs:
           retry_wait_seconds: 60
           max_attempts: 3
           command: npm i -g firebase-tools
-      - name: Use extension commands
-        run: firebase --open-sesame extdev
       - name: mask env paramaters
         run: echo "::add-mask::$STRIPE_WEBHOOK_SECRET"
       - name: Run tests with coverage
