@@ -10,7 +10,7 @@
     "api-extractor:local": "npm run build && api-extractor run --local --verbose",
     "build": "tsc",
     "postbuild": "node ./postbuild.js",
-    "test": "firebase emulators:exec --only firestore,auth --project fake-project-id 'npm run test:unit' && exit 0",
+    "test": "cd _emulator && firebase emulators:exec --project=demo-test 'NODE_OPTIONS=--openssl-legacy-provider npm run test:unit' && exit 0",
     "test:unit": "karma start --single-run"
   },
   "keywords": [
