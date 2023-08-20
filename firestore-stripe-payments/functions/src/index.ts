@@ -35,7 +35,7 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
     name: 'Firebase Invertase firestore-stripe-payments',
-    version: '0.3.6',
+    version: '0.3.5',
   },
 });
 

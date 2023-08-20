@@ -1,3 +1,10 @@
+## 0.3.5 - 2023-08-14
+[chore] Updated naming and upgraded to node18
+
+[fix] Updated icons
+
+[fix] updated appinfo versioning
+
 ## 0.3.4 - 2023-08-14
 This extension has been formally transferred to Invertase. See the updated README for more details.
 
