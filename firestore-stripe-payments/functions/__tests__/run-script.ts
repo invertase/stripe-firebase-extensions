@@ -1,8 +1,17 @@
 const concurrently = require('concurrently');
 
-import { setupProxy, cleanupProxy } from './helpers/setupProxy';
+import {
+  setupProxy,
+  cleanupProxy,
+  cleanupAllWebhooks,
+} from './helpers/setupProxy';
 
 (async () => {
+  /** Clear all webhooks with ngrok.io,
+   * useful for clearing any failed ci testing
+   */
+  // await cleanupAllWebhooks();
+
   const proxyId = await setupProxy();
 
   const { result } = await concurrently(

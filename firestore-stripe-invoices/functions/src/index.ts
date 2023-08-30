@@ -27,8 +27,8 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // Register extension as a Stripe plugin
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
-    name: 'Firebase firestore-stripe-invoices',
-    version: '0.2.1',
+    name: 'Firebase Invertase firestore-stripe-invoices',
+    version: '0.2.3',
   },
 });
 

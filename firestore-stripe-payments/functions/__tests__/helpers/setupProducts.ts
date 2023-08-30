@@ -1,13 +1,14 @@
 import { faker } from '@faker-js/faker';
 import config from '../../lib/config';
-import { Product } from '../../src/interfaces';
+import { Product, Subscription } from '../../src/interfaces';
 
 const stripe = require('stripe')(config.stripeSecretKey);
 
 export const generateRecurringPrice = async () => {
+  const name = faker.commerce.product();
   const product = await stripe.products.create({
-    name: 'Monthly Gym Membership',
-    description: 'An example of a recurring price',
+    name,
+    description: `Description for ${name}`,
   });
 
   const price = await stripe.prices.create({
