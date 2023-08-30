@@ -37,7 +37,7 @@ describe('subscription webhook events', () => {
         user.email
       );
 
-      const doc = collection.doc(customer.doc.id);
+      const doc = collection.doc(customer.id);
       const customerDoc = await waitForDocumentToExistWithField(
         doc,
         'stripeId'
@@ -61,7 +61,7 @@ describe('subscription webhook events', () => {
           stripeSubscription.latest_invoice
         );
 
-      const { prices } = subscriptionDoc.doc.data();
+      const { prices } = subscriptionDoc.data();
 
       expect(prices).toBeDefined();
       expect(prices.length).toBe(1);

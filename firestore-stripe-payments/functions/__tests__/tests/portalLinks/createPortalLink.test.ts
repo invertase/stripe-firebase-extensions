@@ -48,7 +48,7 @@ describe('createPortalLink', () => {
       user.email
     );
 
-    const doc = collection.doc(customer.doc.id);
+    const doc = collection.doc(customer.id);
     const customerDoc = await waitForDocumentToExistWithField(doc, 'stripeId');
 
     const returnUrl = 'http://test.com';

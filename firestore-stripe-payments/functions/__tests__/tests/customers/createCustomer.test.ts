@@ -28,8 +28,6 @@ describe('createCustomer', () => {
       user.email
     );
 
-    const doc = collection.doc(customer.doc.id);
-
-    expect(doc.id).toBeDefined();
+    expect(customer.id).toBeDefined();
   });
 });

@@ -45,7 +45,7 @@ export async function findCustomerPaymentInCollection(
     stripeId
   );
 
-  const paymentRef = paymentsCollection(userId).doc(paymentDoc.doc.id);
+  const paymentRef = paymentsCollection(userId).doc(paymentDoc.id);
 
   const updatedPaymentDoc = await waitForDocumentToExistWithField(
     paymentRef,

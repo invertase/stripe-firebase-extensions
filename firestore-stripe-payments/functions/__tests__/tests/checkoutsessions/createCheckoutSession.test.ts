@@ -39,7 +39,7 @@ describe('createCheckoutSession', () => {
       );
 
       const checkoutSessionCollection = collection
-        .doc(customer.doc.id)
+        .doc(customer.id)
         .collection('checkout_sessions');
 
       const checkoutSessionDocument: DocumentReference =
@@ -89,7 +89,7 @@ describe('createCheckoutSession', () => {
       );
 
       const checkoutSessionCollection = collection
-        .doc(customer.doc.id)
+        .doc(customer.id)
         .collection('checkout_sessions');
 
       const checkoutSessionDocument: DocumentReference =

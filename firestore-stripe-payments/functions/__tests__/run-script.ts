@@ -7,10 +7,13 @@ import {
 } from './helpers/setupProxy';
 
 (async () => {
+  console.log('Starting tests...');
+
   /** Clear all webhooks with ngrok.io,
    * useful for clearing any failed ci testing
    */
-  await cleanupAllWebhooks();
+  console.log('Clearing webhooks...');
+  // await cleanupAllWebhooks();
 
   const proxyId = await setupProxy();
 

@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import config from '../../lib/config';
 import { Product, Subscription } from '../../src/interfaces';
+import { v4 as uuidv4 } from 'uuid';
 
 const stripe = require('stripe')(config.stripeSecretKey);
 
@@ -21,20 +22,23 @@ export const generateRecurringPrice = async () => {
   return price;
 };
 
-export const createRandomProduct = async (): Promise<Product> => {
-  const name = faker.commerce.product();
+export const createRandomProduct = async () => {
+  /** Create a random id */
+  const id = uuidv4();
+  const name = `${faker.commerce.product()}_${id}`;
+
   const product: Product = await stripe.products.create({
     name,
     description: `Description for ${name}`,
   });
 
-  return Promise.resolve(product);
+  return product;
 };
 
-export const updateProduct = async (id, update): Promise<Product> => {
+export const updateProduct = async (id, update) => {
   const product: Product = await stripe.products.update(id, {
     ...update,
   });
 
-  return Promise.resolve(product);
+  return product;
 };

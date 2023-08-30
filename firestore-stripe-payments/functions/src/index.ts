@@ -393,6 +393,7 @@ const prefixMetadata = (metadata: object) =>
  * Create a Product record in Firestore based on a Stripe Product object.
  */
 const createProductRecord = async (product: Stripe.Product): Promise<void> => {
+  console.log('Creating product record >>>>> ', product.id, product.name);
   const { firebaseRole, ...rawMetadata } = product.metadata;
 
   const productData: Product = {
@@ -405,6 +406,14 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
     tax_code: product.tax_code ?? null,
     ...prefixMetadata(rawMetadata),
   };
+
+  console.log(
+    'Setting product record >>>>> ',
+    product.id,
+    product.name,
+    config.productsCollectionPath
+  );
+
   await admin
     .firestore()
     .collection(config.productsCollectionPath)

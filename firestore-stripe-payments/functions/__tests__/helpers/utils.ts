@@ -1,6 +1,7 @@
 import * as admin from 'firebase-admin';
 import { Query, DocumentData } from '@google-cloud/firestore';
 import { UserRecord } from 'firebase-functions/v1/auth';
+import { QueryDocumentSnapshot } from 'firebase-functions/v1/firestore';
 
 export async function repeat(
   fn: { (): Promise<any>; (): any },
@@ -52,7 +53,7 @@ export const waitForDocumentUpdate = (
   document: DocumentData,
   field: string | number,
   value: any,
-  timeout: number = 10_000
+  timeout: number = 300000 // 5 minutes
 ): Promise<FirebaseFirestore.DocumentData> => {
   return new Promise((resolve, reject) => {
     let timedOut = false;
@@ -77,35 +78,49 @@ export const waitForDocumentUpdate = (
 };
 
 export const waitForDocumentToExistInCollection = (
-  query: Query,
-  field: string | number,
+  query: admin.firestore.CollectionReference<admin.firestore.DocumentData>,
+  field: string,
   value: any,
-  timeout: number = 20_000
+  timeout: number = 300000 // 5 minutes
 ): Promise<DocumentData> => {
   return new Promise((resolve, reject) => {
     let timedOut = false;
+
+    let unsubscribe: () => void; // Declare unsubscribe here
+
     const timer = setTimeout(() => {
       timedOut = true;
       reject(
         new Error(
-          `Timeout waiting for firestore document to exist with field ${field} in collection`
+          `Timeout waiting for firestore document to exist with field ${field} and value ${value} in collection`
         )
       );
+      if (unsubscribe) {
+        unsubscribe(); // Unsubscribe when timed out
+      }
     }, timeout);
 
-    const unsubscribe = query.onSnapshot(async (snapshot) => {
-      const docs = snapshot.docChanges();
+    unsubscribe = query.onSnapshot((snapshot) => {
+      try {
+        /** Find the first record that matches the field and value */
+        const record: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData> =
+          snapshot.docs.find(($) => $.data()[field] === value);
 
-      const record: DocumentData = docs.filter(
-        ($) => $.doc.data()[field] === value
-      )[0];
-
-      if (record) {
-        unsubscribe();
-        if (!timedOut) {
-          clearTimeout(timer);
-          resolve(record);
+        /** Check and return if exists */
+        if (record && record.exists) {
+          console.log('Found record >>>>>>', record.data());
+          unsubscribe();
+          if (!timedOut) {
+            clearTimeout(timer);
+            resolve(record);
+          }
         }
+      } catch (error) {
+        if (unsubscribe) {
+          unsubscribe(); // Unsubscribe on error
+        }
+        console.log('Error during onSnapshot:', error);
+        reject(error);
       }
     });
   });

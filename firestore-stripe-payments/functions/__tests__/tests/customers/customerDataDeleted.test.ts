@@ -30,10 +30,10 @@ describe('customerDataDeleted', () => {
       user.email
     );
 
-    const doc = collection.doc(customer.doc.id);
+    const doc = collection.doc(customer.id);
     const userDoc = await waitForDocumentToExistWithField(doc, 'stripeId');
 
-    await admin.auth().deleteUser(customer.doc.id);
+    await admin.auth().deleteUser(customer.id);
 
     const check = ($) => $?.deleted;
     const toRun = () => findCustomer(userDoc.data().stripeId);
