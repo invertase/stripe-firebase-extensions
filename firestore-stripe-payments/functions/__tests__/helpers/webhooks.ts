@@ -37,3 +37,17 @@ export const clearWebhooks = async (id) => {
 
   return stripe.webhookEndpoints.del(process.env.WEBHOOK_ID);
 };
+
+export const clearAllWebhooks = async () => {
+  const stripe = require('stripe')(process.env.STRIPE_API_KEY);
+
+  const webhooks = await stripe.webhookEndpoints.list();
+
+  for await (const webhook of webhooks.data) {
+    if (webhook.url.includes('ngrok.io')) {
+      await stripe.webhookEndpoints.del(webhook.id);
+    }
+  }
+
+  return Promise.resolve();
+};

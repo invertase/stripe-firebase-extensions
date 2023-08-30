@@ -160,6 +160,7 @@ exports.createCheckoutSession = functions
         });
       }
       const customer = customerRecord.stripeId;
+
       if (client === 'web') {
         // Get shipping countries
         const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] =
@@ -286,6 +287,20 @@ exports.createCheckoutSession = functions
             payment_method_types: payment_method_types ?? ['card'],
           });
           setupIntentClientSecret = setupIntent.client_secret;
+        } else if (mode === 'subscription') {
+          const subscription = await stripe.subscriptions.create({
+            customer,
+            items: [{ price }],
+            payment_behavior: 'default_incomplete',
+            expand: ['latest_invoice.payment_intent'],
+            metadata: {
+              firebaseUserUID: context.params.id,
+            },
+          });
+
+          paymentIntentClientSecret =
+            //@ts-ignore
+            subscription.latest_invoice.payment_intent.client_secret;
         } else {
           throw new Error(
             `Mode '${mode} is not supported for 'client:mobile'!`
