@@ -23,7 +23,7 @@
   "dependencies": {
     "@types/jest": "^24.9.1",
     "@types/node": "^18.15.3",
-    "firebase-admin": "^10.2.0",
+    "firebase-admin": "^11.10.1",
     "firebase-functions": "^3.21.2",
     "rimraf": "^3.0.2",
     "stripe": "11.15.0",
