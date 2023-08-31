@@ -338,7 +338,13 @@ export const createPortalLink = functions.https.onCall(
       );
     }
     try {
-      const { returnUrl: return_url, locale = 'auto', configuration } = data;
+      const {
+        returnUrl: return_url,
+        locale = 'auto',
+        configuration,
+        flow_data,
+      } = data;
+
       // Get stripe customer id
       const customer = (
         await admin
@@ -354,6 +360,12 @@ export const createPortalLink = functions.https.onCall(
       };
       if (configuration) {
         params.configuration = configuration;
+      }
+      if (flow_data) {
+        // Ignore type-checking because `flow_data` was added to
+        // `Stripe.BillingPortal.SessionCreateParams` in
+        // stripe@11.2.0 (API version 2022-12-06)
+        (params as any).flow_data = flow_data;
       }
       const session = await stripe.billingPortal.sessions.create(params);
       logs.createdBillingPortalLink(uid);
