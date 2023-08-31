@@ -2,7 +2,7 @@ const ngrok = require('ngrok');
 const fs = require('fs');
 const { parse, stringify } = require('envfile');
 
-import { clearWebhooks, setupWebhooks } from './webhooks';
+import { clearWebhooks, setupWebhooks, clearAllWebhooks } from './webhooks';
 import { pathTosecretsFile, pathToenvFile } from './setupEnvironment';
 import { setupEnvironment } from './setupEnvironment';
 
@@ -67,4 +67,8 @@ export const setupProxy = async () => {
 
 export const cleanupProxy = async (webhookUrl) => {
   return clearWebhooks(webhookUrl);
+};
+
+export const cleanupAllWebhooks = async () => {
+  return clearAllWebhooks();
 };

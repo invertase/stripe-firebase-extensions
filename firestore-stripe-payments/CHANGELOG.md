@@ -1,3 +1,19 @@
+## 0.3.5 - 2023-08-14
+[chore] Updated naming and upgraded to node18
+
+[fix] Updated icons
+
+[fix] updated appinfo versioning
+
+## 0.3.4 - 2023-08-14
+This extension has been formally transferred to Invertase. See the updated README for more details.
+
+## Version 0.3.3 - 2023-03-20
+[fix] Address issue where `insertInvoiceRecord` function fails. [#511]
+
+## Version 0.3.2 - 2022-11-30
+[chore] Added support for `us-west1` as a deployable region for Firebase functions. [#464]
+
 ## Version 0.3.1 - 2022-08-24
 [chore] Added `package-lock.json` to version control to prevent installation issues. [#426]
 

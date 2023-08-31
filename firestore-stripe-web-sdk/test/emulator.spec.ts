@@ -110,7 +110,6 @@ describe("Emulator tests", () => {
     connectAuthEmulator(auth, "http://localhost:9099", {
       disableWarnings: true,
     });
-
     for (const [productId, data] of Object.entries(rawProductData)) {
       await addProductData(productId, data);
     }
