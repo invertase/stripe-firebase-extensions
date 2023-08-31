@@ -680,7 +680,7 @@ const insertPaymentRecord = async (
     payment['prices'] = prices;
     payment['items'] = lineItems.data;
   }
-  // Write to invoice to a subcollection on the subscription doc.
+  // Write to invoice to a subcollection on the customer doc.
   await customersSnap.docs[0].ref
     .collection('payments')
     .doc(payment.id)
