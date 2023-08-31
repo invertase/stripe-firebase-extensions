@@ -128,6 +128,7 @@ exports.createCheckoutSession = functions
       metadata = {},
       automatic_payment_methods = { enabled: true },
       automatic_tax = false,
+      invoice_creation = false,
       tax_rates = [],
       tax_id_collection = false,
       allow_promotion_codes = false,
@@ -214,6 +215,11 @@ exports.createCheckoutSession = functions
           sessionCreateParams.payment_intent_data = {
             metadata,
             ...(setup_future_usage && { setup_future_usage }),
+          };
+          if (invoice_creation) {
+            sessionCreateParams.invoice_creation = {
+              enabled: true,
+            };
           };
         }
         if (automatic_tax) {
