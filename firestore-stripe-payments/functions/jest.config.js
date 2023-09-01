@@ -10,7 +10,7 @@ module.exports = {
     },
   },
   preset: 'ts-jest',
-  testMatch: ['**/__tests__/tests/portalLinks/*.test.ts'],
+  testMatch: ['**/__tests__/tests/**/*.test.ts'],
   testEnvironment: 'node',
   testTimeout: 120000,
   collectCoverage: true,
