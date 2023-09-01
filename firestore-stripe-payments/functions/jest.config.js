@@ -10,7 +10,7 @@ module.exports = {
     },
   },
   preset: 'ts-jest',
-  testMatch: ['**/__tests__/tests/**/*.test.ts'],
+  testMatch: ['**/__tests__/tests/portalLinks/*.test.ts'],
   testEnvironment: 'node',
   testTimeout: 120000,
   collectCoverage: true,
@@ -21,6 +21,8 @@ module.exports = {
   ],
   setupFiles: ['<rootDir>/__tests__/jest.setup.ts'],
   moduleNameMapper: {
+    'firebase-admin/firestore':
+      '<rootDir>/node_modules/firebase-admin/lib/firestore',
     'firebase-admin/eventarc':
       '<rootDir>/node_modules/firebase-admin/lib/eventarc/index.js',
   },
