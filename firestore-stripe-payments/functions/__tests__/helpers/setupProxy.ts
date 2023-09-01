@@ -50,7 +50,7 @@ export const getProxyUrl = () => {
   if (process.env.PROXY_URL) return process.env.PROXY_URL;
 
   /** Load from env */
-  const { PROXY_URL } = parse(fs.readFileSync(pathTosecretsFile, 'utf-8'));
+  const { PROXY_URL } = parse(fs.readFileSync(pathToenvFile, 'utf-8'));
   return PROXY_URL;
 };
 
