@@ -30,23 +30,43 @@ async function setEnv(key: string, value, isSecret?: boolean) {
   });
 }
 
-export const setupProxy = async () => {
+export const loadStripeSecret = async () => {
   /** Set Stripe secret if provided or running in CI */
   if (process.env.STRIPE_API_KEY) {
     await setEnv('STRIPE_API_KEY', process.env.STRIPE_API_KEY, true);
   }
 
-  /** Load Stripe key before initialisation */
-  fs.readFile(pathTosecretsFile, 'utf8', (err, data) => {
-    const { STRIPE_API_KEY } = parse(data);
+  /** Load Stripe key from secrets file for local development */
+  if (!process.env.STRIPE_API_KEY) {
+    const { STRIPE_API_KEY } = parse(
+      fs.readFileSync(pathTosecretsFile, 'utf-8')
+    );
     process.env.STRIPE_API_KEY = STRIPE_API_KEY;
-  });
+  }
+};
 
-  const PROXY_URL = await ngrok.connect(5001);
+export const getProxyUrl = () => {
+  /** Return if already set */
+  if (process.env.PROXY_URL) return process.env.PROXY_URL;
+
+  /** Load from env */
+  const { PROXY_URL } = parse(fs.readFileSync(pathTosecretsFile, 'utf-8'));
+  return PROXY_URL;
+};
+
+export const setupProxy = async () => {
+  /** Load in the Stripe secret */
+  await loadStripeSecret();
+
+  /** Find the correct proxy url */
+  const proxyUrl = getProxyUrl();
+
+  /** Create a new webhook for testing */
   const webhook = await setupWebhooks(
-    `${PROXY_URL}/demo-project/us-central1/ext-firestore-stripe-payments-handleWebhookEvents`
+    `${proxyUrl}/demo-project/us-central1/ext-firestore-stripe-payments-handleWebhookEvents`
   );
 
+  /** Update the full extension configuration */
   await Promise.all([
     await setEnv('STRIPE_WEBHOOK_SECRET', webhook.secret, true),
     await setEnv('WEBHOOK_URL', webhook.url),

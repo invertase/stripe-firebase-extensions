@@ -1,6 +1,8 @@
 export const setupWebhooks = async (url) => {
   const stripe = require('stripe')(process.env.STRIPE_API_KEY);
 
+  console.log('Setting up proxy to run on: ', url);
+
   const webhook = await stripe.webhookEndpoints.create({
     url,
     enabled_events: [
