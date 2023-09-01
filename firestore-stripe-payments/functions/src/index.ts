@@ -17,6 +17,7 @@
 import * as admin from 'firebase-admin';
 import { getEventarc } from 'firebase-admin/eventarc';
 import * as functions from 'firebase-functions';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import Stripe from 'stripe';
 import {
   Product,
@@ -220,7 +221,7 @@ exports.createCheckoutSession = functions
             sessionCreateParams.invoice_creation = {
               enabled: true,
             };
-          };
+          }
         }
         if (automatic_tax) {
           sessionCreateParams.automatic_tax = {
@@ -255,7 +256,7 @@ exports.createCheckoutSession = functions
             mode,
             sessionId: session.id,
             url: session.url,
-            created: admin.firestore.Timestamp.now(),
+            created: FieldValue.serverTimestamp(),
           },
           { merge: true }
         );
@@ -321,7 +322,7 @@ exports.createCheckoutSession = functions
             client,
             mode,
             customer,
-            created: admin.firestore.Timestamp.now(),
+            created: FieldValue.serverTimestamp(),
             ephemeralKeySecret: ephemeralKey.secret,
             paymentIntentClientSecret,
             setupIntentClientSecret,
@@ -548,26 +549,26 @@ const manageSubscriptionStatusChange = async (
     items: subscription.items.data,
     cancel_at_period_end: subscription.cancel_at_period_end,
     cancel_at: subscription.cancel_at
-      ? admin.firestore.Timestamp.fromMillis(subscription.cancel_at * 1000)
+      ? Timestamp.fromMillis(subscription.cancel_at * 1000)
       : null,
     canceled_at: subscription.canceled_at
-      ? admin.firestore.Timestamp.fromMillis(subscription.canceled_at * 1000)
+      ? Timestamp.fromMillis(subscription.canceled_at * 1000)
       : null,
-    current_period_start: admin.firestore.Timestamp.fromMillis(
+    current_period_start: Timestamp.fromMillis(
       subscription.current_period_start * 1000
     ),
-    current_period_end: admin.firestore.Timestamp.fromMillis(
+    current_period_end: Timestamp.fromMillis(
       subscription.current_period_end * 1000
     ),
-    created: admin.firestore.Timestamp.fromMillis(subscription.created * 1000),
+    created: Timestamp.fromMillis(subscription.created * 1000),
     ended_at: subscription.ended_at
-      ? admin.firestore.Timestamp.fromMillis(subscription.ended_at * 1000)
+      ? Timestamp.fromMillis(subscription.ended_at * 1000)
       : null,
     trial_start: subscription.trial_start
-      ? admin.firestore.Timestamp.fromMillis(subscription.trial_start * 1000)
+      ? Timestamp.fromMillis(subscription.trial_start * 1000)
       : null,
     trial_end: subscription.trial_end
-      ? admin.firestore.Timestamp.fromMillis(subscription.trial_end * 1000)
+      ? Timestamp.fromMillis(subscription.trial_end * 1000)
       : null,
   };
   await subsDbRef.set(subscriptionData);
@@ -890,7 +891,7 @@ const deleteStripeCustomer = async ({
     // Mark all their subscriptions as cancelled in Firestore.
     const update = {
       status: 'canceled',
-      ended_at: admin.firestore.Timestamp.now(),
+      ended_at: FieldValue.serverTimestamp(),
     };
     // Set all subscription records to canceled.
     const subscriptionsSnap = await admin
