@@ -361,13 +361,26 @@ export const createPortalLink = functions.https.onCall(
     try {
       const { returnUrl: return_url, locale = 'auto', configuration } = data;
       // Get stripe customer id
-      const customer = (
-        await admin
+      let customerRecord = (await admin
           .firestore()
           .collection(config.customersCollectionPath)
           .doc(uid)
           .get()
-      ).data().stripeId;
+      ).data();
+      
+      if (!customerRecord?.stripeId) {
+        // Create Stripe customer on-the-fly
+        const { email, phoneNumber } = await admin
+          .auth()
+          .getUser(uid);
+        customerRecord = await createCustomerRecord({
+          uid,
+          email,
+          phone: phoneNumber,
+        });
+      }
+      const customer = customerRecord.stripeId;
+      
       const params: Stripe.BillingPortal.SessionCreateParams = {
         customer,
         return_url,
