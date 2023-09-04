@@ -73,7 +73,7 @@ Be sure to configure your test mode [API Key](https://stripe.com/docs/keys) and 
 Start the firebase emulator with:
 
 ```
-firebase emulators:start
+firebase emulators:start --project=projectId_or_alias
 ```
 
 Find the functions path associated with the stripe extension, typically it looks like this:
