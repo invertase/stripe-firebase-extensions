@@ -80,7 +80,7 @@ Find the functions path associated with the stripe extension, typically it looks
 
 - `http://192.0.0.1:5001/{projectId}/{region}/ext-firestore-stripe-payments-handleWebhookEvents`
 
-- You can tunnel your local endpoint using a tool like [ngrok](https://ngrok.com/). In this case you will tunnel the localhost domain and port `http://localhost:3999`. Replace `localhost:3999` with your tunnel url. The end result would look something like:
+- You can tunnel your local endpoint using a tool like [ngrok](https://ngrok.com/). In this case you will tunnel the localhost domain and port `http://127.0.01:5001`. Replace `127.0.0.1:5001` with your tunnel url. The end result would look something like:
 
 ```
 https://1234-1234-1234.ngrok.io/{projectId}/{region}/ext-firestore-stripe-payments-handleWebhookEvents
