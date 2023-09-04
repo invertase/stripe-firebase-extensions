@@ -78,7 +78,7 @@ firebase emulators:start --project=projectId_or_alias
 
 Find the functions path associated with the stripe extension, typically it looks like this:
 
-- `http://localhost:3999/{projectId}/{region}/ext-firestore-stripe-payments-handleWebhookEvents`
+- `http://192.0.0.1:5001/{projectId}/{region}/ext-firestore-stripe-payments-handleWebhookEvents`
 
 - You can tunnel your local endpoint using a tool like [ngrok](https://ngrok.com/). In this case you will tunnel the localhost domain and port `http://localhost:3999`. Replace `localhost:3999` with your tunnel url. The end result would look something like:
 
