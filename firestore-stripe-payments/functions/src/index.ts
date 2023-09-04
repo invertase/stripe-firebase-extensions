@@ -28,14 +28,14 @@ import {
 import * as logs from './logs';
 import config from './config';
 
-const apiVersion = '2020-08-27';
+const apiVersion = '2022-11-15';
 const stripe = new Stripe(config.stripeSecretKey, {
   apiVersion,
   // Register extension as a Stripe plugin
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
-    name: 'Firebase firestore-stripe-payments',
-    version: '0.3.2',
+    name: 'Firebase Invertase firestore-stripe-payments',
+    version: '0.3.5',
   },
 });
 
@@ -128,6 +128,7 @@ exports.createCheckoutSession = functions
       metadata = {},
       automatic_payment_methods = { enabled: true },
       automatic_tax = false,
+      invoice_creation = false,
       tax_rates = [],
       tax_id_collection = false,
       allow_promotion_codes = false,
@@ -160,6 +161,7 @@ exports.createCheckoutSession = functions
         });
       }
       const customer = customerRecord.stripeId;
+
       if (client === 'web') {
         // Get shipping countries
         const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] =
@@ -213,6 +215,11 @@ exports.createCheckoutSession = functions
           sessionCreateParams.payment_intent_data = {
             metadata,
             ...(setup_future_usage && { setup_future_usage }),
+          };
+          if (invoice_creation) {
+            sessionCreateParams.invoice_creation = {
+              enabled: true,
+            };
           };
         }
         if (automatic_tax) {
@@ -286,6 +293,20 @@ exports.createCheckoutSession = functions
             payment_method_types: payment_method_types ?? ['card'],
           });
           setupIntentClientSecret = setupIntent.client_secret;
+        } else if (mode === 'subscription') {
+          const subscription = await stripe.subscriptions.create({
+            customer,
+            items: [{ price }],
+            payment_behavior: 'default_incomplete',
+            expand: ['latest_invoice.payment_intent'],
+            metadata: {
+              firebaseUserUID: context.params.id,
+            },
+          });
+
+          paymentIntentClientSecret =
+            //@ts-ignore
+            subscription.latest_invoice.payment_intent.client_secret;
         } else {
           throw new Error(
             `Mode '${mode} is not supported for 'client:mobile'!`
@@ -633,10 +654,13 @@ const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
     );
   }
 
+  // An Invoice object does not always have an associated Payment Intent
+  const recordId: string = (invoice.payment_intent as string) ?? invoice.id;
+
   // Update subscription payment with price data
   await customersSnap.docs[0].ref
     .collection('payments')
-    .doc(invoice.payment_intent as string)
+    .doc(recordId)
     .set({ prices }, { merge: true });
   logs.firestoreDocCreated('invoices', invoice.id);
 };
@@ -675,7 +699,7 @@ const insertPaymentRecord = async (
     payment['prices'] = prices;
     payment['items'] = lineItems.data;
   }
-  // Write to invoice to a subcollection on the subscription doc.
+  // Write to invoice to a subcollection on the customer doc.
   await customersSnap.docs[0].ref
     .collection('payments')
     .doc(payment.id)
