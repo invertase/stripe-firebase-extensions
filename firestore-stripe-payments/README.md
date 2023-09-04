@@ -55,7 +55,11 @@ Then, in the [Stripe Dashboard](https://dashboard.stripe.com):
 When installing via the CLI, be sure to pin the version. 
 
 ```
-firebase ext:install stripe/firestore-stripe-payments@0.3.1 --project=projectId_or_alias
+firebase ext:install invertase/firestore-stripe-payments --project=projectId_or_alias
+
+Alternatively for local source:
+
+firebase ext:install . --project=projectId_or_alias
 ```
 
 The current version can be found in [extension.yaml](extension.yaml). 
