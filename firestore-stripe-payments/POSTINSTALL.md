@@ -21,6 +21,8 @@ Before you proceed, make sure you have the following Firebase services set up:
 
 It is crucial to limit data access to authenticated users only and for users to only be able to see their own information. For product and pricing information it is important to disable write access for client applications. Use the rules below to restrict access as recommended in your project's [Cloud Firestore rules](https://console.firebase.google.com/project/${param:PROJECT_ID}/firestore/rules):
 
+Note: If you are reading this on Github the ${param:params} are not replaced with your project details. If you go to Your Project > Extensions > Stripe Firebase Extension, the params will be replaced so you can just copy and paste the rules. 
+
 ```
 rules_version = '2';
 service cloud.firestore {
