@@ -20,6 +20,14 @@ jobs:
       max-parallel: 1
     name: node.js_${{ matrix.node }}_test
     steps:
+      - name: Setup cloudflared
+        uses: AnimMouse/setup-cloudflared@v1
+        with:
+          cloudflare_tunnel_credential:
+            ${{ secrets.CLOUDFLARE_TUNNEL_CREDENTIAL }}
+          cloudflare_tunnel_configuration:
+            ${{ secrets.CLOUDFLARE_TUNNEL_CONFIGURATION }}
+          cloudflare_tunnel_id: ${{ secrets.CLOUDFLARE_TUNNEL_ID }}
       - uses: actions/checkout@v3
       - name: Setup node
         uses: actions/setup-node@v3
@@ -40,3 +48,6 @@ jobs:
         run: npm run test
         env:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+      - name: Shutdown and view logs of cloudflared
+        if: always()
+        uses: AnimMouse/setup-cloudflared/shutdown@v1
