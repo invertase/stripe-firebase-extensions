@@ -27,6 +27,7 @@ import {
 } from './interfaces';
 import * as logs from './logs';
 import config from './config';
+import { Timestamp } from 'firebase-admin/firestore';
 
 const apiVersion = '2022-11-15';
 const stripe = new Stripe(config.stripeSecretKey, {
@@ -145,7 +146,7 @@ exports.createCheckoutSession = functions
       consent_collection = {},
       expires_at,
       phone_number_collection = {},
-      payment_method_collection = 'always'
+      payment_method_collection = 'always',
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -205,7 +206,8 @@ exports.createCheckoutSession = functions
           sessionCreateParams.payment_method_types = payment_method_types;
         }
         if (mode === 'subscription') {
-          sessionCreateParams.payment_method_collection = payment_method_collection
+          sessionCreateParams.payment_method_collection =
+            payment_method_collection;
           sessionCreateParams.subscription_data = {
             trial_from_plan,
             metadata,
@@ -222,7 +224,7 @@ exports.createCheckoutSession = functions
             sessionCreateParams.invoice_creation = {
               enabled: true,
             };
-          };
+          }
         }
         if (automatic_tax) {
           sessionCreateParams.automatic_tax = {
@@ -257,7 +259,7 @@ exports.createCheckoutSession = functions
             mode,
             sessionId: session.id,
             url: session.url,
-            created: admin.firestore.Timestamp.now(),
+            created: Timestamp.now(),
           },
           { merge: true }
         );
@@ -323,7 +325,7 @@ exports.createCheckoutSession = functions
             client,
             mode,
             customer,
-            created: admin.firestore.Timestamp.now(),
+            created: Timestamp.now(),
             ephemeralKeySecret: ephemeralKey.secret,
             paymentIntentClientSecret,
             setupIntentClientSecret,
@@ -369,18 +371,17 @@ export const createPortalLink = functions.https.onCall(
       } = data;
 
       // Get stripe customer id
-      let customerRecord = (await admin
+      let customerRecord = (
+        await admin
           .firestore()
           .collection(config.customersCollectionPath)
           .doc(uid)
           .get()
       ).data();
-      
+
       if (!customerRecord?.stripeId) {
         // Create Stripe customer on-the-fly
-        const { email, phoneNumber } = await admin
-          .auth()
-          .getUser(uid);
+        const { email, phoneNumber } = await admin.auth().getUser(uid);
         customerRecord = await createCustomerRecord({
           uid,
           email,
@@ -388,7 +389,7 @@ export const createPortalLink = functions.https.onCall(
         });
       }
       const customer = customerRecord.stripeId;
-      
+
       const params: Stripe.BillingPortal.SessionCreateParams = {
         customer,
         return_url,
@@ -575,26 +576,26 @@ const manageSubscriptionStatusChange = async (
     items: subscription.items.data,
     cancel_at_period_end: subscription.cancel_at_period_end,
     cancel_at: subscription.cancel_at
-      ? admin.firestore.Timestamp.fromMillis(subscription.cancel_at * 1000)
+      ? Timestamp.fromMillis(subscription.cancel_at * 1000)
       : null,
     canceled_at: subscription.canceled_at
-      ? admin.firestore.Timestamp.fromMillis(subscription.canceled_at * 1000)
+      ? Timestamp.fromMillis(subscription.canceled_at * 1000)
       : null,
-    current_period_start: admin.firestore.Timestamp.fromMillis(
+    current_period_start: Timestamp.fromMillis(
       subscription.current_period_start * 1000
     ),
-    current_period_end: admin.firestore.Timestamp.fromMillis(
+    current_period_end: Timestamp.fromMillis(
       subscription.current_period_end * 1000
     ),
-    created: admin.firestore.Timestamp.fromMillis(subscription.created * 1000),
+    created: Timestamp.fromMillis(subscription.created * 1000),
     ended_at: subscription.ended_at
-      ? admin.firestore.Timestamp.fromMillis(subscription.ended_at * 1000)
+      ? Timestamp.fromMillis(subscription.ended_at * 1000)
       : null,
     trial_start: subscription.trial_start
-      ? admin.firestore.Timestamp.fromMillis(subscription.trial_start * 1000)
+      ? Timestamp.fromMillis(subscription.trial_start * 1000)
       : null,
     trial_end: subscription.trial_end
-      ? admin.firestore.Timestamp.fromMillis(subscription.trial_end * 1000)
+      ? Timestamp.fromMillis(subscription.trial_end * 1000)
       : null,
   };
   await subsDbRef.set(subscriptionData);
@@ -917,7 +918,7 @@ const deleteStripeCustomer = async ({
     // Mark all their subscriptions as cancelled in Firestore.
     const update = {
       status: 'canceled',
-      ended_at: admin.firestore.Timestamp.now(),
+      ended_at: Timestamp.now(),
     };
     // Set all subscription records to canceled.
     const subscriptionsSnap = await admin
