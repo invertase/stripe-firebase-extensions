@@ -20,7 +20,16 @@ jobs:
       max-parallel: 1
     name: node.js_${{ matrix.node }}_test
     steps:
+      - name: Check CLOUDFLARE_TUNNEL_ID
+        id: check_tunnel
+        run: |
+          if [[ -n "${{ secrets.CLOUDFLARE_TUNNEL_ID }}" ]]; then
+            echo "::save-state name=useCfTunnel::true"
+          else
+            echo "::save-state name=useCfTunnel::false"
+          fi
       - name: Setup cloudflared
+        if: steps.check_tunnel.outputs.useCfTunnel == 'true'
         uses: AnimMouse/setup-cloudflared@v1
         with:
           cloudflare_tunnel_credential:
@@ -49,5 +58,5 @@ jobs:
         env:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
       - name: Shutdown and view logs of cloudflared
-        if: always()
+        if: always() && steps.check_tunnel.outputs.useCfTunnel == 'true'
         uses: AnimMouse/setup-cloudflared/shutdown@v1
