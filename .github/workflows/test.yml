@@ -10,6 +10,9 @@ on:
 
 jobs:
   nodejs:
+    if:
+      github.event_name == 'push' || (github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name != github.repository)
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}
@@ -20,28 +23,20 @@ jobs:
       max-parallel: 1
     name: node.js_${{ matrix.node }}_test
     steps:
-      - name: Check CLOUDFLARE_TUNNEL_ID
-        id: check_tunnel
-        run: |
-          if [[ -n "${{ secrets.CLOUDFLARE_TUNNEL_ID }}" ]]; then
-            echo "::save-state name=useCfTunnel::true"
-          else
-            echo "::save-state name=useCfTunnel::false"
-          fi
-      - name: Setup cloudflared
-        if: steps.check_tunnel.outputs.useCfTunnel == 'true'
-        uses: AnimMouse/setup-cloudflared@v1
-        with:
-          cloudflare_tunnel_credential:
-            ${{ secrets.CLOUDFLARE_TUNNEL_CREDENTIAL }}
-          cloudflare_tunnel_configuration:
-            ${{ secrets.CLOUDFLARE_TUNNEL_CONFIGURATION }}
-          cloudflare_tunnel_id: ${{ secrets.CLOUDFLARE_TUNNEL_ID }}
       - uses: actions/checkout@v3
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
+
+      - name: Install cloudflared
+        run: |
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared-linux-amd64.deb
+          sudo apt-get update
+          sudo apt-get install -f
+        shell: /usr/bin/bash -e {0}
+
       - name: NPM install
         run: npm install
       - name: Install firebase CLI
@@ -57,6 +52,6 @@ jobs:
         run: npm run test
         env:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
-      - name: Shutdown and view logs of cloudflared
-        if: always() && steps.check_tunnel.outputs.useCfTunnel == 'true'
-        uses: AnimMouse/setup-cloudflared/shutdown@v1
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          CLOUDFLARE_SECRET: ${{ secrets.CLOUDFLARE_SECRET }}
