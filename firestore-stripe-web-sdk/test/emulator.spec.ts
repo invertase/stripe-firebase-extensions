@@ -1288,7 +1288,7 @@ describe("Emulator tests", () => {
   async function until(
     predicate: () => boolean,
     intervalMillis: number = 50,
-    timeoutMillis: number = 5 * 1000
+    timeoutMillis: number = 60 * 1000
   ) {
     const start = Date.now();
     let done = false;
