@@ -23,30 +23,21 @@ export const createRandomSubscription = async (
     product: product.id,
   });
 
-  /** create payment method */
-  const paymentMethod = await stripe.paymentMethods.create({
-    type: 'card',
-    card: {
-      number: '4242424242424242',
-      exp_month: 5,
-      exp_year: new Date().getFullYear() + 1,
-      cvc: '314',
-    },
-  });
+  /** Attach the test PaymentMethod to the customer */
+  const attachedPaymentMethod = await stripe.paymentMethods.attach(
+    'pm_card_visa',
+    { customer: customer }
+  );
 
-  /** attach payment method to customer */
-  await stripe.paymentMethods.attach(paymentMethod.id, { customer });
+  /** Update the customer's default PaymentMethod */
   await stripe.customers.update(customer, {
-    invoice_settings: { default_payment_method: paymentMethod.id },
+    invoice_settings: { default_payment_method: attachedPaymentMethod.id },
   });
 
-  /** Create a product */
+  /** Create a subscription */
   const subscription: Subscription = await stripe.subscriptions.create({
-    customer,
+    customer: customer,
     items: [{ price: price.id }],
-    payment_settings: {
-      payment_method_types: ['card'],
-    },
   });
 
   return Promise.resolve(subscription);

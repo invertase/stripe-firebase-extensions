@@ -847,7 +847,7 @@ describe("Emulator tests", () => {
           size: 3,
           empty: false,
         });
-      });
+      }, 12000);
 
       it("should fire an event when a subscription is created", async () => {
         const events: SubscriptionSnapshot[] = [];
@@ -885,7 +885,7 @@ describe("Emulator tests", () => {
           size: 4,
           empty: false,
         });
-      });
+      }, 12000);
 
       it("should fire an event when a subscription is deleted", async () => {
         const events: SubscriptionSnapshot[] = [];

@@ -65,6 +65,6 @@ describe('subscription webhook events', () => {
 
       expect(prices).toBeDefined();
       expect(prices.length).toBe(1);
-    });
+    }, 20000);
   });
 });

@@ -24,9 +24,9 @@ import {
     {}
   );
 
-  await result.then(async () => {
-    await cleanupProxy(proxyId);
-    console.log('Removed webhook ', proxyId);
-    process.exit(0);
-  });
+  // await result.then(async () => {
+  //   await cleanupProxy(proxyId);
+  //   console.log('Removed webhook ', proxyId);
+  //   process.exit(0);
+  // });
 })();

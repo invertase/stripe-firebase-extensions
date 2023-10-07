@@ -10,6 +10,9 @@ on:
 
 jobs:
   nodejs:
+    if:
+      github.event_name == 'push' || (github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name != github.repository)
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}
@@ -25,6 +28,15 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
+
+      - name: Install cloudflared
+        run: |
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared-linux-amd64.deb
+          sudo apt-get update
+          sudo apt-get install -f
+        shell: /usr/bin/bash -e {0}
+
       - name: NPM install
         run: npm install
       - name: Install firebase CLI
@@ -40,3 +52,6 @@ jobs:
         run: npm run test
         env:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          CLOUDFLARE_SECRET: ${{ secrets.CLOUDFLARE_SECRET }}
