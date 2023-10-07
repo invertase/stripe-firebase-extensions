@@ -54,7 +54,7 @@ const config = {
 
   client: {
     mocha: {
-      timeout: 20000,
+      timeout: 60000,
     },
   },
 

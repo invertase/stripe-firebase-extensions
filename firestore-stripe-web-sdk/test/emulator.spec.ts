@@ -866,7 +866,9 @@ describe("Emulator tests", () => {
           "sub4"
         );
         await setDoc(sub4, buildSubscriptionDocument(rawSubscriptionData.sub1));
+        console.log("STEP ONE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         await until(() => events.length > 1);
+        console.log("STEP TWO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
         expect(events.length).to.equal(2);
         expect(events[1]).to.eql({
