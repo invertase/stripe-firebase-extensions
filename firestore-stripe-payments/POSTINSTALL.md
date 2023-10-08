@@ -91,7 +91,7 @@ Here's how to set up the webhook and configure your extension to use it:
    - `invoice.marked_uncollectible` (optional, will sync invoices to Cloud Firestore)
    - `invoice.payment_action_required` (optional, will sync invoices to Cloud Firestore)
 
-1. Using the Firebase console or Firebase CLI, [reconfigure](https://console.firebase.google.com/project/${param:PROJECT_ID}/extensions/instances/${param:EXT_INSTANCE_ID}?tab=config) your extension with your webhook’s signing secret (such as, `whsec_12345678`). Enter the value in the parameter called `Stripe webhook secret`.
+1. Using the Firebase console or Firebase CLI, [reconfigure](https://console.firebase.google.com/project/${param:PROJECT_ID}/extensions/instances/${param:EXT_INSTANCE_ID}?tab=config) your extension with your webhook’s signing secret (such as, `whsec_12345678`). Enter the value in the parameter called `Stripe webhook secret`. Make sure you scroll back to the top of the Extension configuration page and click 'Save' otherwise your Stripe webhook secret will not be saved.
 
 #### Create product and pricing information (only required when building on the web platform)
 
