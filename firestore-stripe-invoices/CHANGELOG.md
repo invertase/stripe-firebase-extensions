@@ -1,6 +1,3 @@
-## Version 0.2.1 - 2022-08-24
-[chore] Added `package-lock.json` to version control to prevent installation issues. [#426]
-
 ## Version 0.2.0 - 2022-04-26
 
 [feat] - Add `invoice.paid`, `invoice.updated` to permitted webhook events list. #356
