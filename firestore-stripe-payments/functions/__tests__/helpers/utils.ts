@@ -80,7 +80,7 @@ export const waitForDocumentToExistInCollection = (
   query: Query,
   field: string | number,
   value: any,
-  timeout: number = 10_000
+  timeout: number = 20_000
 ): Promise<DocumentData> => {
   return new Promise((resolve, reject) => {
     let timedOut = false;

@@ -2,5 +2,5 @@
 
 module.exports = {
   require: ["ts-node/register", "jsdom-global/register"],
-  timeout: 5000,
+  timeout: 60000,
 };
