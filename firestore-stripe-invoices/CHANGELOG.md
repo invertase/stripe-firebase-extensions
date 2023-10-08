@@ -1,3 +1,17 @@
+## Version 0.2.4 - 2023-10-08
+
+[fix] - updated extension icons
+
+[fix] - updated external services to correct pricing uri configuration (#360)
+
+[feat] - added new secret param type for ext config
+
+[feat] - add Warsaw Cloud Function Location
+
+[fix] - Only one of email or uid.
+
+[feat] - Add support for invoiceItem quantity. (#2)
+
 ## Version 0.2.3 - 2023-08-21
 [chore] Updated naming and upgraded to node18
 

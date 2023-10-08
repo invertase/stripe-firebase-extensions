@@ -1,3 +1,33 @@
+## Version 0.3.6 - 2023-10-08
+
+[feat] - Support `payment_method_collection` parameter
+
+[feat] - create Stripe customer on-the-fly in createPortalLink
+
+[feat] - added mobile subscription payments
+
+[fix] - updated extension icons
+
+[feat] - createPortalLink auth tweaks
+
+[fix] - added subscription payments prices, test and refactor included
+
+[fix] - `minInstances` parameter expects number
+
+[feat] - Allow configuring min instances for createCheckoutSession
+
+[fix] - added env stripe key check on test setup
+
+[feat] - upgraded to the new emulator suite
+
+[feat] - added stripe extension events
+
+[feat] - Add parameter to enable phone number collection
+
+[feat] - Add parameters to enable expired Checkout Session recovery
+
+[feat] - Add `setup_future_usage` parameter for one-time payment flows
+
 ## 0.3.5 - 2023-08-14
 [chore] Updated naming and upgraded to node18
 
