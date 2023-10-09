@@ -27,15 +27,16 @@ import {
 } from './interfaces';
 import * as logs from './logs';
 import config from './config';
+import { Timestamp } from 'firebase-admin/firestore';
 
-const apiVersion = '2020-08-27';
+const apiVersion = '2022-11-15';
 const stripe = new Stripe(config.stripeSecretKey, {
   apiVersion,
   // Register extension as a Stripe plugin
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
-    name: 'Firebase firestore-stripe-payments',
-    version: '0.3.3',
+    name: 'Firebase Invertase firestore-stripe-payments',
+    version: '0.3.5',
   },
 });
 
@@ -128,6 +129,7 @@ exports.createCheckoutSession = functions
       metadata = {},
       automatic_payment_methods = { enabled: true },
       automatic_tax = false,
+      invoice_creation = false,
       tax_rates = [],
       tax_id_collection = false,
       allow_promotion_codes = false,
@@ -144,6 +146,7 @@ exports.createCheckoutSession = functions
       consent_collection = {},
       expires_at,
       phone_number_collection = {},
+      payment_method_collection = 'always',
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
@@ -160,6 +163,7 @@ exports.createCheckoutSession = functions
         });
       }
       const customer = customerRecord.stripeId;
+
       if (client === 'web') {
         // Get shipping countries
         const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] =
@@ -202,6 +206,8 @@ exports.createCheckoutSession = functions
           sessionCreateParams.payment_method_types = payment_method_types;
         }
         if (mode === 'subscription') {
+          sessionCreateParams.payment_method_collection =
+            payment_method_collection;
           sessionCreateParams.subscription_data = {
             trial_from_plan,
             metadata,
@@ -214,6 +220,11 @@ exports.createCheckoutSession = functions
             metadata,
             ...(setup_future_usage && { setup_future_usage }),
           };
+          if (invoice_creation) {
+            sessionCreateParams.invoice_creation = {
+              enabled: true,
+            };
+          }
         }
         if (automatic_tax) {
           sessionCreateParams.automatic_tax = {
@@ -248,7 +259,7 @@ exports.createCheckoutSession = functions
             mode,
             sessionId: session.id,
             url: session.url,
-            created: admin.firestore.Timestamp.now(),
+            created: Timestamp.now(),
           },
           { merge: true }
         );
@@ -286,6 +297,20 @@ exports.createCheckoutSession = functions
             payment_method_types: payment_method_types ?? ['card'],
           });
           setupIntentClientSecret = setupIntent.client_secret;
+        } else if (mode === 'subscription') {
+          const subscription = await stripe.subscriptions.create({
+            customer,
+            items: [{ price }],
+            payment_behavior: 'default_incomplete',
+            expand: ['latest_invoice.payment_intent'],
+            metadata: {
+              firebaseUserUID: context.params.id,
+            },
+          });
+
+          paymentIntentClientSecret =
+            //@ts-ignore
+            subscription.latest_invoice.payment_intent.client_secret;
         } else {
           throw new Error(
             `Mode '${mode} is not supported for 'client:mobile'!`
@@ -300,7 +325,7 @@ exports.createCheckoutSession = functions
             client,
             mode,
             customer,
-            created: admin.firestore.Timestamp.now(),
+            created: Timestamp.now(),
             ephemeralKeySecret: ephemeralKey.secret,
             paymentIntentClientSecret,
             setupIntentClientSecret,
@@ -338,15 +363,33 @@ export const createPortalLink = functions.https.onCall(
       );
     }
     try {
-      const { returnUrl: return_url, locale = 'auto', configuration } = data;
+      const {
+        returnUrl: return_url,
+        locale = 'auto',
+        configuration,
+        flow_data,
+      } = data;
+
       // Get stripe customer id
-      const customer = (
+      let customerRecord = (
         await admin
           .firestore()
           .collection(config.customersCollectionPath)
           .doc(uid)
           .get()
-      ).data().stripeId;
+      ).data();
+
+      if (!customerRecord?.stripeId) {
+        // Create Stripe customer on-the-fly
+        const { email, phoneNumber } = await admin.auth().getUser(uid);
+        customerRecord = await createCustomerRecord({
+          uid,
+          email,
+          phone: phoneNumber,
+        });
+      }
+      const customer = customerRecord.stripeId;
+
       const params: Stripe.BillingPortal.SessionCreateParams = {
         customer,
         return_url,
@@ -354,6 +397,12 @@ export const createPortalLink = functions.https.onCall(
       };
       if (configuration) {
         params.configuration = configuration;
+      }
+      if (flow_data) {
+        // Ignore type-checking because `flow_data` was added to
+        // `Stripe.BillingPortal.SessionCreateParams` in
+        // stripe@11.2.0 (API version 2022-12-06)
+        (params as any).flow_data = flow_data;
       }
       const session = await stripe.billingPortal.sessions.create(params);
       logs.createdBillingPortalLink(uid);
@@ -527,26 +576,26 @@ const manageSubscriptionStatusChange = async (
     items: subscription.items.data,
     cancel_at_period_end: subscription.cancel_at_period_end,
     cancel_at: subscription.cancel_at
-      ? admin.firestore.Timestamp.fromMillis(subscription.cancel_at * 1000)
+      ? Timestamp.fromMillis(subscription.cancel_at * 1000)
       : null,
     canceled_at: subscription.canceled_at
-      ? admin.firestore.Timestamp.fromMillis(subscription.canceled_at * 1000)
+      ? Timestamp.fromMillis(subscription.canceled_at * 1000)
       : null,
-    current_period_start: admin.firestore.Timestamp.fromMillis(
+    current_period_start: Timestamp.fromMillis(
       subscription.current_period_start * 1000
     ),
-    current_period_end: admin.firestore.Timestamp.fromMillis(
+    current_period_end: Timestamp.fromMillis(
       subscription.current_period_end * 1000
     ),
-    created: admin.firestore.Timestamp.fromMillis(subscription.created * 1000),
+    created: Timestamp.fromMillis(subscription.created * 1000),
     ended_at: subscription.ended_at
-      ? admin.firestore.Timestamp.fromMillis(subscription.ended_at * 1000)
+      ? Timestamp.fromMillis(subscription.ended_at * 1000)
       : null,
     trial_start: subscription.trial_start
-      ? admin.firestore.Timestamp.fromMillis(subscription.trial_start * 1000)
+      ? Timestamp.fromMillis(subscription.trial_start * 1000)
       : null,
     trial_end: subscription.trial_end
-      ? admin.firestore.Timestamp.fromMillis(subscription.trial_end * 1000)
+      ? Timestamp.fromMillis(subscription.trial_end * 1000)
       : null,
   };
   await subsDbRef.set(subscriptionData);
@@ -665,7 +714,7 @@ const insertPaymentRecord = async (
     payment['prices'] = prices;
     payment['items'] = lineItems.data;
   }
-  // Write to invoice to a subcollection on the subscription doc.
+  // Write to invoice to a subcollection on the customer doc.
   await customersSnap.docs[0].ref
     .collection('payments')
     .doc(payment.id)
@@ -869,7 +918,7 @@ const deleteStripeCustomer = async ({
     // Mark all their subscriptions as cancelled in Firestore.
     const update = {
       status: 'canceled',
-      ended_at: admin.firestore.Timestamp.now(),
+      ended_at: Timestamp.now(),
     };
     // Set all subscription records to canceled.
     const subscriptionsSnap = await admin

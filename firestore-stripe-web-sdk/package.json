@@ -1,6 +1,6 @@
 {
-  "name": "@stripe/firestore-stripe-payments",
-  "version": "0.0.6",
+  "name": "@invertase/firestore-stripe-payments",
+  "version": "0.0.7",
   "description": "Client SDK for the firestore-stripe-payments Firebase Extension",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
@@ -10,7 +10,7 @@
     "api-extractor:local": "npm run build && api-extractor run --local --verbose",
     "build": "tsc",
     "postbuild": "node ./postbuild.js",
-    "test": "firebase emulators:exec --only firestore,auth --project fake-project-id 'npm run test:unit' && exit 0",
+    "test": "cd _emulator && firebase emulators:exec --project=demo-test 'NODE_OPTIONS=--openssl-legacy-provider npm run test:unit' && exit 0",
     "test:unit": "karma start --single-run"
   },
   "keywords": [
@@ -60,8 +60,8 @@
     "typescript": "^4.4.2"
   },
   "dependencies": {
-    "@firebase/app": "^0.7.5",
-    "@firebase/auth": "^0.17.2",
-    "@firebase/firestore": "^3.2.0"
+    "@firebase/app": "^0.9.17",
+    "@firebase/auth": "^1.3.0",
+    "@firebase/firestore": "^4.1.2"
   }
 }
