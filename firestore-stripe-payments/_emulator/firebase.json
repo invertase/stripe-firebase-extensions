@@ -1,6 +1,6 @@
 {
   "extensions": {
-    "firestore-stripe-payments": "../"
+    "firestore-stripe-payments": ".."
   },
   "storage": {
     "rules": "storage.rules"
