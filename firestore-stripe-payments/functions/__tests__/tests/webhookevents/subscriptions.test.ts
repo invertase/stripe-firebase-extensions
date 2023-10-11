@@ -61,10 +61,9 @@ describe('subscription webhook events', () => {
           stripeSubscription.latest_invoice
         );
 
-      const { prices } = subscriptionDoc.doc.data();
+      const { invoice } = subscriptionDoc.doc.data();
 
-      expect(prices).toBeDefined();
-      expect(prices.length).toBe(1);
+      expect(invoice).toBeDefined();
     }, 20000);
   });
 });

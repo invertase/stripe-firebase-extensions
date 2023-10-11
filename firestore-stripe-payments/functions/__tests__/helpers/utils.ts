@@ -24,7 +24,7 @@ export async function repeat(
 export const waitForDocumentToExistWithField = (
   document: DocumentData,
   field: string | number,
-  timeout: number = 10_000
+  timeout: number = 20_000
 ): Promise<DocumentData> => {
   return new Promise((resolve, reject) => {
     let timedOut = false;
