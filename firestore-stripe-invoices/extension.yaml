@@ -62,7 +62,7 @@ resources:
       in your specified Cloud Firestore collection
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs16
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.create
         resource: projects/${PROJECT_ID}/databases/(default)/documents/${INVOICES_COLLECTION}/{id}
@@ -75,7 +75,7 @@ resources:
       a new Stripe Event is received.
     properties:
       location: ${LOCATION}
-      runtime: nodejs10
+      runtime: nodejs16
       httpsTrigger: {}
 
 params:
