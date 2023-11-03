@@ -82,6 +82,10 @@ export interface Product {
    * A list of Prices for this billing product.
    */
   prices?: Array<Price>;
+    /**
+   * A list of features for this billing product.
+   */
+  features?: Array<string> | null;
   /**
    * Any additional properties
    */
