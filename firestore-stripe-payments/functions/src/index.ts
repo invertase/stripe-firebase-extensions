@@ -437,6 +437,7 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
     images: product.images,
     metadata: product.metadata,
     tax_code: product.tax_code ?? null,
+    features: product.features ?? null,  
     ...prefixMetadata(rawMetadata),
   };
   await admin
