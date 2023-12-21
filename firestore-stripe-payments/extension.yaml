@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firestore-stripe-payments
-version: 0.3.7
+version: 0.3.8
 specVersion: v1beta
 
 displayName: Run Payments with Stripe
@@ -97,7 +97,7 @@ resources:
       Deletes the Stripe customer object and cancels all their subscriptions when the user is deleted in Firebase Authentication.
     properties:
       location: ${LOCATION}
-      runtime: nodejs14
+      runtime: nodejs18
       eventTrigger:
         eventType: providers/firebase.auth/eventTypes/user.delete
         resource: projects/${PROJECT_ID}
@@ -108,7 +108,7 @@ resources:
       Deletes the Stripe customer object and cancels all their subscriptions when the customer doc in Cloud Firestore is deleted.
     properties:
       location: ${LOCATION}
-      runtime: nodejs14
+      runtime: nodejs18
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.delete
         resource: projects/${PROJECT_ID}/databases/(default)/documents/${CUSTOMERS_COLLECTION}/{uid}
