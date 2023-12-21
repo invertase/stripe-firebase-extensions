@@ -1,3 +1,7 @@
+### Version 0.3.8 - 2023-12-21
+
+[fix] - upgraded resources `onUserDeleted` & `onCustomerDataDeleted` to node 18 [#583]
+
 ### Version 0.3.7 - 2023-12-21
 
 [fix] - upgraded the resources to node 18 [#583]
