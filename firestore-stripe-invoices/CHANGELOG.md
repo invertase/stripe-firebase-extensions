@@ -1,3 +1,7 @@
+### Version 0.2.5 - 2023-12-21
+
+[fix] - upgraded the resources to node 18 [#583]
+
 ## Version 0.2.4 - 2023-10-08
 
 [fix] - updated extension icons

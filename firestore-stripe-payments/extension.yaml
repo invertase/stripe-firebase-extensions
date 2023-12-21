@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firestore-stripe-payments
-version: 0.3.6
+version: 0.3.7
 specVersion: v1beta
 
 displayName: Run Payments with Stripe
@@ -57,7 +57,7 @@ resources:
       Creates a Stripe customer object when a new user signs up.
     properties:
       location: ${LOCATION}
-      runtime: nodejs14
+      runtime: nodejs18
       eventTrigger:
         eventType: providers/firebase.auth/eventTypes/user.create
         resource: projects/${PROJECT_ID}
@@ -68,7 +68,7 @@ resources:
       Creates a Checkout session to collect the customer's payment details.
     properties:
       location: ${LOCATION}
-      runtime: nodejs14
+      runtime: nodejs18
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.create
         resource: projects/${PROJECT_ID}/databases/(default)/documents/${CUSTOMERS_COLLECTION}/{uid}/checkout_sessions/{id}
@@ -79,7 +79,7 @@ resources:
       Creates links to the customer portal for the user to manage their payment & subscription details.
     properties:
       location: ${LOCATION}
-      runtime: nodejs14
+      runtime: nodejs18
       httpsTrigger: {}
 
   - name: handleWebhookEvents
@@ -88,7 +88,7 @@ resources:
       Handles Stripe webhook events to keep subscription statuses in sync and update custom claims.
     properties:
       location: ${LOCATION}
-      runtime: nodejs14
+      runtime: nodejs18
       httpsTrigger: {}
 
   - name: onUserDeleted

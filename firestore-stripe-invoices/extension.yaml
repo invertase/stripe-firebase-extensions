@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firestore-stripe-invoices
-version: 0.2.4
+version: 0.2.5
 specVersion: v1beta
 
 displayName: Send Invoices using Stripe
@@ -62,7 +62,7 @@ resources:
       in your specified Cloud Firestore collection
     properties:
       location: ${LOCATION}
-      runtime: nodejs16
+      runtime: nodejs18
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.create
         resource: projects/${PROJECT_ID}/databases/(default)/documents/${INVOICES_COLLECTION}/{id}
@@ -75,7 +75,7 @@ resources:
       a new Stripe Event is received.
     properties:
       location: ${LOCATION}
-      runtime: nodejs16
+      runtime: nodejs18
       httpsTrigger: {}
 
 params:
