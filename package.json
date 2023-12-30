@@ -20,12 +20,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stripe/stripe-firebase-extensions.git"
+    "url": "git+https://github.com/invertase/stripe-firebase-extensions.git"
   },
   "author": "Stripe (https://stripe.com/)",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/stripe/stripe-firebase-extensions/issues"
+    "url": "https://github.com/invertase/stripe-firebase-extensions/issues"
   },
   "devDependencies": {
     "lerna": "^3.4.3",

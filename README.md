@@ -1,5 +1,5 @@
 # UPDATE 2023-10-08:
-This project has now being officailly transferred to [Invertase](https://github.com/invertase), who will maintain this extension going forward. Please see [this issue](https://github.com/stripe/stripe-firebase-extensions/issues/524) for more details. 
+This project has now being officailly transferred to [Invertase](https://github.com/invertase), who will maintain this extension going forward. Please see [this issue](https://github.com/invertase/stripe-firebase-extensions/issues/524) for more details. 
 It is now reccomended to uninstall the `stripe/firestore-stripe-payments` extension and install `invertase/firestore-stripe-payments` from the Firebase Extension Hub.
 
 Alternativley, you can also use the following link to convert your current installation to the Invertase version

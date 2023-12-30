@@ -15,7 +15,7 @@ information on using pull requests.
 
 ## Report an issue
 
-Report all issues through GitHub Issues using the [Report a Bug](https://github.com/stripe/stripe-firebase-extensions/issues/new?template=1.Bug_report.md) template.
+Report all issues through GitHub Issues using the [Report a Bug](https://github.com/invertase/stripe-firebase-extensions/issues/new?template=1.Bug_report.md) template.
 
 To help resolve your issue as quickly as possible, read the template and provide all the requested information.
 
@@ -23,7 +23,7 @@ To help resolve your issue as quickly as possible, read the template and provide
 
 We welcome all feature requests, whether it's to add new functionality to an existing extension or to offer an idea for a brand new extension.
 
-File your feature request through GitHub Issues using the [Feature Request template](https://github.com/stripe/stripe-firebase-extensions/issues/new?template=2.Feature_request.md).
+File your feature request through GitHub Issues using the [Feature Request template](https://github.com/invertase/stripe-firebase-extensions/issues/new?template=2.Feature_request.md).
 
 ## Create a pull request
 

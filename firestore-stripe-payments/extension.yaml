@@ -23,8 +23,8 @@ icon: icon.png
 
 license: Apache-2.0
 
-sourceUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-payments
-releaseNotesUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-payments/CHANGELOG.md
+sourceUrl: https://github.com/invertase/stripe-firebase-extensions/tree/master/firestore-stripe-payments
+releaseNotesUrl: https://github.com/invertase/stripe-firebase-extensions/tree/master/firestore-stripe-payments/CHANGELOG.md
 
 author:
   authorName: Invertase
