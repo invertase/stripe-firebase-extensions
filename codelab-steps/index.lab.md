@@ -517,7 +517,7 @@ You learned how to discover, configure, install, and reconfigure extensions. In 
 
 Check out some of these other extensions:
 
-- [Send invoices using Stripe](https://firebase.google.com/products/extensions/firestore-stripe-invoices)
+- [Send invoices using Stripe](https://extensions.dev/extensions/invertase/firestore-stripe-invoices)
 - [Translate text strings in Cloud Firestore](https://firebase.google.com/products/extensions/firestore-google-translate/)
 - [Add new users to Mailchimp email lists](https://firebase.google.com/products/extensions/mailchimper/)
 - [Shorten URLs](https://firebase.google.com/products/extensions/firestore-shorten-urls-bitly/)
