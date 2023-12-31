@@ -19,8 +19,8 @@ Each directory in this repo contains the source code for the extension and a REA
 This repository includes the source code for the following extensions:
 
 1. Stripe backend for web, mobile, and subscription payments
-    - [Homepage](https://firebase.google.com/products/extensions/firestore-stripe-payments)
+    - [Homepage](https://extensions.dev/extensions/invertase/firestore-stripe-payments)
     - [Source code](./firestore-stripe-payments)
 1. Send invoices using Stripe
-    - [Homepage](https://firebase.google.com/products/extensions/firestore-stripe-invoices)
+    - [Homepage](https://extensions.dev/extensions/invertase/firestore-stripe-invoices)
     - [Source code](./firestore-stripe-invoices)
