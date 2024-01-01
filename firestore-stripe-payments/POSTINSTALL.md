@@ -64,9 +64,9 @@ Here's how to set up the webhook and configure your extension to use it:
 
    1. Go to the [Stripe dashboard.](https://dashboard.stripe.com/webhooks)
 
-   1. Use the URL of your extension's function as the endpoint URL. Here's your function's URL: `${function:handleWebhookEvents.url}`
+   2. Use the URL of your extension's function as the endpoint URL. Here's your function's URL: `${function:handleWebhookEvents.url}`
 
-   1. Select the following events:
+   3. Select the following events:
 
    - `product.created`
    - `product.updated`
@@ -91,7 +91,7 @@ Here's how to set up the webhook and configure your extension to use it:
    - `invoice.marked_uncollectible` (optional, will sync invoices to Cloud Firestore)
    - `invoice.payment_action_required` (optional, will sync invoices to Cloud Firestore)
 
-1. Using the Firebase console or Firebase CLI, [reconfigure](https://console.firebase.google.com/project/${param:PROJECT_ID}/extensions/instances/${param:EXT_INSTANCE_ID}?tab=config) your extension with your webhook’s signing secret (such as, `whsec_12345678`). Enter the value in the parameter called `Stripe webhook secret`. Make sure you scroll back to the top of the Extension configuration page and click 'Save' otherwise your Stripe webhook secret will not be saved.
+2. Using the Firebase console or Firebase CLI, [reconfigure](https://console.firebase.google.com/project/${param:PROJECT_ID}/extensions/instances/${param:EXT_INSTANCE_ID}?tab=config) your extension with your webhook’s signing secret (such as, `whsec_12345678`). Enter the value in the parameter called `Stripe webhook secret`. Make sure you scroll back to the top of the Extension configuration page and click 'Save' otherwise your Stripe webhook secret will not be saved.
 
 #### Create product and pricing information (only required when building on the web platform)
 
@@ -155,12 +155,12 @@ async function getCustomClaimRole() {
 #### Configure the Stripe customer portal (only used for subscriptions)
 
 1. Set your custom branding in the [settings](https://dashboard.stripe.com/settings/branding).
-1. Configure the Customer Portal [settings](https://dashboard.stripe.com/test/settings/billing/portal).
-1. Toggle on "Allow customers to update their payment methods".
-1. Toggle on "Allow customers to update subscriptions".
-1. Toggle on "Allow customers to cancel subscriptions".
-1. Add the products and prices that you want to allow customer to switch between.
-1. Set up the required business information and links.
+2. Configure the Customer Portal [settings](https://dashboard.stripe.com/test/settings/billing/portal).
+3. Toggle on "Allow customers to update their payment methods".
+4. Toggle on "Allow customers to update subscriptions".
+5. Toggle on "Allow customers to cancel subscriptions".
+6. Add the products and prices that you want to allow customer to switch between.
+7. Set up the required business information and links.
 
 ### Using the extension
 
