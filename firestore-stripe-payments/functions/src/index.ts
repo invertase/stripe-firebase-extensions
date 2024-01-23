@@ -134,6 +134,7 @@ exports.createCheckoutSession = functions
       tax_id_collection = false,
       allow_promotion_codes = false,
       trial_from_plan = true,
+      trial_period_days,
       line_items,
       billing_address_collection = 'required',
       collect_shipping_address = false,
@@ -212,6 +213,9 @@ exports.createCheckoutSession = functions
             trial_from_plan,
             metadata,
           };
+          if (trial_period_days) {
+            sessionCreateParams.subscription_data.trial_period_days = trial_period_days;
+          }
           if (!automatic_tax) {
             sessionCreateParams.subscription_data.default_tax_rates = tax_rates;
           }
