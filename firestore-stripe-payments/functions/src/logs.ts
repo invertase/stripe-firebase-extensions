@@ -23,14 +23,14 @@ export const creatingCustomer = (uid: string) => {
 export const customerCreationError = (error: Error, uid: string) => {
   logger.error(
     `❗️[Error]: Failed to create customer for [${uid}]:`,
-    error.message
+    error.message,
   );
 };
 
 export const customerDeletionError = (error: Error, uid: string) => {
   logger.error(
     `❗️[Error]: Failed to delete customer for [${uid}]:`,
-    error.message
+    error.message,
   );
 };
 
@@ -38,7 +38,7 @@ export function customerCreated(id: string, livemode: boolean) {
   logger.log(
     `✅Created a new customer: https://dashboard.stripe.com${
       livemode ? '' : '/test'
-    }/customers/${id}.`
+    }/customers/${id}.`,
   );
 }
 
@@ -57,7 +57,7 @@ export function checkoutSessionCreated(docId: string) {
 export function checkoutSessionCreationError(docId: string, error: Error) {
   logger.error(
     `❗️[Error]: Checkout session creation failed for doc [${docId}]:`,
-    error.message
+    error.message,
   );
 }
 
@@ -68,36 +68,36 @@ export function createdBillingPortalLink(uid: string) {
 export function billingPortalLinkCreationError(uid: string, error: Error) {
   logger.error(
     `❗️[Error]: Customer portal link creation failed for user [${uid}]:`,
-    error.message
+    error.message,
   );
 }
 
 export function firestoreDocCreated(collection: string, docId: string) {
   logger.log(
-    `🔥📄 Added doc [${docId}] to collection [${collection}] in Firestore.`
+    `🔥📄 Added doc [${docId}] to collection [${collection}] in Firestore.`,
   );
 }
 
 export function firestoreDocDeleted(collection: string, docId: string) {
   logger.log(
-    `🗑🔥📄 Deleted doc [${docId}] from collection [${collection}] in Firestore.`
+    `🗑🔥📄 Deleted doc [${docId}] from collection [${collection}] in Firestore.`,
   );
 }
 
 export function userCustomClaimSet(
   uid: string,
   claimKey: string,
-  claimValue: string
+  claimValue: string,
 ) {
   logger.log(
-    `🚦 Added custom claim [${claimKey}: ${claimValue}] for user [${uid}].`
+    `🚦 Added custom claim [${claimKey}: ${claimValue}] for user [${uid}].`,
   );
 }
 
 export function badWebhookSecret(error: Error) {
   logger.error(
     '❗️[Error]: Webhook signature verification failed. Is your Stripe webhook secret parameter configured correctly?',
-    error.message
+    error.message,
   );
 }
 
@@ -112,6 +112,6 @@ export function webhookHandlerSucceeded(id: string, type: string) {
 export function webhookHandlerError(error: Error, id: string, type: string) {
   logger.error(
     `❗️[Error]: Webhook handler for  Stripe event [${id}] of type [${type}] failed:`,
-    error.message
+    error.message,
   );
 }

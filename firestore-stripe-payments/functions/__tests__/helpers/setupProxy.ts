@@ -27,7 +27,7 @@ export const setupProxy = async () => {
     await setEnv(
       'STRIPE_WEBHOOK_SECRET',
       process.env.STRIPE_WEBHOOK_SECRET,
-      true
+      true,
     );
     await setEnv('WEBHOOK_URL', process.env.STRIPE_API_KEY);
   }
@@ -45,7 +45,7 @@ export const setupProxy = async () => {
 
   console.log(
     'process.env.STRIPE_WEBHOOK_SECRET',
-    process.env.STRIPE_WEBHOOK_SECRET
+    process.env.STRIPE_WEBHOOK_SECRET,
   );
 
   await Promise.all([

@@ -35,7 +35,7 @@ describe('createCheckoutSession', () => {
       const customer: DocumentData = await waitForDocumentToExistInCollection(
         collection,
         'email',
-        user.email
+        user.email,
       );
 
       const checkoutSessionCollection = collection
@@ -57,7 +57,7 @@ describe('createCheckoutSession', () => {
 
       const customerDoc = await waitForDocumentToExistWithField(
         checkoutSessionDocument,
-        'created'
+        'created',
       );
 
       const { client, success_url } = customerDoc.data();
@@ -85,7 +85,7 @@ describe('createCheckoutSession', () => {
       const customer: DocumentData = await waitForDocumentToExistInCollection(
         collection,
         'email',
-        user.email
+        user.email,
       );
 
       const checkoutSessionCollection = collection
@@ -104,7 +104,7 @@ describe('createCheckoutSession', () => {
 
       const customerDoc = await waitForDocumentToExistWithField(
         checkoutSessionDocument,
-        'created'
+        'created',
       );
 
       const {

@@ -5,7 +5,7 @@ import { Product, Subscription } from '../../../src/interfaces';
 const stripe = require('stripe')(config.stripeSecretKey);
 
 export const createRandomSubscription = async (
-  customer
+  customer,
 ): Promise<Subscription> => {
   const name = faker.commerce.product();
 
@@ -26,7 +26,7 @@ export const createRandomSubscription = async (
   /** Attach the test PaymentMethod to the customer */
   const attachedPaymentMethod = await stripe.paymentMethods.attach(
     'pm_card_visa',
-    { customer: customer }
+    { customer: customer },
   );
 
   /** Update the customer's default PaymentMethod */
