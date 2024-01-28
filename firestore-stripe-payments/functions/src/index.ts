@@ -70,13 +70,13 @@ const createCustomerRecord = async ({
     if (email) customerData.email = email;
     if (phone) customerData.phone = phone;
     const customer = await stripe.customers.create(customerData);
+
     // Add a mapping record in Cloud Firestore.
     const customerRecord = {
       email: customer.email,
       stripeId: customer.id,
-      stripeLink: `https://dashboard.stripe.com${
-        customer.livemode ? '' : '/test'
-      }/customers/${customer.id}`,
+      stripeLink: `https://dashboard.stripe.com${customer.livemode ? '' : '/test'
+        }/customers/${customer.id}`,
     };
     if (phone) (customerRecord as any).phone = phone;
     await admin
@@ -133,7 +133,7 @@ exports.createCheckoutSession = functions
       tax_rates = [],
       tax_id_collection = false,
       allow_promotion_codes = false,
-      trial_from_plan = true,
+      trial_period_days,
       line_items,
       billing_address_collection = 'required',
       collect_shipping_address = false,
@@ -169,15 +169,15 @@ exports.createCheckoutSession = functions
         const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] =
           collect_shipping_address
             ? (
-                await admin
-                  .firestore()
-                  .collection(
-                    config.stripeConfigCollectionPath ||
-                      config.productsCollectionPath
-                  )
-                  .doc('shipping_countries')
-                  .get()
-              ).data()?.['allowed_countries'] ?? []
+              await admin
+                .firestore()
+                .collection(
+                  config.stripeConfigCollectionPath ||
+                  config.productsCollectionPath
+                )
+                .doc('shipping_countries')
+                .get()
+            ).data()?.['allowed_countries'] ?? []
             : [];
         const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
           billing_address_collection,
@@ -188,11 +188,11 @@ exports.createCheckoutSession = functions
           line_items: line_items
             ? line_items
             : [
-                {
-                  price,
-                  quantity,
-                },
-              ],
+              {
+                price,
+                quantity,
+              },
+            ],
           mode,
           success_url,
           cancel_url,
@@ -209,9 +209,11 @@ exports.createCheckoutSession = functions
           sessionCreateParams.payment_method_collection =
             payment_method_collection;
           sessionCreateParams.subscription_data = {
-            trial_from_plan,
-            metadata,
+            metadata
           };
+          if (trial_period_days) {
+            sessionCreateParams.subscription_data.trial_period_days = trial_period_days;
+          }
           if (!automatic_tax) {
             sessionCreateParams.subscription_data.default_tax_rates = tax_rates;
           }
@@ -301,6 +303,7 @@ exports.createCheckoutSession = functions
           const subscription = await stripe.subscriptions.create({
             customer,
             items: [{ price }],
+            trial_period_days: trial_period_days,
             payment_behavior: 'default_incomplete',
             expand: ['latest_invoice.payment_intent'],
             metadata: {
@@ -558,9 +561,8 @@ const manageSubscriptionStatusChange = async (
     metadata: subscription.metadata,
     role,
     status: subscription.status,
-    stripeLink: `https://dashboard.stripe.com${
-      subscription.livemode ? '' : '/test'
-    }/subscriptions/${subscription.id}`,
+    stripeLink: `https://dashboard.stripe.com${subscription.livemode ? '' : '/test'
+      }/subscriptions/${subscription.id}`,
     product: admin
       .firestore()
       .collection(config.productsCollectionPath)

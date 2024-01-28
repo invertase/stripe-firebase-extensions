@@ -263,7 +263,7 @@ docRef.onSnapshot((snap) => {
 
 #### Handling trials
 
-By default, the trial period days that you've specified on the pricing plan will be applied to the checkout session. Should you wish to not offer the trial for a certain user (e.g. they've previously had a subscription with a trial that they canceled and are now signing up again), you can specify `trial_from_plan: false` when creating the checkout session doc:
+You can specify subscription trial period when creating the checkout session by using the `trial_period_days` parameter. Refer to the [docs](https://stripe.com/docs/payments/checkout/free-trials) for a detailed guide on free trials and how to set them up.
 
 ```js
 const docRef = await db
@@ -272,7 +272,7 @@ const docRef = await db
   .collection("checkout_sessions")
   .add({
     price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
-    trial_from_plan: false,
+    trial_period_days: 7,
     success_url: window.location.origin,
     cancel_url: window.location.origin,
   });
