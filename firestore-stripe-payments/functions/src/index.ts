@@ -24,6 +24,7 @@ import {
   Subscription,
   CustomerData,
   TaxRate,
+  CustomStripeProduct,
 } from './interfaces';
 import * as logs from './logs';
 import config from './config';
@@ -426,7 +427,9 @@ const prefixMetadata = (metadata: object) =>
 /**
  * Create a Product record in Firestore based on a Stripe Product object.
  */
-const createProductRecord = async (product: Stripe.Product): Promise<void> => {
+const createProductRecord = async (
+  product: CustomStripeProduct
+): Promise<void> => {
   const { firebaseRole, ...rawMetadata } = product.metadata;
 
   const productData: Product = {
@@ -437,7 +440,7 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
     images: product.images,
     metadata: product.metadata,
     tax_code: product.tax_code ?? null,
-    features: product.features ?? null,  
+    features: product.features ?? null,
     ...prefixMetadata(rawMetadata),
   };
   await admin

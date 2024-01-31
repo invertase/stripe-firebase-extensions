@@ -57,6 +57,12 @@ export interface Price {
   [propName: string]: any;
 }
 
+/**
+ * Custom Interface extending Stripe module types missing features.
+ */
+export interface CustomStripeProduct extends Stripe.Product {
+  features?: Array<string>;
+}
 export interface Product {
   /**
    * Whether the product is currently available for purchase.
@@ -82,7 +88,7 @@ export interface Product {
    * A list of Prices for this billing product.
    */
   prices?: Array<Price>;
-    /**
+  /**
    * A list of features for this billing product.
    */
   features?: Array<string> | null;
