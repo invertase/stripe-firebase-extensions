@@ -83,6 +83,11 @@ export interface Product {
   readonly prices: Price[];
 
   /**
+   * A list of features for this billing product.
+   */
+  readonly features: string[]|null;
+
+  /**
    * A collection of additional product metadata.
    */
   readonly metadata: { [key: string]: string | number | null };
