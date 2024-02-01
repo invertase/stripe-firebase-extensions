@@ -85,7 +85,7 @@ export interface Product {
   /**
    * A list of features for this billing product.
    */
-  readonly features: string[]|null;
+  readonly features: string[] | null;
 
   /**
    * A collection of additional product metadata.
