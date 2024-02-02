@@ -29,42 +29,42 @@ export function startInvoiceUpdate(eventType: string) {
 export function incorrectPayload(payload: InvoicePayload) {
   if (!payload.items.length) {
     logger.error(
-      new Error('😞[Error] Missing at least one line item in items[]'),
+      new Error('😞[Error] Missing at least one line item in items[]')
     );
   }
   if (!payload.email && !payload.uid) {
     logger.error(
       new Error(
-        '😞[Error] Missing either a customer email address or Firebase Authentication uid',
-      ),
+        '😞[Error] Missing either a customer email address or Firebase Authentication uid'
+      )
     );
   }
   if (payload.email && payload.uid) {
     logger.error(
       new Error(
-        '😞[Error] Only either email or uid is permitted, you specified both.',
-      ),
+        '😞[Error] Only either email or uid is permitted, you specified both.'
+      )
     );
   }
 }
 
 export function noEmailForUser(uid: string) {
   logger.error(
-    new Error(`😞[Error] User [${uid}] is missing an email address.`),
+    new Error(`😞[Error] User [${uid}] is missing an email address.`)
   );
 }
 
 export function stripeError(err: Stripe.StripeCardError) {
   logger.error(
     new Error('😞[Error] Error when making a request to the Stripe API:'),
-    err,
+    err
   );
 }
 
 export function invoiceCreatedError(invoice?: Stripe.Invoice) {
   logger.error(
     new Error('😞[Error] Error when creating the invoice:'),
-    invoice,
+    invoice
   );
 }
 
@@ -72,7 +72,7 @@ export function customerCreated(id: string, livemode: boolean) {
   logger.log(
     `👤 Created a new customer: https://dashboard.stripe.com${
       livemode ? '' : '/test'
-    }/customers/${id}`,
+    }/customers/${id}`
   );
 }
 
@@ -80,7 +80,7 @@ export function customerRetrieved(id: string, livemode: boolean) {
   logger.log(
     `🙋 Found existing customer by email: https://dashboard.stripe.com${
       livemode ? '' : '/test'
-    }/customers/${id}`,
+    }/customers/${id}`
   );
 }
 
@@ -88,14 +88,14 @@ export function invoiceCreated(id: string, livemode: boolean) {
   logger.log(
     `🧾 Created invoice: https://dashboard.stripe.com${
       livemode ? '' : '/test'
-    }/invoices/${id}`,
+    }/invoices/${id}`
   );
 }
 
 export function invoiceSent(
   id: string,
   email: string,
-  hostedInvoiceUrl: string,
+  hostedInvoiceUrl: string
 ) {
   logger.log(`📧 Sent invoice ${id} to ${email}: ${hostedInvoiceUrl}`);
 }
@@ -103,7 +103,7 @@ export function invoiceSent(
 export function badSignature(err: Error) {
   logger.error(
     '😞[Error] Webhook signature verification failed. Is your Stripe webhook secret parameter configured correctly?',
-    err,
+    err
   );
 }
 
@@ -121,28 +121,28 @@ export function malformedEvent(event: Stripe.Event) {
 
 export function ignoreEvent(eventType: string) {
   logger.log(
-    `🙈 Ignoring event "${eventType}" because it because it isn't a relevant part of the invoice lifecycle`,
+    `🙈 Ignoring event "${eventType}" because it because it isn't a relevant part of the invoice lifecycle`
   );
 }
 
 export function unexpectedInvoiceAmount(
   numInvoices: number,
-  invoiceId: string,
+  invoiceId: string
 ) {
   logger.error(
     '😞[Error] could not find invoice',
     new Error(
-      `Expected 1 invoice with ID "${invoiceId}", but found ${numInvoices}`,
-    ),
+      `Expected 1 invoice with ID "${invoiceId}", but found ${numInvoices}`
+    )
   );
 }
 
 export function statusUpdateComplete(
   invoiceId: string,
   newStatus: string,
-  eventType: string,
+  eventType: string
 ) {
   logger.log(
-    `🙂 Updated invoice "${invoiceId}" to status "${newStatus}" on event type "${eventType}"`,
+    `🙂 Updated invoice "${invoiceId}" to status "${newStatus}" on event type "${eventType}"`
   );
 }

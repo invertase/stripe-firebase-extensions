@@ -346,10 +346,7 @@ const PRICE_CONVERTER: FirestoreDataConverter<Price> = {
 class FirestoreProductDAO implements ProductDAO {
   private readonly firestore: Firestore;
 
-  constructor(
-    app: FirebaseApp,
-    private readonly productsCollection: string
-  ) {
+  constructor(app: FirebaseApp, private readonly productsCollection: string) {
     this.firestore = getFirestore(app);
   }
 
@@ -364,8 +361,9 @@ class FirestoreProductDAO implements ProductDAO {
     where?: WhereFilter[];
     limit?: number;
   }): Promise<Product[]> {
-    const querySnap: QuerySnapshot<Product> =
-      await this.getProductSnapshots(options);
+    const querySnap: QuerySnapshot<Product> = await this.getProductSnapshots(
+      options
+    );
     const products: Product[] = [];
     querySnap.forEach((snap: QueryDocumentSnapshot<Product>) => {
       products.push(snap.data());
@@ -388,8 +386,9 @@ class FirestoreProductDAO implements ProductDAO {
       await this.getProductSnapshotIfExists(productId);
     }
 
-    const querySnap: QuerySnapshot<Price> =
-      await this.getPriceSnapshots(productId);
+    const querySnap: QuerySnapshot<Price> = await this.getPriceSnapshots(
+      productId
+    );
     const prices: Price[] = [];
     querySnap.forEach((snap: QueryDocumentSnapshot<Price>) => {
       prices.push(snap.data());

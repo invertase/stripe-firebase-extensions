@@ -12,7 +12,7 @@ import { setupProxy, cleanupProxy } from './helpers/setupProxy';
         name: 'testing',
       },
     ],
-    {},
+    {}
   );
 
   // await result.then(async () => {

@@ -117,8 +117,9 @@ describe("getCurrentUserSubscriptions()", () => {
     const userFake: SinonSpy = sinonFake.returns("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
-    const subscriptions: Subscription[] =
-      await getCurrentUserSubscriptions(payments);
+    const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
+      payments
+    );
 
     expect(subscriptions).to.eql([subscription1, subscription2]);
     expect(fake).to.have.been.calledOnceWithExactly("alice", {});
@@ -129,8 +130,9 @@ describe("getCurrentUserSubscriptions()", () => {
     const fake: SinonSpy = sinonFake.resolves([]);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
 
-    const subscriptions: Subscription[] =
-      await getCurrentUserSubscriptions(payments);
+    const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
+      payments
+    );
 
     expect(subscriptions).to.be.an("array").and.be.empty;
     expect(fake).to.have.been.calledOnceWithExactly("alice", {});

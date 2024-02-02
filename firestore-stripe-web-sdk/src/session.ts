@@ -438,10 +438,7 @@ export interface SessionDAO {
 class FirestoreSessionDAO implements SessionDAO {
   private readonly firestore: Firestore;
 
-  constructor(
-    app: FirebaseApp,
-    private readonly customersCollection: string
-  ) {
+  constructor(app: FirebaseApp, private readonly customersCollection: string) {
     this.firestore = getFirestore(app);
   }
 

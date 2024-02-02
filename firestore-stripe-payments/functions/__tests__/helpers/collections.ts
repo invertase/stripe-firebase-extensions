@@ -29,7 +29,7 @@ export async function findCustomerInCollection(user: UserRecord) {
   const customerDoc = await waitForDocumentToExistWithField(
     doc,
     'stripeId',
-    60000,
+    60000
   );
 
   return Promise.resolve({ docId: user.uid, ...customerDoc.data() });
@@ -37,19 +37,19 @@ export async function findCustomerInCollection(user: UserRecord) {
 
 export async function findCustomerPaymentInCollection(
   userId: string,
-  stripeId: string,
+  stripeId: string
 ) {
   const paymentDoc: DocumentData = await waitForDocumentToExistInCollection(
     paymentsCollection(userId),
     'customer',
-    stripeId,
+    stripeId
   );
 
   const paymentRef = paymentsCollection(userId).doc(paymentDoc.doc.id);
 
   const updatedPaymentDoc = await waitForDocumentToExistWithField(
     paymentRef,
-    'prices',
+    'prices'
   );
 
   return updatedPaymentDoc.data();
@@ -69,7 +69,7 @@ export async function createCheckoutSession(userId, subscription) {
 
   const checkoutSessionDoc = await waitForDocumentToExistWithField(
     checkoutSessionDocument,
-    'created',
+    'created'
   );
 
   return checkoutSessionDoc.data();

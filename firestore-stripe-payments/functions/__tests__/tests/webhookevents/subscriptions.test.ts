@@ -34,19 +34,20 @@ describe('subscription webhook events', () => {
       const customer: DocumentData = await waitForDocumentToExistInCollection(
         collection,
         'email',
-        user.email,
+        user.email
       );
 
       const doc = collection.doc(customer.doc.id);
       const customerDoc = await waitForDocumentToExistWithField(
         doc,
-        'stripeId',
+        'stripeId'
       );
 
       const { stripeId } = customerDoc.data();
 
-      const stripeSubscription: Subscription =
-        await createRandomSubscription(stripeId);
+      const stripeSubscription: Subscription = await createRandomSubscription(
+        stripeId
+      );
 
       const subscriptionCollection = firestore
         .collection('customers')
@@ -57,7 +58,7 @@ describe('subscription webhook events', () => {
         await waitForDocumentToExistInCollection(
           subscriptionCollection,
           'invoice',
-          stripeSubscription.latest_invoice,
+          stripeSubscription.latest_invoice
         );
 
       const { invoice } = subscriptionDoc.doc.data();

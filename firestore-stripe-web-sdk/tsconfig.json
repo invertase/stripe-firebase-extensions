@@ -11,8 +11,8 @@
     "target": "ES6",
     "outDir": "lib",
     "forceConsistentCasingInFileNames": true,
-    "stripInternal": true,
+    "stripInternal": true
   },
   "include": ["src/*.ts"],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules"]
 }

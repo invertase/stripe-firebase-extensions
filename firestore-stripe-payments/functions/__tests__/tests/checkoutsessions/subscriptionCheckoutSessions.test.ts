@@ -36,8 +36,9 @@ describe('createSubscriptionCheckoutSession', () => {
       const { docId, stripeId } = await findCustomerInCollection(user);
 
       /** create a new subscription */
-      const stripeSubscription: Subscription =
-        await createRandomSubscription(stripeId);
+      const stripeSubscription: Subscription = await createRandomSubscription(
+        stripeId
+      );
 
       /** create a new checkout session */
       const { client, success_url, url } = await createCheckoutSession(docId, {

@@ -6,7 +6,7 @@ export async function repeat(
   fn: { (): Promise<any>; (): any },
   until: { ($: any): any; (arg0: any): any },
   retriesLeft = 5,
-  interval = 1000,
+  interval = 1000
 ) {
   const result = await fn();
 
@@ -24,7 +24,7 @@ export async function repeat(
 export const waitForDocumentToExistWithField = (
   document: DocumentData,
   field: string | number,
-  timeout: number = 20_000,
+  timeout: number = 20_000
 ): Promise<DocumentData> => {
   return new Promise((resolve, reject) => {
     let timedOut = false;
@@ -32,8 +32,8 @@ export const waitForDocumentToExistWithField = (
       timedOut = true;
       reject(
         new Error(
-          `Timeout waiting for firestore document to exist with field ${field}`,
-        ),
+          `Timeout waiting for firestore document to exist with field ${field}`
+        )
       );
     }, timeout);
     const unsubscribe = document.onSnapshot(async (snapshot: DocumentData) => {
@@ -52,7 +52,7 @@ export const waitForDocumentUpdate = (
   document: DocumentData,
   field: string | number,
   value: any,
-  timeout: number = 10_000,
+  timeout: number = 10_000
 ): Promise<FirebaseFirestore.DocumentData> => {
   return new Promise((resolve, reject) => {
     let timedOut = false;
@@ -60,8 +60,8 @@ export const waitForDocumentUpdate = (
       timedOut = true;
       reject(
         new Error(
-          `Timeout waiting for firestore document to update with ${field}`,
-        ),
+          `Timeout waiting for firestore document to update with ${field}`
+        )
       );
     }, timeout);
     const unsubscribe = document.onSnapshot(async (snapshot: DocumentData) => {
@@ -80,7 +80,7 @@ export const waitForDocumentToExistInCollection = (
   query: Query,
   field: string | number,
   value: any,
-  timeout: number = 20_000,
+  timeout: number = 20_000
 ): Promise<DocumentData> => {
   return new Promise((resolve, reject) => {
     let timedOut = false;
@@ -88,8 +88,8 @@ export const waitForDocumentToExistInCollection = (
       timedOut = true;
       reject(
         new Error(
-          `Timeout waiting for firestore document to exist with field ${field} in collection`,
-        ),
+          `Timeout waiting for firestore document to exist with field ${field} in collection`
+        )
       );
     }, timeout);
 
@@ -97,7 +97,7 @@ export const waitForDocumentToExistInCollection = (
       const docs = snapshot.docChanges();
 
       const record: DocumentData = docs.filter(
-        ($) => $.doc.data()[field] === value,
+        ($) => $.doc.data()[field] === value
       )[0];
 
       if (record) {

@@ -7,9 +7,9 @@
     "outDir": "lib",
     "sourceMap": true,
     "target": "es2017",
-    "esModuleInterop": true,
+    "esModuleInterop": true
   },
   "compileOnSave": true,
   "include": ["src"],
-  "exclude": ["node_modules", "__tests__"],
+  "exclude": ["node_modules", "__tests__"]
 }

@@ -21,7 +21,7 @@ import {
         name: 'testing',
       },
     ],
-    {},
+    {}
   );
 
   // await result.then(async () => {
