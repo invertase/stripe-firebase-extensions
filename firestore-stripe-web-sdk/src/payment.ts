@@ -317,7 +317,10 @@ const PAYMENTS_COLLECTION = "payments" as const;
 class FirestorePaymentDAO implements PaymentDAO {
   private readonly firestore: Firestore;
 
-  constructor(app: FirebaseApp, private readonly customersCollection: string) {
+  constructor(
+    app: FirebaseApp,
+    private readonly customersCollection: string
+  ) {
     this.firestore = getFirestore(app);
   }
 
