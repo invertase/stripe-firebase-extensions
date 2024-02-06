@@ -175,15 +175,15 @@ The quickest way to sign-up new users is by using the [FirebaseUI library](https
 Products and pricing information are normal collections and docs in your Cloud Firestore and can be queried as such:
 
 ```js
-db.collection('${param:PRODUCTS_COLLECTION}')
-  .where('active', '==', true)
+db.collection("${param:PRODUCTS_COLLECTION}")
+  .where("active", "==", true)
   .get()
   .then(function (querySnapshot) {
     querySnapshot.forEach(async function (doc) {
-      console.log(doc.id, ' => ', doc.data());
-      const priceSnap = await doc.ref.collection('prices').get();
+      console.log(doc.id, " => ", doc.data());
+      const priceSnap = await doc.ref.collection("prices").get();
       priceSnap.docs.forEach((doc) => {
-        console.log(doc.id, ' => ', doc.data());
+        console.log(doc.id, " => ", doc.data());
       });
     });
   });
@@ -197,7 +197,7 @@ To create a Checkout Session ID for a one-time payment, pass `mode: 'payment` to
 
 ```js
 const docRef = await db
-  .collection('${param:CUSTOMERS_COLLECTION}')
+  .collection("${param:CUSTOMERS_COLLECTION}")
   .doc(currentUser.uid)
   .collection("checkout_sessions")
   .add({
@@ -238,11 +238,11 @@ To subscribe the user to a specific pricing plan, create a new doc in the `check
 
 ```js
 const docRef = await db
-  .collection('${param:CUSTOMERS_COLLECTION}')
+  .collection("${param:CUSTOMERS_COLLECTION}")
   .doc(currentUser.uid)
-  .collection('checkout_sessions')
+  .collection("checkout_sessions")
   .add({
-    price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
     success_url: window.location.origin,
     cancel_url: window.location.origin,
   });
@@ -263,7 +263,7 @@ docRef.onSnapshot((snap) => {
 
 #### Handling trials
 
-By default, the trial period days that you've specified on the pricing plan will be applied to the checkout session. Should you wish to not offer the trial for a certain user (e.g. they've previously had a subscription with a trial that they canceled and are now signing up again), you can specify `trial_from_plan: false` when creating the checkout session doc:
+You can specify subscription trial period when creating the checkout session by using the `trial_period_days` parameter. Refer to the [docs](https://stripe.com/docs/payments/checkout/free-trials) for a detailed guide on free trials and how to set them up.
 
 ```js
 const docRef = await db
@@ -272,7 +272,7 @@ const docRef = await db
   .collection("checkout_sessions")
   .add({
     price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
-    trial_from_plan: false,
+    trial_period_days: 7,
     success_url: window.location.origin,
     cancel_url: window.location.origin,
   });
@@ -286,11 +286,11 @@ In order for the promotion code redemption box to show up on the checkout page, 
 
 ```js
 const docRef = await db
-  .collection('${param:CUSTOMERS_COLLECTION}')
+  .collection("${param:CUSTOMERS_COLLECTION}")
   .doc(currentUser)
-  .collection('checkout_sessions')
+  .collection("checkout_sessions")
   .add({
-    price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
     allow_promotion_codes: true,
     success_url: window.location.origin,
     cancel_url: window.location.origin,
@@ -305,7 +305,7 @@ You can set a [promotion code](https://stripe.com/docs/billing/subscriptions/dis
 
 ```js
 const docRef = await db
-  .collection('${param:CUSTOMERS_COLLECTION}')
+  .collection("${param:CUSTOMERS_COLLECTION}")
   .doc(currentUser.uid)
   .collection("checkout_sessions")
   .add({
@@ -326,7 +326,7 @@ Stripe Tax lets you calculate and collect sales tax, VAT, and GST. Know where to
 
 ```js
 const docRef = await db
-  .collection('${param:CUSTOMERS_COLLECTION}')
+  .collection("${param:CUSTOMERS_COLLECTION}")
   .doc(currentUser.uid)
   .collection("checkout_sessions")
   .add({
@@ -340,11 +340,11 @@ const docRef = await db
 
 #### Applying tax rates dynamically
 
-Stripe Checkout supports applying the correct tax rate for customers in  US, GB, AU, and all countries in the EU. With [dynamic tax rates](https://stripe.com/docs/billing/subscriptions/taxes#adding-tax-rates-to-checkout), you create tax rates for different regions (e.g., a 20% VAT tax rate for customers in the UK and a 7.25% sales tax rate for customers in California, US) and Stripe attempts to match your customer’s location to one of those tax rates.
+Stripe Checkout supports applying the correct tax rate for customers in US, GB, AU, and all countries in the EU. With [dynamic tax rates](https://stripe.com/docs/billing/subscriptions/taxes#adding-tax-rates-to-checkout), you create tax rates for different regions (e.g., a 20% VAT tax rate for customers in the UK and a 7.25% sales tax rate for customers in California, US) and Stripe attempts to match your customer’s location to one of those tax rates.
 
 ```js
 const docRef = await db
-  .collection('${param:CUSTOMERS_COLLECTION}')
+  .collection("${param:CUSTOMERS_COLLECTION}")
   .doc(currentUser)
   .collection("checkout_sessions")
   .add({
@@ -352,7 +352,11 @@ const docRef = await db
       {
         price: "price_1HCUD4HYgolSBA35icTHEXd5",
         quantity: 1,
-        dynamic_tax_rates: ["txr_1IJJtvHYgolSBA35ITTBOaew", "txr_1Hlsk0HYgolSBA35rlraUVWO", "txr_1HCshzHYgolSBA35WkPjzOOi"],
+        dynamic_tax_rates: [
+          "txr_1IJJtvHYgolSBA35ITTBOaew",
+          "txr_1Hlsk0HYgolSBA35rlraUVWO",
+          "txr_1HCshzHYgolSBA35WkPjzOOi",
+        ],
       },
     ],
     success_url: window.location.origin,
@@ -366,12 +370,12 @@ You can collect and report taxes with [Tax Rates](https://stripe.com/docs/billin
 
 ```js
 const docRef = await db
-  .collection('${param:CUSTOMERS_COLLECTION}')
+  .collection("${param:CUSTOMERS_COLLECTION}")
   .doc(currentUser)
-  .collection('checkout_sessions')
+  .collection("checkout_sessions")
   .add({
-    price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
-    tax_rates: ['txr_1HCjzTHYgolSBA35m0e1tJN5'],
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
+    tax_rates: ["txr_1HCjzTHYgolSBA35m0e1tJN5"],
     success_url: window.location.origin,
     cancel_url: window.location.origin,
   });
@@ -385,7 +389,7 @@ Secondly, you need to add `collect_shipping_address: true` to the Checkout Sessi
 
 ```js
 const docRef = await db
-  .collection('${param:CUSTOMERS_COLLECTION}')
+  .collection("${param:CUSTOMERS_COLLECTION}")
   .doc(currentUser.uid)
   .collection("checkout_sessions")
   .add({
@@ -402,15 +406,15 @@ You can optionally set a metadata object with key-value pairs when creating the 
 
 ```js
 const docRef = await db
-  .collection('${param:CUSTOMERS_COLLECTION}')
+  .collection("${param:CUSTOMERS_COLLECTION}")
   .doc(currentUser)
-  .collection('checkout_sessions')
+  .collection("checkout_sessions")
   .add({
-    price: 'price_1GqIC8HYgolSBA35zoTTN2Zl',
+    price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
     success_url: window.location.origin,
     cancel_url: window.location.origin,
     metadata: {
-      item: 'item001',
+      item: "item001",
     },
   });
 ```
@@ -421,25 +425,25 @@ In addition to recurring prices, you can add one-time prices. These will only be
 
 ```js
 const docRef = await db
-    .collection('${param:CUSTOMERS_COLLECTION}')
-    .doc(currentUser)
-    .collection('checkout_sessions')
-    .add({
-      line_items: [
-        {
-          price: 'price_1HCUD4HYgolSBA35icTHEXd5', // RECURRING_PRICE_ID
-          quantity: 1,
-          tax_rates: ['txr_1HCjzTHYgolSBA35m0e1tJN5'],
-        },
-        {
-          price: 'price_1HEtgDHYgolSBA35LMkO3ExX', // ONE_TIME_PRICE_ID
-          quantity: 1,
-          tax_rates: ['txr_1HCjzTHYgolSBA35m0e1tJN5'],
-        },
-      ],
-      success_url: window.location.origin,
-      cancel_url: window.location.origin,
-    });
+  .collection("${param:CUSTOMERS_COLLECTION}")
+  .doc(currentUser)
+  .collection("checkout_sessions")
+  .add({
+    line_items: [
+      {
+        price: "price_1HCUD4HYgolSBA35icTHEXd5", // RECURRING_PRICE_ID
+        quantity: 1,
+        tax_rates: ["txr_1HCjzTHYgolSBA35m0e1tJN5"],
+      },
+      {
+        price: "price_1HEtgDHYgolSBA35LMkO3ExX", // ONE_TIME_PRICE_ID
+        quantity: 1,
+        tax_rates: ["txr_1HCjzTHYgolSBA35m0e1tJN5"],
+      },
+    ],
+    success_url: window.location.origin,
+    cancel_url: window.location.origin,
+  });
 ```
 
 **_NOTE_**: If you specify more than one recurring price in the `line_items` array, the subscription object in Cloud Firestore will list all recurring prices in the `prices` array. The `price` attribute on the subscription in Cloud Firestore will be equal to the first item in the `prices` array: `price === prices[0]`.
@@ -457,14 +461,14 @@ In order for this to work, Firebase Authentication users need to be synced with 
 Subscription details are synced to the `subscriptions` sub-collection in the user's corresponding customer doc.
 
 ```js
-db.collection('${param:CUSTOMERS_COLLECTION}')
+db.collection("${param:CUSTOMERS_COLLECTION}")
   .doc(currentUser.uid)
-  .collection('subscriptions')
-  .where('status', 'in', ['trialing', 'active'])
+  .collection("subscriptions")
+  .where("status", "in", ["trialing", "active"])
   .onSnapshot(async (snapshot) => {
     // In this implementation we only expect one active or trialing subscription to exist.
     const doc = snapshot.docs[0];
-    console.log(doc.id, ' => ', doc.data());
+    console.log(doc.id, " => ", doc.data());
   });
 ```
 
@@ -475,8 +479,8 @@ Once a customer is subscribed you should show them a button to access the custom
 ```js
 const functionRef = firebase
   .app()
-  .functions('${param:LOCATION}')
-  .httpsCallable('${function:createPortalLink.name}');
+  .functions("${param:LOCATION}")
+  .httpsCallable("${function:createPortalLink.name}");
 const { data } = await functionRef({
   returnUrl: window.location.origin,
   locale: "auto", // Optional, defaults to "auto"
