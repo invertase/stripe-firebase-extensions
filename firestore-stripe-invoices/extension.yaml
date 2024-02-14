@@ -13,13 +13,14 @@
 # limitations under the License.
 
 name: firestore-stripe-invoices
-version: 0.2.5
+version: 0.2.6
 specVersion: v1beta
 
 displayName: Send Invoices using Stripe
 description: Creates and sends brandable customer invoices using the Stripe payments platform.
 
 icon: icon.png
+tags: [payments]
 
 license: Apache-2.0
 
