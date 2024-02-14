@@ -1,3 +1,7 @@
+### Version 0.2.6 - 2024-02-14
+
+[feat] - Added `payments` tag to the extension to allow for easier discovery in the marketplace.
+
 ### Version 0.2.5 - 2023-12-21
 
 [fix] - upgraded the resources to node 18 [#583]

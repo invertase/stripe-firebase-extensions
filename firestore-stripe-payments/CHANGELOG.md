@@ -1,3 +1,9 @@
+### Version 0.3.9 - 2024-02-14
+
+[feat] - Allows to specify number of trial period days before initiating checkout flow. Does not depend on the now-legacy trial_from_plan parameter.
+
+[feat] - Added `payments` tag to the extension to allow for easier discovery in the marketplace.
+
 ### Version 0.3.8 - 2023-12-21
 
 [fix] - upgraded resources `onUserDeleted` & `onCustomerDataDeleted` to node 18 [#583]
