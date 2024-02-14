@@ -66,6 +66,52 @@ describe('createCheckoutSession', () => {
       expect(success_url).toBe('http://test.com/success');
     });
 
+    test('should setup a future payment with mode:setup', async () => {
+      const collection = firestore.collection('customers');
+
+      const customer: DocumentData = await waitForDocumentToExistInCollection(
+        collection,
+        'email',
+        user.email
+      );
+
+      /** Define params */
+      const client = 'web';
+      const mode = 'setup';
+      const success_url = 'http://test.com/success';
+      const cancel_url = 'http://test.com/cancel';
+      const payment_method_types = ['card'];
+
+      const checkoutSessionCollection = collection
+        .doc(customer.doc.id)
+        .collection('checkout_sessions');
+
+      const checkoutSessionDocument: DocumentReference =
+        await checkoutSessionCollection.add({
+          client: 'web',
+          mode: 'setup',
+          success_url: 'http://test.com/success',
+          cancel_url: 'http://test.com/cancel',
+          payment_method_types,
+        });
+
+      const customerDoc = await waitForDocumentToExistWithField(
+        checkoutSessionDocument,
+        'created'
+      );
+
+      const result = customerDoc.data();
+
+      expect(result.client).toBe(client);
+      expect(result.mode).toBe(mode);
+      expect(result.success_url).toBe(success_url);
+      expect(result.cancel_url).toBe(cancel_url);
+      expect(result.payment_method_types).toEqual(payment_method_types);
+      expect(result.sessionId).toBeDefined();
+      expect(url).toBeDefined();
+      expect(result.created).toBeDefined();
+    });
+
     test.skip('throws an error when success_url has not been provided', async () => {});
 
     test.skip('throws an error when cancel_url has not been provided', async () => {});
