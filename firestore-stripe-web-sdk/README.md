@@ -1,7 +1,7 @@
 # Firestore Stripe Payments Web SDK
 
 This package helps you integrate your web app client with the
-[`firestore-stripe-payments`](https://firebase.google.com/products/extensions/firestore-stripe-subscriptions)
+[`firestore-stripe-payments`](https://extensions.dev/extensions/invertase/firestore-stripe-payments)
 extension. It abstracts out all the typical Firestore queries, and
 other database interactions necessary to use the extension. Moreover, it provides type
 definitions for all the common object types that are used by the extension when processing
@@ -9,7 +9,7 @@ payments.
 
 # API Reference
 
-[API reference](https://github.com/stripe/stripe-firebase-extensions/blob/next/firestore-stripe-web-sdk/markdown/index.md)
+[API reference](https://github.com/invertase/stripe-firebase-extensions/blob/next/firestore-stripe-web-sdk/markdown/index.md)
 
 # Example usage
 

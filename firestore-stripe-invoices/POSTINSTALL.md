@@ -224,4 +224,4 @@ As a best practice, you can [monitor the activity](https://firebase.google.com/d
 
 Access the [Stripe dashboard](https://dashboard.stripe.com/) to manage all aspects of your Stripe account.
 
-Enjoy and please submit any feedback and feature requests on [GitHub](https://github.com/stripe/stripe-firebase-extensions/issues/new/choose)!
+Enjoy and please submit any feedback and feature requests on [GitHub](https://github.com/invertase/stripe-firebase-extensions/issues/new/choose)!
