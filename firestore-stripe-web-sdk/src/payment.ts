@@ -36,9 +36,9 @@ import {
   QuerySnapshot,
   where,
 } from "@firebase/firestore";
-import { StripePayments, StripePaymentsError } from "./init";
-import { getCurrentUser, getCurrentUserSync } from "./user";
-import { checkNonEmptyArray, checkNonEmptyString } from "./utils";
+import { StripePayments, StripePaymentsError } from "./init.js";
+import { getCurrentUser, getCurrentUserSync } from "./user.js";
+import { checkNonEmptyArray, checkNonEmptyString } from "./utils.js";
 
 /**
  * Interface of a Stripe payment stored in the app database.
