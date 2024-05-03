@@ -102,6 +102,11 @@ export interface CommonSessionCreateParams {
    * to `true`.
    */
   trial_from_plan?: boolean;
+
+  /**
+   * Whether to collect terms of service acceptance during checkout. Defaults to `none`.
+   */
+  terms_of_service?: "required" | "none"; // https://docs.stripe.com/api/checkout/sessions/create#create_checkout_session-consent_collection-terms_of_service
 }
 
 /**
