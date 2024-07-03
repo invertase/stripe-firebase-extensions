@@ -1,3 +1,35 @@
+### Version 0.2.6 - 2024-02-14
+
+[feat] - Added `payments` tag to the extension to allow for easier discovery in the marketplace.
+
+### Version 0.2.5 - 2023-12-21
+
+[fix] - upgraded the resources to node 18 [#583]
+
+## Version 0.2.4 - 2023-10-08
+
+[fix] - updated extension icons
+
+[fix] - updated external services to correct pricing uri configuration (#360)
+
+[feat] - added new secret param type for ext config
+
+[feat] - add Warsaw Cloud Function Location
+
+[fix] - Only one of email or uid.
+
+[feat] - Add support for invoiceItem quantity. (#2)
+
+## Version 0.2.3 - 2023-08-21
+[chore] Updated naming and upgraded to node18
+
+[fix] Updated icons
+
+[fix] updated appinfo versioning
+
+## Version 0.2.2 - 2023-08-14
+This extension has been formally transferred to Invertase. See the updated README for more details.
+
 ## Version 0.2.1 - 2022-08-24
 [chore] Added `package-lock.json` to version control to prevent installation issues. [#426]
 

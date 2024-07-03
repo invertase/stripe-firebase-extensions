@@ -8,6 +8,7 @@ import {
   waitForDocumentToExistInCollection,
   waitForDocumentToExistWithField,
 } from '../../helpers/utils';
+import { Subscription } from '../../../src/interfaces';
 
 admin.initializeApp({ projectId: 'demo-project' });
 setupEmulator();
@@ -47,6 +48,7 @@ describe('createCheckoutSession', () => {
           cancel_url: 'http://test.com/cancel',
           line_items: [
             {
+              //@ts-ignore
               price: price.id,
               quantity: 1,
             },
@@ -69,5 +71,56 @@ describe('createCheckoutSession', () => {
     test.skip('throws an error when cancel_url has not been provided', async () => {});
     test.skip('throws an error when a line items parameter has not been provided', async () => {});
     test.skip('throws an error when a subscription data array parameter has not been provided', async () => {});
+  });
+
+  describe('using a mobile client', () => {
+    let price: Subscription;
+    beforeEach(async () => {
+      price = await generateRecurringPrice();
+    });
+
+    test('successfully creates a checkout session', async () => {
+      const collection = firestore.collection('customers');
+
+      const customer: DocumentData = await waitForDocumentToExistInCollection(
+        collection,
+        'email',
+        user.email
+      );
+
+      const checkoutSessionCollection = collection
+        .doc(customer.doc.id)
+        .collection('checkout_sessions');
+
+      const checkoutSessionDocument: DocumentReference =
+        await checkoutSessionCollection.add({
+          client: 'mobile',
+          mode: 'subscription',
+          success_url: 'http://test.com/success',
+          cancel_url: 'http://test.com/cancel',
+          //@ts-ignore
+          price: price.id,
+        });
+
+      const customerDoc = await waitForDocumentToExistWithField(
+        checkoutSessionDocument,
+        'created'
+      );
+
+      const {
+        amount,
+        client,
+        success_url,
+        ephemeralKeySecret,
+        paymentIntentClientSecret,
+        error,
+      } = customerDoc.data();
+
+      expect(client).toBe('mobile');
+      expect(success_url).toBe('http://test.com/success');
+      expect(paymentIntentClientSecret).toBeDefined();
+      expect(ephemeralKeySecret).toBeDefined();
+      expect(error).toBeUndefined();
+    });
   });
 });

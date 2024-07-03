@@ -27,8 +27,8 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // Register extension as a Stripe plugin
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
-    name: 'Firebase firestore-stripe-invoices',
-    version: '0.2.1',
+    name: 'Firebase Invertase firestore-stripe-invoices',
+    version: '0.2.3',
   },
 });
 
@@ -74,7 +74,7 @@ const createInvoice = async function ({
     );
 
     // Create the individual invoice items for this customer from the items in payload
-    const items: Array<Stripe.InvoiceItem> = await Promise.all(itemPromises);
+    await Promise.all(itemPromises);
 
     const invoiceCreateParams: Stripe.InvoiceCreateParams = {
       customer: customer.id,
@@ -255,7 +255,7 @@ export const updateInvoice = functions.handler.https.onRequest(
 
     logs.startInvoiceUpdate(eventType);
 
-    let invoicesInFirestore = await admin
+    const invoicesInFirestore = await admin
       .firestore()
       .collection(config.invoicesCollectionPath)
       .where('stripeInvoiceId', '==', invoice.id)

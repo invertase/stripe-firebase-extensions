@@ -1,7 +1,73 @@
+### Version 0.3.9 - 2024-02-14
+
+[feat] - Allows to specify number of trial period days before initiating checkout flow. Does not depend on the now-legacy trial_from_plan parameter.
+
+[feat] - Added `payments` tag to the extension to allow for easier discovery in the marketplace.
+
+### Version 0.3.8 - 2023-12-21
+
+[fix] - upgraded resources `onUserDeleted` & `onCustomerDataDeleted` to node 18 [#583]
+
+### Version 0.3.7 - 2023-12-21
+
+[fix] - upgraded the resources to node 18 [#583]
+
+## Version 0.3.6 - 2023-10-08
+
+[feat] - Support `payment_method_collection` parameter
+
+[feat] - create Stripe customer on-the-fly in createPortalLink
+
+[feat] - added mobile subscription payments
+
+[fix] - updated extension icons
+
+[feat] - createPortalLink auth tweaks
+
+[fix] - added subscription payments prices, test and refactor included
+
+[fix] - `minInstances` parameter expects number
+
+[feat] - Allow configuring min instances for createCheckoutSession
+
+[fix] - added env stripe key check on test setup
+
+[feat] - upgraded to the new emulator suite
+
+[feat] - added stripe extension events
+
+[feat] - Add parameter to enable phone number collection
+
+[feat] - Add parameters to enable expired Checkout Session recovery
+
+[feat] - Add `setup_future_usage` parameter for one-time payment flows
+
+## 0.3.5 - 2023-08-14
+
+[chore] Updated naming and upgraded to node18
+
+[fix] Updated icons
+
+[fix] updated appinfo versioning
+
+## 0.3.4 - 2023-08-14
+
+This extension has been formally transferred to Invertase. See the updated README for more details.
+
+## Version 0.3.3 - 2023-03-20
+
+[fix] Address issue where `insertInvoiceRecord` function fails. [#511]
+
+## Version 0.3.2 - 2022-11-30
+
+[chore] Added support for `us-west1` as a deployable region for Firebase functions. [#464]
+
 ## Version 0.3.1 - 2022-08-24
+
 [chore] Added `package-lock.json` to version control to prevent installation issues. [#426]
 
 ## Version 0.3.0 - 2022-08-23
+
 [feat] Allow configurable minimum instances for `createCheckoutSession` function. [#375]
 
 [feat] Throw an `unauthenticated` Firebase error from `creatPortalLink` function. [#420]
@@ -9,12 +75,15 @@
 [feat] Add Price object IDs from invoice line items for subscription payments to payments Firestore collection. [#393]
 
 ## Version 0.2.7 - 2022-05-10
+
 [chore] Updated package-lock.json that was causing install errors.
 
 ## Version 0.2.6 - 2022-05-10
+
 [feat] Added Stripe extension events. This extension emits events, which allows you to listen to and run custom logic at different trigger points during the functioning of the extension. For example you can listen to events when a product has been added via the `product.created` event, or whenever a payment has succeeded through the `invoice.payment_succeeded` event. (#386)
 
 ## Version 0.2.5 - 2022-04-20
+
 [feat] Add parameter to enable phone number collection. (#371)
 
 [feat] Add parameters to enable expired Checkout Session recovery. (#350)
@@ -280,7 +349,7 @@ db.collection("products")
 
 Previously, only subscriptions created via Stripe Checkout were synced to Cloud Firestore. By additionally listening to the `customer.subscription.created` event, the extension now also captures subscriptions created via the Stripe Dashboard or directly via the API. For this to work, Firebase Authentication users need to be synced with Stripe customer objects and the customers collection in Cloud Firestore (new configuration added in version `0.1.7`).
 
- - Add snippet on importing Stripe.js as an ES module when using a build toolchain for your client application (e.g. Angular, React, TypeScript, etc.) to `POSTINSTALL.md`. (#74)
+- Add snippet on importing Stripe.js as an ES module when using a build toolchain for your client application (e.g. Angular, React, TypeScript, etc.) to `POSTINSTALL.md`. (#74)
 
 ## Version 0.1.6 - 2020-09-10
 
