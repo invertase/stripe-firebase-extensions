@@ -106,7 +106,6 @@ describe("Emulator tests", () => {
   const auth: Auth = getAuth(app);
 
   before(async function () {
-    this.timeout(80000);
     connectFirestoreEmulator(db, "localhost", 8080);
     connectAuthEmulator(auth, "http://localhost:9099", {
       disableWarnings: true,
