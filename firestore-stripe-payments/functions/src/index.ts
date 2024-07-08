@@ -16,18 +16,18 @@
 
 import * as admin from 'firebase-admin';
 import { getEventarc } from 'firebase-admin/eventarc';
+import { Timestamp } from 'firebase-admin/firestore';
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
+import config from './config';
 import {
-  Product,
-  Price,
-  Subscription,
   CustomerData,
+  Price,
+  Product,
+  Subscription,
   TaxRate,
 } from './interfaces';
 import * as logs from './logs';
-import config from './config';
-import { Timestamp } from 'firebase-admin/firestore';
 
 const apiVersion = '2022-11-15';
 const stripe = new Stripe(config.stripeSecretKey, {
@@ -515,9 +515,12 @@ const copyBillingDetailsToCustomer = async (
 ): Promise<void> => {
   const customer = payment_method.customer as string;
   const { name, phone, address } = payment_method.billing_details;
-  await stripe.customers.update(customer, { name, phone, address });
+  if(!phone){
+    await stripe.customers.update(customer, { name, address });
+  } else {
+    await stripe.customers.update(customer, { name, phone, address });
+  }
 };
-
 /**
  * Manage subscription status changes.
  */
