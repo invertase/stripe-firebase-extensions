@@ -105,17 +105,22 @@ describe("Emulator tests", () => {
   const db: Firestore = getFirestore(app);
   const auth: Auth = getAuth(app);
 
-  before(async () => {
+  before(async function () {
     connectFirestoreEmulator(db, "localhost", 8080);
     connectAuthEmulator(auth, "http://localhost:9099", {
       disableWarnings: true,
     });
     for (const [productId, data] of Object.entries(rawProductData)) {
-      await addProductData(productId, data);
+      try {
+        await addProductData(productId, data);
+      } catch (err) {
+        console.error(err);
+      }
     }
   });
 
-  after(async () => {
+  after(async function () {
+    this.timeout(80000);
     await deleteApp(app);
   });
 

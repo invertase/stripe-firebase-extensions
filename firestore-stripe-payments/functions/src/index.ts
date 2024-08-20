@@ -29,7 +29,7 @@ import * as logs from './logs';
 import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
 
-const apiVersion = '2022-11-15';
+const apiVersion = '2024-06-20';
 const stripe = new Stripe(config.stripeSecretKey, {
   apiVersion,
   // Register extension as a Stripe plugin
@@ -183,7 +183,12 @@ exports.createCheckoutSession = functions
         const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
           billing_address_collection,
           shipping_address_collection: { allowed_countries: shippingCountries },
-          shipping_rates,
+          shipping_options: shipping_rates.map(
+            (r) =>
+              ({
+                shipping_rate: r,
+              } as Stripe.Checkout.SessionCreateParams.ShippingOption)
+          ),
           customer,
           customer_update,
           line_items: line_items
@@ -730,7 +735,7 @@ const insertPaymentRecord = async (
 /**
  * A webhook handler function for the relevant Stripe events.
  */
-export const handleWebhookEvents = functions.handler.https.onRequest(
+export const handleWebhookEvents = functions.https.onRequest(
   async (req: functions.https.Request, resp) => {
     const relevantEvents = new Set([
       'product.created',
