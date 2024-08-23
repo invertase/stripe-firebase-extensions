@@ -6,7 +6,7 @@ authors: Thor 雷神 Schaeff (Stripe) & Jeff Huleatt
 categories: Firebase
 tags: web,stripe,tag-firebase,extensions
 duration: 19
-feedback link: https://github.com/stripe/stripe-firebase-extensions/issues/
+feedback link: https://github.com/invertase/stripe-firebase-extensions/issues/
 ---
 
 # Add subscription payments to your web app with Firebase Extensions & Stripe
@@ -517,7 +517,7 @@ You learned how to discover, configure, install, and reconfigure extensions. In 
 
 Check out some of these other extensions:
 
-- [Send invoices using Stripe](https://firebase.google.com/products/extensions/firestore-stripe-invoices)
+- [Send invoices using Stripe](https://extensions.dev/extensions/invertase/firestore-stripe-invoices)
 - [Translate text strings in Cloud Firestore](https://firebase.google.com/products/extensions/firestore-google-translate/)
 - [Add new users to Mailchimp email lists](https://firebase.google.com/products/extensions/mailchimper/)
 - [Shorten URLs](https://firebase.google.com/products/extensions/firestore-shorten-urls-bitly/)
@@ -545,5 +545,5 @@ Check out some of these other extensions:
 
 **Learning the finer details about extensions:**
 
-- View the source code and docs for the Stripe extensions [on GitHub](https://github.com/stripe/stripe-firebase-extensions)
+- View the source code and docs for the Stripe extensions [on GitHub](https://github.com/invertase/stripe-firebase-extensions)
 - Learn about the [permissions and access](https://firebase.google.com/docs/extensions/permissions-granted-to-extension) granted to an extension

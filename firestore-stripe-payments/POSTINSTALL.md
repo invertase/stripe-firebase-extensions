@@ -1,6 +1,6 @@
 ### Client SDK
 
-You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/next/firestore-stripe-web-sdk/README.md)
+You can use the [`@invertase/firestore-stripe-payments`](https://github.com/invertase/stripe-firebase-extensions/blob/next/firestore-stripe-web-sdk/README.md)
 JavaScript package to easily access this extension from web clients. This client SDK provides
 TypeScript type definitions and high-level convenience APIs for most common operations client
 applications would want to implement using the extension.
@@ -97,7 +97,7 @@ Here's how to set up the webhook and configure your extension to use it:
 
 For Stripe to automatically bill your users for recurring payments, you need to create your product and pricing information in the [Stripe Dashboard](https://dashboard.stripe.com/test/products). When you create or update your product and price information in the Stripe Dashboard these details are automatically synced with your Cloud Firestore, as long as the webhook is configured correctly as described above.
 
-The extension currently supports pricing plans that bill a predefined amount at a specific interval. More complex plans (e.g. different pricing tiers or seats) are not yet supported. If you'd like to see support for these, please open a [feature request issue](https://github.com/stripe/stripe-firebase-extensions/issues/new/choose) with details about your business model and pricing plans.
+The extension currently supports pricing plans that bill a predefined amount at a specific interval. More complex plans (e.g. different pricing tiers or seats) are not yet supported. If you'd like to see support for these, please open a [feature request issue](https://github.com/invertase/stripe-firebase-extensions/issues/new/choose) with details about your business model and pricing plans.
 
 For example, this extension works well for business models with different access level tiers, e.g.:
 
@@ -501,4 +501,4 @@ As a best practice, you can [monitor the activity](https://firebase.google.com/d
 
 Access the [Stripe dashboard](https://dashboard.stripe.com/) to manage all aspects of your Stripe account.
 
-Enjoy and please submit any feedback and feature requests on [GitHub](https://github.com/stripe/stripe-firebase-extensions/issues/new/choose)!
+Enjoy and please submit any feedback and feature requests on [GitHub](https://github.com/invertase/stripe-firebase-extensions/issues/new/choose)!

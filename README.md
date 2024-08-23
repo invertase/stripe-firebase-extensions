@@ -1,5 +1,5 @@
 # UPDATE 2023-10-08:
-This project has now being officially transferred to [Invertase](https://github.com/invertase), who will maintain this extension going forward. Please see [this issue](https://github.com/stripe/stripe-firebase-extensions/issues/524) for more details. 
+This project has now being officially transferred to [Invertase](https://github.com/invertase), who will maintain this extension going forward. Please see [this issue](https://github.com/invertase/stripe-firebase-extensions/issues/524) for more details. 
 It is now recommended to uninstall the `stripe/firestore-stripe-payments` extension and install `invertase/firestore-stripe-payments` from the Firebase Extension Hub.
 
 Alternatively, you can also use the following link to convert your current installation to the Invertase version
@@ -19,8 +19,8 @@ Each directory in this repo contains the source code for the extension and a REA
 This repository includes the source code for the following extensions:
 
 1. Stripe backend for web, mobile, and subscription payments
-    - [Homepage](https://firebase.google.com/products/extensions/firestore-stripe-payments)
+    - [Homepage](https://extensions.dev/extensions/invertase/firestore-stripe-payments)
     - [Source code](./firestore-stripe-payments)
 1. Send invoices using Stripe
-    - [Homepage](https://firebase.google.com/products/extensions/firestore-stripe-invoices)
+    - [Homepage](https://extensions.dev/extensions/invertase/firestore-stripe-invoices)
     - [Source code](./firestore-stripe-invoices)
