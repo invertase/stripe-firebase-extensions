@@ -32,7 +32,7 @@ JavaScript package to easily access this extension from web clients. This client
 TypeScript type definitions and high-level convenience APIs for most common operations client
 applications would want to implement using the extension.
 
-Use a package manager like NPM to install the above package, and use it in conjunction with
+Use a package manager like Bun to install the above package, and use it in conjunction with
 the Firebase Web SDK.
 
 ### Events

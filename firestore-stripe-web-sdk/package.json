@@ -1,6 +1,6 @@
 {
   "name": "@trentrand/firestore-stripe-payments",
-  "version": "0.0.8",
+  "version": "0.0.8-rc2",
   "description": "Client SDK for the firestore-stripe-payments Firebase Extension",
   "type": "module",
   "main": "./lib/index.js",
@@ -8,10 +8,10 @@
   "scripts": {
     "api-documenter": "api-documenter markdown --input-folder temp --output-folder markdown",
     "api-extractor": "api-extractor run --verbose",
-    "api-extractor:local": "npm run build && api-extractor run --local --verbose",
+    "api-extractor:local": "bun run build && api-extractor run --local --verbose",
     "build": "tsc",
     "postbuild": "node ./postbuild.js",
-    "test": "cd _emulator && firebase emulators:exec --project=demo-test 'NODE_OPTIONS=--openssl-legacy-provider npm run test:unit' && exit 0",
+    "test": "cd _emulator && firebase emulators:exec --project=demo-test 'NODE_OPTIONS=--openssl-legacy-provider bun run test:unit' && exit 0",
     "test:unit": "karma start --single-run"
   },
   "keywords": [

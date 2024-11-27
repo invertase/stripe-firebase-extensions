@@ -157,9 +157,9 @@ onCurrentUserSubscriptionUpdate(
 
 ## Development workflows and commands
 
-To install the dependencies, run `npm install` in the `firestore-stripe-web-sdk` directory.
+To install the dependencies, run `bun install` in the `firestore-stripe-web-sdk` directory.
 
-Run `npm test` to run all unit and integration tests (usually takes about 15 seconds).
+Run `bun test` to run all unit and integration tests (usually takes about 15 seconds).
 
-To build a release artifact, run `npm run build` followed by `npm pack`. The resulting tarball
-can be published to NPM with `npm publish <tarball>`.
+To build a release artifact, run `bun run build` followed by `npm pack`. The resulting tarball
+can be published to NPM with `bun publish <tarball>`.

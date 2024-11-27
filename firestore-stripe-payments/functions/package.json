@@ -5,9 +5,9 @@
   },
   "main": "lib/index.js",
   "scripts": {
-    "prepare": "npm run build",
+    "prepare": "bun run build",
     "clean": "rimraf lib",
-    "build": "npm run clean && tsc",
+    "build": "bun run clean && tsc",
     "build:watch": "tsc --watch",
     "compile": "tsc",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md",

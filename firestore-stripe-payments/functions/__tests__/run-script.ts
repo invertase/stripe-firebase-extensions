@@ -17,7 +17,7 @@ import {
   const { result } = await concurrently(
     [
       {
-        command: 'npm run exec:emulator',
+        command: 'bun run exec:emulator',
         name: 'testing',
       },
     ],

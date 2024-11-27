@@ -17,17 +17,10 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}
       cancel-in-progress: false
-    strategy:
-      matrix:
-        node: ["18"]
-      max-parallel: 1
-    name: node.js_${{ matrix.node }}_test
+    name: bun_test
     steps:
       - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node }}
+      - uses: oven-sh/setup-bun@v2
 
       - name: Install cloudflared
         run: |
@@ -37,19 +30,19 @@ jobs:
           sudo apt-get install -f
         shell: /usr/bin/bash -e {0}
 
-      - name: NPM install
-        run: npm install
+      - name: Bun install
+        run: bun install
       - name: Install firebase CLI
         uses: nick-invision/retry@v2
         with:
           timeout_minutes: 10
           retry_wait_seconds: 60
           max_attempts: 3
-          command: npm i -g firebase-tools
+          command: bun i -g firebase-tools
       - name: mask env paramaters
         run: echo "::add-mask::$STRIPE_WEBHOOK_SECRET"
       - name: Run tests with coverage
-        run: npm run test
+        run: bun test
         env:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
