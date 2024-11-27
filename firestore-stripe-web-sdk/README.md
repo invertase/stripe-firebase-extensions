@@ -23,10 +23,20 @@ web SDK, and configure the library to use the same Firestore collections you con
 the extension to use.
 
 ```js
-import { getApp } from "@firebase/app";
-import { getStripePayments } from "@invertase/firestore-stripe-payments";
+import { initializeApp } from "firebase/app";
+import { getStripePayments } from "@trentrand/firestore-stripe-payments";
 
-const app = getApp();
+const firebaseConfig = {
+  apiKey: import.meta.env.FIREBASE_API_KEY,
+  authDomain: import.meta.env.FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.FIREBASE_APP_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+
 const payments = getStripePayments(app, {
   productsCollection: "products",
   customersCollection: "customers",
@@ -39,7 +49,7 @@ To fetch all the active products along with their prices, call the
 `getProducts()` function as follows:
 
 ```js
-import { getProducts } from "@invertase/firestore-stripe-payments";
+import { getProducts } from "@trentrand/firestore-stripe-payments";
 
 const products = await getProducts(payments, {
   includePrices: true,
@@ -56,7 +66,7 @@ the products without the prices only requires 1 Firestore query.
 You can also specify filters and limits on the product query as follows:
 
 ```js
-import { getProducts } from "@invertase/firestore-stripe-payments";
+import { getProducts } from "@trentrand/firestore-stripe-payments";
 
 const products = await getProducts(payments, {
   includePrices: true,
@@ -75,7 +85,7 @@ for (const product of products) {
 ## Start a subscription checkout session
 
 ```js
-import { createCheckoutSession } from "@invertase/firestore-stripe-payments";
+import { createCheckoutSession } from "@trentrand/firestore-stripe-payments";
 
 const session = await createCheckoutSession(payments, {
   price: myPriceId,
@@ -88,7 +98,7 @@ Calling `createCheckoutSession()` as shown above will use the current page
 can specify your own URLs as follows:
 
 ```js
-import { createCheckoutSession } from "@invertase/firestore-stripe-payments";
+import { createCheckoutSession } from "@trentrand/firestore-stripe-payments";
 
 const session = await createCheckoutSession(payments, {
   price: myPriceId,
@@ -101,7 +111,7 @@ window.location.assign(session.url);
 To create a checkout session for more than one item, pass `line_items`:
 
 ```js
-import { createCheckoutSession } from "@invertase/firestore-stripe-payments";
+import { createCheckoutSession } from "@trentrand/firestore-stripe-payments";
 
 const session = await createCheckoutSession(payments, {
   line_items: [
@@ -118,7 +128,7 @@ Once a subscription checkout session has been created, you can listen to the
 Stripe subscription update events as follows:
 
 ```js
-import { onCurrentUserSubscriptionUpdate } from "@invertase/firestore-stripe-payments";
+import { onCurrentUserSubscriptionUpdate } from "@trentrand/firestore-stripe-payments";
 
 onCurrentUserSubscriptionUpdate(
   payments,
@@ -134,9 +144,9 @@ onCurrentUserSubscriptionUpdate(
 
 # Dependencies
 
-* Cloud Firestore (`@firebase/firestore`)
-* Firebase Auth (`@firebase/auth`)
-* Firebase Core (`@firebase/app`)
+* Cloud Firestore (`firebase/firestore`)
+* Firebase Auth (`firebase/auth`)
+* Firebase Core (`firebase/app`)
 
 # Build, test, release
 

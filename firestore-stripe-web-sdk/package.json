@@ -1,5 +1,5 @@
 {
-  "name": "@invertase/firestore-stripe-payments",
+  "name": "@trentrand/firestore-stripe-payments",
   "version": "0.0.8",
   "description": "Client SDK for the firestore-stripe-payments Firebase Extension",
   "type": "module",
@@ -22,7 +22,8 @@
   ],
   "author": "Stripe (https://stripe.com/)",
   "contributors": [
-    "Firebase <firebase-support@google.com> (https://firebase.google.com/)"
+    "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+    "Trent Rand <contact@trentrand.com> (https://trentrand.com)"
   ],
   "license": "Apache-2.0",
   "files": [
