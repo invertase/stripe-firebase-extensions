@@ -25,6 +25,10 @@
     "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
     "Trent Rand <contact@trentrand.com> (https://trentrand.com)"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trentrand/stripe-firebase-extensions.git"
+  },
   "license": "Apache-2.0",
   "files": [
     "lib/",
