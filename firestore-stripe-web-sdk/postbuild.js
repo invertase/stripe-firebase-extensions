@@ -1,13 +1,16 @@
-const replace = require("replace-in-file");
-const pkg = require("./package.json");
+import { readFileSync, writeFileSync, readdirSync } from 'fs';
+import { join } from 'path';
 
-const results = replace.sync({
-  files: "./lib/*.js",
-  from: "__VERSION__",
-  to: pkg.version,
+const pkg = JSON.parse(readFileSync('./package.json'));
+const files = readdirSync('./lib').filter(file => file.endsWith('.js'));
+
+files.forEach(file => {
+  const filepath = join('./lib', file);
+  const content = readFileSync(filepath, 'utf8');
+
+  if (content.includes('__VERSION__')) {
+    const newContent = content.replace(/__VERSION__/g, pkg.version);
+    writeFileSync(filepath, newContent);
+    console.log(`Replaced version in: ${filepath}`);
+  }
 });
-results
-  .filter((result) => result.hasChanged)
-  .forEach((result) => {
-    console.log(`Replaced version in: ${result.file}`);
-  });
