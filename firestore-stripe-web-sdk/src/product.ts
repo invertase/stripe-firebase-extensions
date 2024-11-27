@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from "@firebase/app";
+import { FirebaseApp } from "firebase/app";
 import {
-  collection,
   CollectionReference,
-  doc,
   DocumentData,
   DocumentReference,
   DocumentSnapshot,
   Firestore,
   FirestoreDataConverter,
+  Query,
+  QueryConstraint,
+  QueryDocumentSnapshot,
+  QuerySnapshot,
+  WhereFilterOp,
+  collection,
+  doc,
   getDoc,
   getDocs,
   getFirestore,
   limit,
   query,
-  Query,
-  QueryConstraint,
-  QueryDocumentSnapshot,
-  QuerySnapshot,
   where,
-  WhereFilterOp,
-} from "@firebase/firestore";
+} from "firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init.js";
 import { checkNonEmptyString } from "./utils.js";
 
@@ -216,7 +216,7 @@ export interface GetProductsOptions {
   limit?: number;
 }
 
-export { WhereFilterOp } from "@firebase/firestore";
+export { WhereFilterOp } from "firebase/firestore";
 
 /**
  * A filter constraint that can be applied to database queries. Consists of a field name (in

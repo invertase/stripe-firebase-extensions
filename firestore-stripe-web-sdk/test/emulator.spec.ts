@@ -15,28 +15,25 @@
  */
 
 import { expect, use } from "chai";
-import { deleteApp, FirebaseApp, initializeApp } from "@firebase/app";
+import { deleteApp, FirebaseApp, initializeApp } from "firebase/app";
 import {
-  collection,
-  collectionGroup,
-  connectFirestoreEmulator,
-  deleteDoc,
-  doc,
-  DocumentChange,
-  DocumentData,
+  CollectionReference,
   DocumentReference,
   Firestore,
-  getDocs,
+  collection,
+  connectFirestoreEmulator,
+  doc,
   getFirestore,
-  onSnapshot,
-  Query,
   setDoc,
-  Timestamp,
-  Unsubscribe,
-  updateDoc,
-  WriteBatch,
   writeBatch,
-} from "@firebase/firestore";
+} from "firebase/firestore";
+import {
+  Auth,
+  connectAuthEmulator,
+  getAuth,
+  signInAnonymously,
+  signOut,
+} from "firebase/auth";
 import {
   createCheckoutSession,
   getCurrentUserPayment,
@@ -80,13 +77,6 @@ import {
   subscription3,
   SubscriptionData,
 } from "./testdata";
-import {
-  Auth,
-  connectAuthEmulator,
-  getAuth,
-  signInAnonymously,
-  signOut,
-} from "@firebase/auth";
 
 use(require("chai-like"));
 use(require("chai-as-promised"));

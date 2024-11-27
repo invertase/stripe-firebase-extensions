@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Timestamp } from "@firebase/firestore";
+import { Timestamp } from "firebase/firestore";
 import { Payment, Price, Product, Subscription } from "../src/index";
 
 export const economyPlan: Product = {
