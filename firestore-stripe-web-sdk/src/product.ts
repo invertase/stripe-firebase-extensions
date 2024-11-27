@@ -36,8 +36,8 @@ import {
   where,
   WhereFilterOp,
 } from "@firebase/firestore";
-import { StripePayments, StripePaymentsError } from "./init";
-import { checkNonEmptyString } from "./utils";
+import { StripePayments, StripePaymentsError } from "./init.js";
+import { checkNonEmptyString } from "./utils.js";
 
 /**
  * Interface of a Stripe Product stored in the app database.

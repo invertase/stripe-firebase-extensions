@@ -31,13 +31,13 @@ import {
   Timestamp,
   Unsubscribe,
 } from "@firebase/firestore";
-import { StripePayments, StripePaymentsError } from "./init";
-import { getCurrentUser } from "./user";
+import { StripePayments, StripePaymentsError } from "./init.js";
+import { getCurrentUser } from "./user.js";
 import {
   checkNonEmptyArray,
   checkNonEmptyString,
   checkPositiveNumber,
-} from "./utils";
+} from "./utils.js";
 
 /**
  * Parameters common across all session types.
