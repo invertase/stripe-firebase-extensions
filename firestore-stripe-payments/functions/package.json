@@ -5,9 +5,9 @@
   },
   "main": "lib/index.js",
   "scripts": {
-    "prepare": "bun run build",
+    "prepare": "npm run build",
     "clean": "rimraf lib",
-    "build": "bun run clean && tsc",
+    "build": "npm run clean && tsc",
     "build:watch": "tsc --watch",
     "compile": "tsc",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md",
@@ -27,7 +27,7 @@
     "firebase-admin": "^11.10.1",
     "firebase-functions": "^3.21.2",
     "rimraf": "^3.0.2",
-    "stripe": "11.15.0",
+    "stripe": "17.4.0",
     "typescript": "^4.9.5"
   },
   "devDependencies": {

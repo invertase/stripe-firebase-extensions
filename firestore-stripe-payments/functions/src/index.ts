@@ -29,7 +29,7 @@ import * as logs from './logs';
 import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
 
-const apiVersion = '2022-11-15';
+const apiVersion = '2024-11-20.acacia';
 const stripe = new Stripe(config.stripeSecretKey, {
   apiVersion,
   // Register extension as a Stripe plugin
@@ -126,7 +126,7 @@ exports.createCheckoutSession = functions
       cancel_url,
       quantity = 1,
       payment_method_types,
-      shipping_rates = [],
+      shipping_options = [],
       metadata = {},
       automatic_payment_methods = { enabled: true },
       automatic_tax = false,
@@ -183,7 +183,7 @@ exports.createCheckoutSession = functions
         const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
           billing_address_collection,
           shipping_address_collection: { allowed_countries: shippingCountries },
-          shipping_rates,
+          shipping_options,
           customer,
           customer_update,
           line_items: line_items
@@ -441,6 +441,7 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
     role: firebaseRole ?? null,
     images: product.images,
     metadata: product.metadata,
+    marketing_features: product?.marketing_features,
     tax_code: product.tax_code ?? null,
     ...prefixMetadata(rawMetadata),
   };

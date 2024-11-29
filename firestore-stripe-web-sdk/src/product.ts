@@ -87,6 +87,11 @@ export interface Product {
    */
   readonly metadata: { [key: string]: string | number | null };
 
+  /**
+   * A list of up to 15 marketing features for this product. These are displayed in pricing tables.
+   */
+  readonly marketingFeatures?: string[];
+
   readonly [propName: string]: any;
 }
 
