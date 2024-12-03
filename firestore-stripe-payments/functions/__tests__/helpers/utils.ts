@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 import { Query, DocumentData } from '@google-cloud/firestore';
 import { UserRecord } from 'firebase-functions/v1/auth';
 

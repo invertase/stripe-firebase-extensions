@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 import { getEventarc } from 'firebase-admin/eventarc';
-import * as functions from 'firebase-functions';
+import functions from 'firebase-functions';
 import Stripe from 'stripe';
 import {
   Product,
