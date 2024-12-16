@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 import { DocumentData } from '@google-cloud/firestore';
 import functions from 'firebase-functions-test';
 import * as cloudFunctions from '../../../src';

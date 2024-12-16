@@ -83,6 +83,11 @@ export interface Product {
    */
   prices?: Array<Price>;
   /**
+   * A list of up to 15 marketing features for this product.
+   * These are displayed in pricing tables.
+   */
+  marketingFeatures?: Array<Stripe.Product.MarketingFeature>;
+  /**
    * Any additional properties
    */
   [propName: string]: any;

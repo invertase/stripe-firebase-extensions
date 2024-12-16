@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from "@firebase/app";
+import { FirebaseApp } from "firebase/app";
 import {
-  collection,
   CollectionReference,
-  doc,
   DocumentData,
   DocumentReference,
   DocumentSnapshot,
   Firestore,
   FirestoreDataConverter,
+  Query,
+  QueryConstraint,
+  QueryDocumentSnapshot,
+  QuerySnapshot,
+  WhereFilterOp,
+  collection,
+  doc,
   getDoc,
   getDocs,
   getFirestore,
   limit,
   query,
-  Query,
-  QueryConstraint,
-  QueryDocumentSnapshot,
-  QuerySnapshot,
   where,
-  WhereFilterOp,
-} from "@firebase/firestore";
-import { StripePayments, StripePaymentsError } from "./init";
-import { checkNonEmptyString } from "./utils";
+} from "firebase/firestore";
+import { StripePayments, StripePaymentsError } from "./init.js";
+import { checkNonEmptyString } from "./utils.js";
 
 /**
  * Interface of a Stripe Product stored in the app database.
@@ -86,6 +86,11 @@ export interface Product {
    * A collection of additional product metadata.
    */
   readonly metadata: { [key: string]: string | number | null };
+
+  /**
+   * A list of up to 15 marketing features for this product. These are displayed in pricing tables.
+   */
+  readonly marketingFeatures?: string[];
 
   readonly [propName: string]: any;
 }
@@ -216,7 +221,7 @@ export interface GetProductsOptions {
   limit?: number;
 }
 
-export { WhereFilterOp } from "@firebase/firestore";
+export { WhereFilterOp } from "firebase/firestore";
 
 /**
  * A filter constraint that can be applied to database queries. Consists of a field name (in

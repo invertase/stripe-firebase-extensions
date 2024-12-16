@@ -2,3 +2,4 @@ firestore-debug.log
 lib
 node_modules
 temp
+*.tgz

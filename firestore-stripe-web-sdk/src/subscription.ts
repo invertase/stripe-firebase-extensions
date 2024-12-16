@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from "@firebase/app";
+import { FirebaseApp } from "firebase/app";
 import {
-  collection,
   CollectionReference,
-  doc,
   DocumentChange,
   DocumentData,
   DocumentReference,
@@ -26,20 +24,22 @@ import {
   Firestore,
   FirestoreDataConverter,
   FirestoreError,
+  Query,
+  QueryDocumentSnapshot,
+  QuerySnapshot,
+  Timestamp,
+  collection,
+  doc,
   getDoc,
   getDocs,
   getFirestore,
   onSnapshot,
   query,
-  Query,
-  QueryDocumentSnapshot,
-  QuerySnapshot,
-  Timestamp,
   where,
-} from "@firebase/firestore";
-import { StripePayments, StripePaymentsError } from "./init";
-import { getCurrentUser, getCurrentUserSync } from "./user";
-import { checkNonEmptyArray, checkNonEmptyString } from "./utils";
+} from "firebase/firestore";
+import { StripePayments, StripePaymentsError } from "./init.js";
+import { getCurrentUser, getCurrentUserSync } from "./user.js";
+import { checkNonEmptyArray, checkNonEmptyString } from "./utils.js";
 
 /**
  * Interface of a Stripe Subscription stored in the app database.

@@ -1,16 +1,17 @@
 {
-  "name": "@invertase/firestore-stripe-payments",
-  "version": "0.0.7",
-  "description": "Client SDK for the firestore-stripe-payments Firebase Extension",
+  "name": "@trentrand/firestore-stripe-payments",
+  "version": "0.0.9",
+  "description": "Up-to-date client SDK for the firestore-stripe-payments Firebase Extension",
+  "type": "module",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
   "scripts": {
     "api-documenter": "api-documenter markdown --input-folder temp --output-folder markdown",
     "api-extractor": "api-extractor run --verbose",
-    "api-extractor:local": "npm run build && api-extractor run --local --verbose",
+    "api-extractor:local": "bun run build && api-extractor run --local --verbose",
     "build": "tsc",
     "postbuild": "node ./postbuild.js",
-    "test": "cd _emulator && firebase emulators:exec --project=demo-test 'NODE_OPTIONS=--openssl-legacy-provider npm run test:unit' && exit 0",
+    "test": "cd _emulator && firebase emulators:exec --project=demo-test 'NODE_OPTIONS=--openssl-legacy-provider bun run test:unit' && exit 0",
     "test:unit": "karma start --single-run"
   },
   "keywords": [
@@ -21,8 +22,13 @@
   ],
   "author": "Stripe (https://stripe.com/)",
   "contributors": [
-    "Firebase <firebase-support@google.com> (https://firebase.google.com/)"
+    "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+    "Trent Rand <contact@trentrand.com> (https://trentrand.com)"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trentrand/stripe-firebase-extensions.git"
+  },
   "license": "Apache-2.0",
   "files": [
     "lib/",
@@ -52,7 +58,6 @@
     "karma-chrome-launcher": "^3.1.0",
     "webpack": "^4.46.0",
     "source-map-loader": "^1.1.3",
-    "replace-in-file": "^6.2.0",
     "sinon": "^11.1.2",
     "sinon-chai": "^3.7.0",
     "ts-node": "^10.2.1",
@@ -60,8 +65,6 @@
     "typescript": "^4.4.2"
   },
   "dependencies": {
-    "@firebase/app": "^0.9.17",
-    "@firebase/auth": "^1.3.0",
-    "@firebase/firestore": "^4.1.2"
+    "firebase": "^11.1.0"
   }
 }

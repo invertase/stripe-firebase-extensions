@@ -16,7 +16,7 @@
 
 import { expect, use } from "chai";
 import { fake as sinonFake, SinonSpy } from "sinon";
-import { FirebaseApp } from "@firebase/app";
+import { FirebaseApp } from "firebase/app";
 import {
   getCurrentUserSubscription,
   getCurrentUserSubscriptions,

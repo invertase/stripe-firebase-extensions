@@ -2,10 +2,6 @@
 
 We highly appreciate feedback and contributions from the community! If you'd like to contribute to this project, please make sure to review and follow the guidelines below.
 
-## Code of conduct
-
-In the interest of fostering an open and welcoming environment, please review and follow our [code of conduct](./CODE_OF_CONDUCT.md).
-
 ## Code and copy reviews
 
 All submissions, including submissions by project members, require review. We
@@ -15,7 +11,7 @@ information on using pull requests.
 
 ## Report an issue
 
-Report all issues through GitHub Issues using the [Report a Bug](https://github.com/stripe/stripe-firebase-extensions/issues/new?template=1.Bug_report.md) template.
+Report all issues through GitHub Issues using the [Report a Bug](https://github.com/trentrand/stripe-firebase-extensions/issues/new?template=1.Bug_report.md) template.
 
 To help resolve your issue as quickly as possible, read the template and provide all the requested information.
 
@@ -23,17 +19,12 @@ To help resolve your issue as quickly as possible, read the template and provide
 
 We welcome all feature requests, whether it's to add new functionality to an existing extension or to offer an idea for a brand new extension.
 
-File your feature request through GitHub Issues using the [Feature Request template](https://github.com/stripe/stripe-firebase-extensions/issues/new?template=2.Feature_request.md).
+File your feature request through GitHub Issues using the [Feature Request template](https://github.com/trentrand/stripe-firebase-extensions/issues/new?template=2.Feature_request.md).
 
 ## Create a pull request
 
-When making pull requests to the repository, make sure to follow these guidelines for both bug fixes and new features:
+When making pull requests to the repository, consider following these guidelines for both bug fixes and new features:
 
-- Before creating a pull request, file a GitHub Issue so that maintainers and the community can discuss the problem and potential solutions before you spend time on an implementation.
 - In your PR's description, link to any related issues or pull requests to give reviewers the full context of your change.
 - For commit messages, follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format.
   - For example, if you update documentation for a specific extension, your commit message might be: `docs(extension-name) updated installation documentation`.
-
-### Features
-
-Before creating pull requests for new features, first file a GitHub Issue describing the reasoning and motivation for the feature. This gives maintainers and the community the opportunity to provide feedback on your idea before implementing it.

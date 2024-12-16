@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: NPM Install & Build
-        run: npm i
+      - uses: oven-sh/setup-bun@v2
+      - name: Bun Install
+        run: bun i
       - name: Prettier Lint Check
-        run: npm run lint
+        run: bun run lint

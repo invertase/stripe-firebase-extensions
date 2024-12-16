@@ -14,30 +14,34 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from "@firebase/app";
+import { FirebaseApp } from "firebase/app";
 import {
-  addDoc,
-  collection,
   CollectionReference,
   DocumentData,
   DocumentReference,
   DocumentSnapshot,
   Firestore,
-  FirestoreDataConverter,
-  FirestoreError,
+  collection,
+  doc,
+  getDoc,
   getFirestore,
   onSnapshot,
+} from "firebase/firestore";
+import {
+  addDoc,
+  FirestoreDataConverter,
+  FirestoreError,
   QueryDocumentSnapshot,
   Timestamp,
   Unsubscribe,
-} from "@firebase/firestore";
-import { StripePayments, StripePaymentsError } from "./init";
-import { getCurrentUser } from "./user";
+} from "firebase/firestore";
+import { StripePayments, StripePaymentsError } from "./init.js";
+import { getCurrentUser } from "./user.js";
 import {
   checkNonEmptyArray,
   checkNonEmptyString,
   checkPositiveNumber,
-} from "./utils";
+} from "./utils.js";
 
 /**
  * Parameters common across all session types.
@@ -291,8 +295,8 @@ export interface Session {
 
 /**
  * Interface of a Stripe line item associated with a checkout session. A line item represents
- * an individual item purchased using the session.
- */
+   * an individual item purchased using the session.
+   */
 export interface LineItem {
   /**
    * The amount to be collected per unit of the line item.

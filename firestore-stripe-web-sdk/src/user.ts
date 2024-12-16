@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from "@firebase/app";
-import { Auth, getAuth } from "@firebase/auth";
-import { StripePayments, StripePaymentsError } from "./init";
+import { FirebaseApp } from "firebase/app";
+import { Auth, getAuth } from "firebase/auth";
+import { StripePayments, StripePaymentsError } from "./init.js";
 
 /**
  * Internal API for retrieving the currently signed in user. Rejects with "unauthenticated" if
