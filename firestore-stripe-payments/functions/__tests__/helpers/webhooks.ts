@@ -18,6 +18,7 @@ export const setupWebhooks = async (url) => {
       'payment_intent.succeeded',
       'payment_intent.canceled',
       'payment_intent.payment_failed',
+      'charge.refunded',
       'tax_rate.created',
       'tax_rate.updated',
       'invoice.paid',
