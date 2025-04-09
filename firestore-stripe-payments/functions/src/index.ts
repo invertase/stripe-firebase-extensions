@@ -22,17 +22,14 @@ import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
 import { apiVersion, stripe, admin, eventChannel } from './services';
 import { prefixMetadata } from './utils';
-import {
-  copyBillingDetailsToCustomer,
-  createCustomerRecord,
-} from './handlers/customers';
-import { manageSubscriptionStatusChange } from './handlers/subscriptions';
+import { createCustomerRecord } from './handlers/customer';
+import { manageSubscriptionStatusChange } from './handlers/subscription';
 
 export {
   createCustomer,
   onUserDeleted,
   onCustomerDataDeleted,
-} from './handlers/customers';
+} from './handlers/customer';
 
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.

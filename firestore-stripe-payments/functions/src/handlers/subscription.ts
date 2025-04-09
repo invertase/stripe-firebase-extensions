@@ -20,7 +20,7 @@ import { admin, stripe } from '../services';
 import * as logs from '../logs';
 import config from '../config';
 import { Subscription } from '../interfaces';
-import { copyBillingDetailsToCustomer } from './customers';
+import { copyBillingDetailsToCustomer } from './customer';
 
 /**
  * Manage subscription status changes.
