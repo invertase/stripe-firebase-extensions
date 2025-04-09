@@ -32,6 +32,7 @@ export {
 } from './handlers/customer';
 import { deleteProductOrPrice, createProductRecord } from './handlers/product';
 import { insertTaxRateRecord } from './handlers/tax-rate';
+import { insertPriceRecord } from './handlers/price';
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.
  */
@@ -345,42 +346,6 @@ export const createPortalLink = functions.https.onCall(
     }
   }
 );
-
-/**
- * Create a price (billing price plan) and insert it into a subcollection in Products.
- */
-const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
-  if (price.billing_scheme === 'tiered')
-    // Tiers aren't included by default, we need to retireve and expand.
-    price = await stripe.prices.retrieve(price.id, { expand: ['tiers'] });
-
-  const priceData: Price = {
-    active: price.active,
-    billing_scheme: price.billing_scheme,
-    tiers_mode: price.tiers_mode,
-    tiers: price.tiers ?? null,
-    currency: price.currency,
-    description: price.nickname,
-    type: price.type,
-    unit_amount: price.unit_amount,
-    recurring: price.recurring,
-    interval: price.recurring?.interval ?? null,
-    interval_count: price.recurring?.interval_count ?? null,
-    trial_period_days: price.recurring?.trial_period_days ?? null,
-    transform_quantity: price.transform_quantity,
-    tax_behavior: price.tax_behavior ?? null,
-    metadata: price.metadata,
-    product: price.product,
-    ...prefixMetadata(price.metadata),
-  };
-  const dbRef = admin
-    .firestore()
-    .collection(config.productsCollectionPath)
-    .doc(price.product as string)
-    .collection('prices');
-  await dbRef.doc(price.id).set(priceData, { merge: true });
-  logs.firestoreDocCreated('prices', price.id);
-};
 
 /**
  * Add invoice objects to Cloud Firestore.
