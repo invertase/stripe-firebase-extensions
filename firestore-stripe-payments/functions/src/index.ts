@@ -16,7 +16,7 @@
 
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
-import { Product, Price, Subscription, TaxRate } from './interfaces';
+import { Product, Price, TaxRate } from './interfaces';
 import * as logs from './logs';
 import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
