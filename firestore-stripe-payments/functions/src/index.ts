@@ -19,21 +19,15 @@ import Stripe from 'stripe';
 import * as logs from './logs';
 import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
-import { apiVersion, stripe, admin, eventChannel } from './services';
+import { apiVersion, stripe, admin } from './services';
 
 import { createCustomerRecord } from './handlers/customer';
-import { manageSubscriptionStatusChange } from './handlers/subscription';
-import { insertPaymentRecord } from './handlers/payment';
 export {
   createCustomer,
   onUserDeleted,
   onCustomerDataDeleted,
 } from './handlers/customer';
-import { deleteProductOrPrice, createProductRecord } from './handlers/product';
-import { insertTaxRateRecord } from './handlers/tax-rate';
-import { insertPriceRecord } from './handlers/price';
-import { insertInvoiceRecord } from './handlers/invoice';
-import { handleWebhookEvents } from './controllers/webhook';
+
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.
  */
