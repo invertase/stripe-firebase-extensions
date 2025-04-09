@@ -27,7 +27,7 @@ import * as logs from './logs';
 import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
 import { apiVersion, stripe, admin, eventChannel } from './services';
-
+import { prefixMetadata } from './utils';
 /**
  * Create a customer object in Stripe when a user is created.
  */
@@ -398,15 +398,6 @@ export const createPortalLink = functions.https.onCall(
     }
   }
 );
-
-/**
- * Prefix Stripe metadata keys with `stripe_metadata_` to be spread onto Product and Price docs in Cloud Firestore.
- */
-const prefixMetadata = (metadata: object) =>
-  Object.keys(metadata).reduce((prefixedMetadata, key) => {
-    prefixedMetadata[`stripe_metadata_${key}`] = metadata[key];
-    return prefixedMetadata;
-  }, {});
 
 /**
  * Create a Product record in Firestore based on a Stripe Product object.
