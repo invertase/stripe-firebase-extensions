@@ -21,7 +21,7 @@ import * as logs from './logs';
 import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
 import { apiVersion, stripe, admin, eventChannel } from './services';
-import { prefixMetadata } from './utils';
+
 import { createCustomerRecord } from './handlers/customer';
 import { manageSubscriptionStatusChange } from './handlers/subscription';
 import { insertPaymentRecord } from './handlers/payment';
@@ -33,6 +33,8 @@ export {
 import { deleteProductOrPrice, createProductRecord } from './handlers/product';
 import { insertTaxRateRecord } from './handlers/tax-rate';
 import { insertPriceRecord } from './handlers/price';
+import { insertInvoiceRecord } from './handlers/invoice';
+
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.
  */
@@ -346,50 +348,6 @@ export const createPortalLink = functions.https.onCall(
     }
   }
 );
-
-/**
- * Add invoice objects to Cloud Firestore.
- */
-export const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
-  // Get customer's UID from Firestore
-  const customersSnap = await admin
-    .firestore()
-    .collection(config.customersCollectionPath)
-    .where('stripeId', '==', invoice.customer)
-    .get();
-  if (customersSnap.size !== 1) {
-    throw new Error('User not found!');
-  }
-  // Write to invoice to a subcollection on the subscription doc.
-  await customersSnap.docs[0].ref
-    .collection('subscriptions')
-    .doc(invoice.subscription as string)
-    .collection('invoices')
-    .doc(invoice.id)
-    .set(invoice);
-
-  const prices = [];
-  for (const item of invoice.lines.data) {
-    prices.push(
-      admin
-        .firestore()
-        .collection(config.productsCollectionPath)
-        .doc(item.price.product as string)
-        .collection('prices')
-        .doc(item.price.id)
-    );
-  }
-
-  // An Invoice object does not always have an associated Payment Intent
-  const recordId: string = (invoice.payment_intent as string) ?? invoice.id;
-
-  // Update subscription payment with price data
-  await customersSnap.docs[0].ref
-    .collection('payments')
-    .doc(recordId)
-    .set({ prices }, { merge: true });
-  logs.firestoreDocCreated('invoices', invoice.id);
-};
 
 /**
  * A webhook handler function for the relevant Stripe events.
