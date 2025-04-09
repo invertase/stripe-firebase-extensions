@@ -24,7 +24,7 @@ import { apiVersion, stripe, admin, eventChannel } from './services';
 import { prefixMetadata } from './utils';
 import { createCustomerRecord } from './handlers/customer';
 import { manageSubscriptionStatusChange } from './handlers/subscription';
-
+import { insertPaymentRecord } from './handlers/payment';
 export {
   createCustomer,
   onUserDeleted,
@@ -466,48 +466,6 @@ export const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
     .doc(recordId)
     .set({ prices }, { merge: true });
   logs.firestoreDocCreated('invoices', invoice.id);
-};
-
-/**
- * Add PaymentIntent objects to Cloud Firestore for one-time payments.
- */
-const insertPaymentRecord = async (
-  payment: Stripe.PaymentIntent,
-  checkoutSession?: Stripe.Checkout.Session
-) => {
-  // Get customer's UID from Firestore
-  const customersSnap = await admin
-    .firestore()
-    .collection(config.customersCollectionPath)
-    .where('stripeId', '==', payment.customer)
-    .get();
-  if (customersSnap.size !== 1) {
-    throw new Error('User not found!');
-  }
-  if (checkoutSession) {
-    const lineItems = await stripe.checkout.sessions.listLineItems(
-      checkoutSession.id
-    );
-    const prices = [];
-    for (const item of lineItems.data) {
-      prices.push(
-        admin
-          .firestore()
-          .collection(config.productsCollectionPath)
-          .doc(item.price.product as string)
-          .collection('prices')
-          .doc(item.price.id)
-      );
-    }
-    payment['prices'] = prices;
-    payment['items'] = lineItems.data;
-  }
-  // Write to invoice to a subcollection on the customer doc.
-  await customersSnap.docs[0].ref
-    .collection('payments')
-    .doc(payment.id)
-    .set(payment, { merge: true });
-  logs.firestoreDocCreated('payments', payment.id);
 };
 
 /**
