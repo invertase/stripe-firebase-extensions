@@ -16,7 +16,7 @@
 
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
-import { Product, Price, TaxRate } from './interfaces';
+import { Price, TaxRate } from './interfaces';
 import * as logs from './logs';
 import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -30,7 +30,7 @@ export {
   onUserDeleted,
   onCustomerDataDeleted,
 } from './handlers/customer';
-
+import { deleteProductOrPrice, createProductRecord } from './handlers/product';
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.
  */
@@ -346,30 +346,6 @@ export const createPortalLink = functions.https.onCall(
 );
 
 /**
- * Create a Product record in Firestore based on a Stripe Product object.
- */
-const createProductRecord = async (product: Stripe.Product): Promise<void> => {
-  const { firebaseRole, ...rawMetadata } = product.metadata;
-
-  const productData: Product = {
-    active: product.active,
-    name: product.name,
-    description: product.description,
-    role: firebaseRole ?? null,
-    images: product.images,
-    metadata: product.metadata,
-    tax_code: product.tax_code ?? null,
-    ...prefixMetadata(rawMetadata),
-  };
-  await admin
-    .firestore()
-    .collection(config.productsCollectionPath)
-    .doc(product.id)
-    .set(productData, { merge: true });
-  logs.firestoreDocCreated(config.productsCollectionPath, product.id);
-};
-
-/**
  * Create a price (billing price plan) and insert it into a subcollection in Products.
  */
 const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
@@ -627,24 +603,3 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
     resp.json({ received: true });
   }
 );
-
-const deleteProductOrPrice = async (pr: Stripe.Product | Stripe.Price) => {
-  if (pr.object === 'product') {
-    await admin
-      .firestore()
-      .collection(config.productsCollectionPath)
-      .doc(pr.id)
-      .delete();
-    logs.firestoreDocDeleted(config.productsCollectionPath, pr.id);
-  }
-  if (pr.object === 'price') {
-    await admin
-      .firestore()
-      .collection(config.productsCollectionPath)
-      .doc((pr as Stripe.Price).product as string)
-      .collection('prices')
-      .doc(pr.id)
-      .delete();
-    logs.firestoreDocDeleted('prices', pr.id);
-  }
-};
