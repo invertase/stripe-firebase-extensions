@@ -11,7 +11,10 @@ console.warn = (...args) => {
   originalWarn(...args);
 };
 
-import { processStripeEvent } from '../../../../src/controllers/webhook';
+import {
+  processStripeEvent,
+  webhookEventHandler,
+} from '../../../../src/controllers/webhook';
 import * as productHandler from '../../../../src/handlers/product';
 import * as priceHandler from '../../../../src/handlers/price';
 import * as taxRateHandler from '../../../../src/handlers/tax-rate';
@@ -20,7 +23,7 @@ import * as paymentHandler from '../../../../src/handlers/payment';
 import * as invoiceHandler from '../../../../src/handlers/invoice';
 import { stripe } from '../../../../src/services';
 
-// Mocks
+// Mock modules
 jest.mock('../../../../src/handlers/product');
 jest.mock('../../../../src/handlers/customer');
 jest.mock('../../../../src/handlers/price');
@@ -32,6 +35,9 @@ jest.mock('../../../../src/services', () => ({
   stripe: {
     paymentIntents: {
       retrieve: jest.fn(),
+    },
+    webhooks: {
+      constructEvent: jest.fn(),
     },
   },
 }));
@@ -161,9 +167,7 @@ describe('processStripeEvent', () => {
       const event = {
         id: 'evt_test',
         type,
-        data: {
-          object,
-        },
+        data: { object },
       };
 
       await processStripeEvent(event as any);
@@ -220,5 +224,47 @@ describe('processStripeEvent', () => {
     expect(
       subscriptionHandler.manageSubscriptionStatusChange
     ).toHaveBeenCalledWith('sub_checkout', 'cus_checkout', true);
+  });
+});
+
+describe('webhookEventHandler', () => {
+  it('verifies Stripe event and processes it', async () => {
+    const mockEvent = {
+      id: 'evt_test',
+      type: 'product.created',
+      data: {
+        object: { id: 'prod_123' },
+      },
+    };
+
+    // Mock constructEvent
+    (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue(mockEvent);
+
+    const req = {
+      rawBody: Buffer.from(JSON.stringify(mockEvent)),
+      headers: {
+        'stripe-signature': 'test-signature',
+      },
+    } as any;
+
+    const statusMock = jest.fn(() => res);
+    const jsonMock = jest.fn();
+    const sendMock = jest.fn();
+
+    const res = {
+      status: statusMock,
+      json: jsonMock,
+      send: sendMock,
+    } as any;
+
+    await webhookEventHandler(req, res);
+
+    expect(stripe.webhooks.constructEvent).toHaveBeenCalledWith(
+      req.rawBody,
+      'test-signature',
+      expect.any(String)
+    );
+
+    expect(jsonMock).toHaveBeenCalledWith({ received: true });
   });
 });
