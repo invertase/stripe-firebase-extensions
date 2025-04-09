@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import * as admin from 'firebase-admin';
-import { getEventarc } from 'firebase-admin/eventarc';
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
 import {
@@ -28,15 +26,7 @@ import {
 import * as logs from './logs';
 import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
-import { stripe } from './services';
-
-admin.initializeApp();
-
-const eventChannel =
-  process.env.EVENTARC_CHANNEL &&
-  getEventarc().channel(process.env.EVENTARC_CHANNEL, {
-    allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
-  });
+import { apiVersion, stripe, admin, eventChannel } from './services';
 
 /**
  * Create a customer object in Stripe when a user is created.
