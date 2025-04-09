@@ -31,6 +31,7 @@ export {
   onCustomerDataDeleted,
 } from './handlers/customer';
 import { deleteProductOrPrice, createProductRecord } from './handlers/product';
+import { insertTaxRateRecord } from './handlers/tax-rate';
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.
  */
@@ -379,25 +380,6 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
     .collection('prices');
   await dbRef.doc(price.id).set(priceData, { merge: true });
   logs.firestoreDocCreated('prices', price.id);
-};
-
-/**
- * Insert tax rates into the products collection in Cloud Firestore.
- */
-const insertTaxRateRecord = async (taxRate: Stripe.TaxRate): Promise<void> => {
-  const taxRateData: TaxRate = {
-    ...taxRate,
-    ...prefixMetadata(taxRate.metadata),
-  };
-  delete taxRateData.metadata;
-  await admin
-    .firestore()
-    .collection(config.productsCollectionPath)
-    .doc('tax_rates')
-    .collection('tax_rates')
-    .doc(taxRate.id)
-    .set(taxRateData);
-  logs.firestoreDocCreated('tax_rates', taxRate.id);
 };
 
 /**
