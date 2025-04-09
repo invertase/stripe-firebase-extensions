@@ -28,17 +28,7 @@ import {
 import * as logs from './logs';
 import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
-
-const apiVersion = '2022-11-15';
-const stripe = new Stripe(config.stripeSecretKey, {
-  apiVersion,
-  // Register extension as a Stripe plugin
-  // https://stripe.com/docs/building-plugins#setappinfo
-  appInfo: {
-    name: 'Firebase Invertase firestore-stripe-payments',
-    version: '0.3.5',
-  },
-});
+import { stripe } from './services';
 
 admin.initializeApp();
 
@@ -521,7 +511,7 @@ const copyBillingDetailsToCustomer = async (
 /**
  * Manage subscription status changes.
  */
-const manageSubscriptionStatusChange = async (
+export const manageSubscriptionStatusChange = async (
   subscriptionId: string,
   customerId: string,
   createAction: boolean
@@ -644,7 +634,7 @@ const manageSubscriptionStatusChange = async (
 /**
  * Add invoice objects to Cloud Firestore.
  */
-const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
+export const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
   // Get customer's UID from Firestore
   const customersSnap = await admin
     .firestore()
