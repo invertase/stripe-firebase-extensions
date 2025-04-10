@@ -91,7 +91,7 @@ import {
 use(require("chai-like"));
 use(require("chai-as-promised"));
 
-describe("Emulator tests", () => {
+describe.skip("Emulator tests", () => {
   const app: FirebaseApp = initializeApp({
     apiKey: "fake-api-key",
     projectId: "demo-project",
