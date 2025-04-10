@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export {
-  createCustomer,
-  onUserDeleted,
-  onCustomerDataDeleted,
-} from './handlers/customer';
 
-export { handleWebhookEvents } from './controllers/webhook';
+import * as admin from 'firebase-admin';
+import { getEventarc } from 'firebase-admin/eventarc';
 
-export { createCheckoutSession } from './controllers/checkout';
+// Initialize Firebase Admin
+admin.initializeApp();
 
-export { createPortalLink } from './controllers/portal';
+// Initialize Eventarc channel if available
+export const eventChannel =
+  process.env.EVENTARC_CHANNEL &&
+  getEventarc().channel(process.env.EVENTARC_CHANNEL, {
+    allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
+  });
+
+export { admin };

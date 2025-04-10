@@ -11,6 +11,7 @@
     "build:watch": "tsc --watch",
     "compile": "tsc",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md",
+    "test:local": "TEST_ENV=local npm run test",
     "test": "ts-node ./__tests__/run-script.ts",
     "test:watch": "ts-node ./__tests__/run-script-watch.ts",
     "start:emulator": "cd ../_emulator && firebase emulators:start -P demo-project",

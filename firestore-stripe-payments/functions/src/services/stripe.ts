@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export {
-  createCustomer,
-  onUserDeleted,
-  onCustomerDataDeleted,
-} from './handlers/customer';
 
-export { handleWebhookEvents } from './controllers/webhook';
+import Stripe from 'stripe';
+import config from '../config';
 
-export { createCheckoutSession } from './controllers/checkout';
-
-export { createPortalLink } from './controllers/portal';
+// Initialize Stripe with configuration
+export const apiVersion = '2022-11-15';
+export const stripe = new Stripe(config.stripeSecretKey, {
+  apiVersion,
+  // Register extension as a Stripe plugin
+  // https://stripe.com/docs/building-plugins#setappinfo
+  appInfo: {
+    name: 'Firebase Invertase firestore-stripe-payments',
+    version: '0.3.5',
+  },
+});
