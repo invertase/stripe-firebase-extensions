@@ -20,7 +20,7 @@ export {
   StripePaymentsErrorCode,
   StripePaymentsOptions,
   getStripePayments,
-} from "./init";
+} from "./init.js";
 
 export {
   CREATE_SESSION_TIMEOUT_MILLIS,
@@ -36,7 +36,7 @@ export {
   PriceIdSessionCreateParams,
   Session,
   SessionCreateParams,
-} from "./session";
+} from "./session.js";
 
 export {
   GetPaymentsOptions,
@@ -47,7 +47,7 @@ export {
   getCurrentUserPayment,
   getCurrentUserPayments,
   onCurrentUserPaymentUpdate,
-} from "./payment";
+} from "./payment.js";
 
 export {
   GetProductOptions,
@@ -60,7 +60,7 @@ export {
   getPrices,
   getProduct,
   getProducts,
-} from "./product";
+} from "./product.js";
 
 export {
   getCurrentUserSubscription,
@@ -71,4 +71,4 @@ export {
   SubscriptionChangeType,
   SubscriptionSnapshot,
   SubscriptionStatus,
-} from "./subscription";
+} from "./subscription.js";
