@@ -1,7 +1,7 @@
 {
   "name": "firestore-stripe-payments",
   "engines": {
-    "node": "14"
+    "node": "20"
   },
   "main": "lib/index.js",
   "scripts": {

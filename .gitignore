@@ -12,3 +12,4 @@ local.properties
 coverage
 package-lock.json
 yarn.lock
+firestore-stripe-payments/_emulator/extensions/firestore-stripe-payments.secret.local

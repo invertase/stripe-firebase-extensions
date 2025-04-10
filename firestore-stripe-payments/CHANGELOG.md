@@ -1,3 +1,7 @@
+## Version 0.3.10 - 2025-03-24
+
+[fix] - upgrade resources to node 20
+
 ### Version 0.3.9 - 2024-02-14
 
 [feat] - Allows to specify number of trial period days before initiating checkout flow. Does not depend on the now-legacy trial_from_plan parameter.

@@ -19,7 +19,7 @@ jobs:
       cancel-in-progress: false
     strategy:
       matrix:
-        node: ["18"]
+        node: ["20"]
       max-parallel: 1
     name: node.js_${{ matrix.node }}_test
     steps:
