@@ -349,3 +349,5 @@ events:
     description:
       Occurs when a PaymentIntent has failed the attempt to create a payment
       method or a payment.
+  - type: com.stripe.v1.charge.refunded
+    description: Occurs whenever a charge is refunded.

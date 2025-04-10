@@ -728,6 +728,51 @@ const insertPaymentRecord = async (
 };
 
 /**
+ * Update the charges for a payment intent.
+ */
+const updateChargeForPaymentIntent = async (charge: Stripe.Charge) => {
+  const customersSnap = await admin
+    .firestore()
+    .collection(config.customersCollectionPath)
+    .where('stripeId', '==', charge.customer)
+    .get();
+  if (customersSnap.size !== 1) {
+    throw new Error('User not found!');
+  }
+
+  const paymentId =
+    typeof charge.payment_intent === 'string'
+      ? charge.payment_intent
+      : charge.payment_intent.id;
+
+  const paymentRef = customersSnap.docs[0].ref
+    .collection('payments')
+    .doc(paymentId);
+
+  const charges: Stripe.ApiList<Stripe.Charge>  = (
+    await paymentRef.get()
+  ).data().charges ?? {
+    data: [],
+    has_more: false,
+    object: 'list',
+    url: '/v1/charges',
+  };
+
+  const chargeIndex = charges.data.findIndex(({ id }) => id === charge.id);
+  if (chargeIndex !== -1) {
+    charges.data[chargeIndex] = charge;
+  } else {
+    charges.data.push(charge);
+  }
+
+  await customersSnap.docs[0].ref
+    .collection('payments')
+    .doc(paymentId)
+    .set({ charges }, { merge: true });
+  logs.firestoreDocCreated('payments', paymentId);
+};
+
+/**
  * A webhook handler function for the relevant Stripe events.
  */
 export const handleWebhookEvents = functions.handler.https.onRequest(
@@ -757,6 +802,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
       'payment_intent.succeeded',
       'payment_intent.canceled',
       'payment_intent.payment_failed',
+      'charge.refunded',
     ]);
     let event: Stripe.Event;
 
@@ -856,6 +902,10 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
           case 'payment_intent.payment_failed':
             const paymentIntent = event.data.object as Stripe.PaymentIntent;
             await insertPaymentRecord(paymentIntent);
+            break;
+          case 'charge.refunded':
+            const charge = event.data.object as Stripe.Charge;
+            await updateChargeForPaymentIntent(charge);
             break;
           default:
             logs.webhookHandlerError(

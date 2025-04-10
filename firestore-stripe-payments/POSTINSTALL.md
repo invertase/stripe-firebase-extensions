@@ -82,6 +82,7 @@ Here's how to set up the webhook and configure your extension to use it:
    - `payment_intent.succeeded`
    - `payment_intent.canceled`
    - `payment_intent.payment_failed`
+   - `charge.refunded` (optional, will sync refunded payments to Cloud Firestore)
    - `tax_rate.created` (optional)
    - `tax_rate.updated` (optional)
    - `invoice.paid` (optional, will sync invoices to Cloud Firestore)
@@ -192,6 +193,8 @@ db.collection("${param:PRODUCTS_COLLECTION}")
 ### One-time payments on the web
 
 You can create Checkout Sessions for one-time payments when referencing a one-time price ID. One-time payments will be synced to Cloud Firestore into a payments collection for the relevant customer doc if you update your webhook handler in the Stripe dashboard to include the following events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `payment_intent.processing`.
+
+If a payment is refunded in Stripe the associated payment in the payments collection can be updated. To update the payments collection for refunds add the following events to your webhook handler in the Stripe dashboard: `charge.refunded`.
 
 To create a Checkout Session ID for a one-time payment, pass `mode: 'payment` to the Checkout Session doc creation:
 
