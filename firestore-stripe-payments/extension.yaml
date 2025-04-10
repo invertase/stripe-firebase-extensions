@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firestore-stripe-payments
-version: 0.4.0
+version: 0.4.1
 specVersion: v1beta
 
 displayName: Run Payments with Stripe
@@ -63,7 +63,7 @@ resources:
       Creates a Stripe customer object when a new user signs up.
     properties:
       location: ${LOCATION}
-      runtime: nodejs18
+      runtime: nodejs20
       eventTrigger:
         eventType: providers/firebase.auth/eventTypes/user.create
         resource: projects/${PROJECT_ID}
@@ -74,7 +74,7 @@ resources:
       Creates a Checkout session to collect the customer's payment details.
     properties:
       location: ${LOCATION}
-      runtime: nodejs18
+      runtime: nodejs20
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.create
         resource: projects/${PROJECT_ID}/databases/(default)/documents/${CUSTOMERS_COLLECTION}/{uid}/checkout_sessions/{id}
@@ -86,7 +86,7 @@ resources:
       & subscription details.
     properties:
       location: ${LOCATION}
-      runtime: nodejs18
+      runtime: nodejs20
       httpsTrigger: {}
 
   - name: handleWebhookEvents
@@ -96,7 +96,7 @@ resources:
       update custom claims.
     properties:
       location: ${LOCATION}
-      runtime: nodejs18
+      runtime: nodejs20
       httpsTrigger: {}
 
   - name: onUserDeleted
@@ -106,7 +106,7 @@ resources:
       when the user is deleted in Firebase Authentication.
     properties:
       location: ${LOCATION}
-      runtime: nodejs18
+      runtime: nodejs20
       eventTrigger:
         eventType: providers/firebase.auth/eventTypes/user.delete
         resource: projects/${PROJECT_ID}
@@ -118,7 +118,7 @@ resources:
       when the customer doc in Cloud Firestore is deleted.
     properties:
       location: ${LOCATION}
-      runtime: nodejs18
+      runtime: nodejs20
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.delete
         resource: projects/${PROJECT_ID}/databases/(default)/documents/${CUSTOMERS_COLLECTION}/{uid}
