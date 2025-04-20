@@ -1,6 +1,6 @@
 # Run Payments with Stripe
 
-**Author**: Invertase (**[https://invertase.io](https://invertase.io)**)
+**Author**: Trent Rand (**[https://trentrand.com](https://trentrand.com)**), Invertase (**[https://invertase.io](https://invertase.io)**)
 
 **Description**: Controls access to paid content by syncing your one-time and recurring payments with Firebase Authentication.
 

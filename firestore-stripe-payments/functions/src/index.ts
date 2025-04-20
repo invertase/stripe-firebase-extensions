@@ -55,16 +55,19 @@ const createCustomerRecord = async ({
   email,
   uid,
   phone,
+  metadata,
 }: {
   email?: string;
   phone?: string;
   uid: string;
+  metadata?: Record<string, any>;
 }) => {
   try {
     logs.creatingCustomer(uid);
     const customerData: CustomerData = {
       metadata: {
         firebaseUID: uid,
+        ...(metadata ?? {}),
       },
     };
     if (email) customerData.email = email;
@@ -161,6 +164,7 @@ exports.createCheckoutSession = functions
           uid: context.params.uid,
           email,
           phone: phoneNumber,
+          metadata,
         });
       }
       const customer = customerRecord.stripeId;
@@ -373,6 +377,7 @@ export const createPortalLink = functions.https.onCall(
         locale = 'auto',
         configuration,
         flow_data,
+        metadata,
       } = data;
 
       // Get stripe customer id
@@ -391,6 +396,7 @@ export const createPortalLink = functions.https.onCall(
           uid,
           email,
           phone: phoneNumber,
+          metadata,
         });
       }
       const customer = customerRecord.stripeId;
