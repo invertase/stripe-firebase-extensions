@@ -1,8 +1,10 @@
 # Run Payments with Stripe
 
-**Author**: Trent Rand (**[https://trentrand.com](https://trentrand.com)**), Invertase (**[https://invertase.io](https://invertase.io)**)
+**Author**: Trent Rand (**[https://trentrand.com](https://trentrand.com)**)
 
 **Description**: Controls access to paid content by syncing your one-time and recurring payments with Firebase Authentication.
+
+
 
 **Details**: Use this extension as a backend for your [Stripe](https://www.stripe.com/) payments.
 
@@ -81,44 +83,53 @@ To install this extension, your Firebase project must be on the Blaze (pay-as-yo
 
 Starting August 17 2020, you will be billed a small amount (typically less than $0.10) when you install or reconfigure this extension. See the [Cloud Functions for Firebase billing FAQ](https://firebase.google.com/support/faq#expandable-15) for a detailed explanation.
 
+
+
+
 **Configuration Parameters:**
 
-- Cloud Functions deployment location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
+* Cloud Functions deployment location: Where do you want to deploy the functions created for this extension? You usually want a location close to your database. For help selecting a location, refer to the [location selection guide](https://firebase.google.com/docs/functions/locations).
 
-- Products and pricing plans collection: What is the path to the Cloud Firestore collection where the extension should store Stripe pricing plans?
+* Products and pricing plans collection: What is the path to the Cloud Firestore collection where the extension should store Stripe pricing plans?
 
-- Customer details and subscriptions collection: What is the path to the Cloud Firestore collection where the extension should store Stripe customer details? This can be the location of an existing user collection, the extension will not overwrite your existing data but rather merge the Stripe data into your existing `uid` docs.
+* Customer details and subscriptions collection: What is the path to the Cloud Firestore collection where the extension should store Stripe customer details? This can be the location of an existing user collection, the extension will not overwrite your existing data but rather merge the Stripe data into your existing `uid` docs.
 
-- Stripe configuration collection: What is the path to the Cloud Firestore collection where the extension should store Stripe configuration?
+* Stripe configuration collection: What is the path to the Cloud Firestore collection where the extension should store Stripe configuration?
 
-- Sync new users to Stripe customers and Cloud Firestore: Do you want to automatically sync new users to customer objects in Stripe? If set to 'Sync', the extension will create a new customer object in Stripe and add a new doc to the customer collection in Firestore when a new user signs up via Firebase Authentication. If set to 'Do not sync' (default), the extension will create the customer object "on the fly" with the first checkout session creation.
+* Sync new users to Stripe customers and Cloud Firestore: Do you want to automatically sync new users to customer objects in Stripe? If set to 'Sync', the extension will create a new customer object in Stripe and add a new doc to the customer collection in Firestore when a new user signs up via Firebase Authentication. If set to 'Do not sync' (default), the extension will create the customer object "on the fly" with the first checkout session creation.
 
-- Automatically delete Stripe customer objects: Do you want to automatically delete customer objects in Stripe? When a user is deleted in Firebase Authentication or in Cloud Firestore and set to 'Auto delete' the extension will delete their customer object in Stripe which will immediately cancel all subscriptions for the user.
+* Automatically delete Stripe customer objects: Do you want to automatically delete customer objects in Stripe? When a user is deleted in Firebase Authentication or in Cloud Firestore and set to 'Auto delete' the extension will delete their customer object in Stripe which will immediately cancel all subscriptions for the user.
 
-- Stripe API key with restricted access: What is your Stripe API key? We recommend creating a new [restricted key](https://stripe.com/docs/keys#limit-access) with write access only for the "Customers", "Checkout Sessions" and "Customer portal" resources. And read-only access for the "Subscriptions" and "Prices" resources.
+* Stripe API key with restricted access: What is your Stripe API key? We recommend creating a new [restricted key](https://stripe.com/docs/keys#limit-access) with write access only for the "Customers", "Checkout Sessions" and "Customer portal" resources. And read-only access for the "Subscriptions" and "Prices" resources.
 
-- Stripe webhook secret: This is your signing secret for a Stripe-registered webhook. This webhook can only be registered after installation. Leave this value untouched during installation, then follow the postinstall instructions for registering your webhook and configuring this value.
+* Stripe webhook secret: This is your signing secret for a Stripe-registered webhook. This webhook can only be registered after installation. Leave this value untouched during installation, then follow the postinstall instructions for registering your webhook and configuring this value.
 
-- Minimum instances for createCheckoutSession function: Set the minimum number of function instances that should be always be available to create Checkout Sessions. This number can be adjusted to reduce cold starts and increase the responsiveness of Checkout Session creation requests. Suggested values are 0 or 1. Please note this setting will likely incur billing costss, see the [Firebase documentation](https://firebase.google.com/docs/functions/manage-functions#reduce_the_number_of_cold_starts) for more information.
+* Minimum instances for createCheckoutSession function: Set the minimum number of function instances that should be always be available to create Checkout Sessions. This number can be adjusted to reduce cold starts and increase the responsiveness of Checkout Session creation requests. Suggested values are 0 or 1. Please note this setting will likely incur billing costss, see the [Firebase documentation](https://firebase.google.com/docs/functions/manage-functions#reduce_the_number_of_cold_starts) for more information.
+
+
 
 **Cloud Functions:**
 
-- **createCustomer:** Creates a Stripe customer object when a new user signs up.
+* **createCustomer:** Creates a Stripe customer object when a new user signs up.
 
-- **createCheckoutSession:** Creates a Checkout session to collect the customer's payment details.
+* **createCheckoutSession:** Creates a Checkout session to collect the customer's payment details.
 
-- **createPortalLink:** Creates links to the customer portal for the user to manage their payment & subscription details.
+* **createPortalLink:** Creates links to the customer portal for the user to manage their payment & subscription details.
 
-- **handleWebhookEvents:** Handles Stripe webhook events to keep subscription statuses in sync and update custom claims.
+* **handleWebhookEvents:** Handles Stripe webhook events to keep subscription statuses in sync and update custom claims.
 
-- **onUserDeleted:** Deletes the Stripe customer object and cancels all their subscriptions when the user is deleted in Firebase Authentication.
+* **onUserDeleted:** Deletes the Stripe customer object and cancels all their subscriptions when the user is deleted in Firebase Authentication.
 
-- **onCustomerDataDeleted:** Deletes the Stripe customer object and cancels all their subscriptions when the customer doc in Cloud Firestore is deleted.
+* **onCustomerDataDeleted:** Deletes the Stripe customer object and cancels all their subscriptions when the customer doc in Cloud Firestore is deleted.
+
+
 
 **Access Required**:
 
+
+
 This extension will operate with the following project IAM roles:
 
-- firebaseauth.admin (Reason: Allows the extension to set custom claims for users.)
+* firebaseauth.admin (Reason: Allows the extension to set custom claims for users.)
 
-- datastore.user (Reason: Allows the extension to store customers & subscriptions in Cloud Firestore.)
+* datastore.user (Reason: Allows the extension to store customers & subscriptions in Cloud Firestore.)

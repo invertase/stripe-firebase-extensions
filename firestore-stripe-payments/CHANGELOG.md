@@ -1,6 +1,27 @@
-## Version 0.3.10 - 2025-03-24
+## Version 0.4.3 - 2025-04-19
+
+[fix] - Revert import statements to namespace imports
+
+This fixes the deployement issues with latest extension deployement.
+
+## Version 0.4.2 - 2025-04-19
+
+[feat] - Pass-through metadata from Firebase Functions to new Stripe account
+
+You can call `createCheckoutSession` and `createPortalLink` with the
+metadata parameter, and these will be saved as metadata fields for the
+created Stripe user.
+
+## Version 0.4.1 - 2025-04-11
 
 [fix] - upgrade resources to node 20
+
+## Version 0.4.0 - 2024-11-29
+
+[feat] - Update Stripe SDK and add marketing_features field to Product
+
+Adding this field required updating the Stripe SDK. It was quite out of
+date.
 
 ### Version 0.3.9 - 2024-02-14
 
