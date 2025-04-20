@@ -1,4 +1,4 @@
-import admin from 'firebase-admin';
+import * as admin from 'firebase-admin';
 import runCheckout from '../../helpers/forms/runCheckout';
 
 import { UserRecord } from 'firebase-functions/v1/auth';

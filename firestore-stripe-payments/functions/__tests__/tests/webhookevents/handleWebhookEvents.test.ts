@@ -1,4 +1,4 @@
-import admin from 'firebase-admin';
+import * as admin from 'firebase-admin';
 import { DocumentData } from '@google-cloud/firestore';
 import { Product } from '../../../src/interfaces';
 import setupEmulator from '../../helpers/setupEmulator';
