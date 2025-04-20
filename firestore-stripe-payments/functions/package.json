@@ -10,6 +10,7 @@
     "build": "npm run clean && tsc",
     "build:watch": "tsc --watch",
     "compile": "tsc",
+    "publish": "firebase ext:dev:upload trentrand/firestore-stripe-payments",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md",
     "test": "ts-node ./__tests__/run-script.ts",
     "test:watch": "ts-node ./__tests__/run-script-watch.ts",
