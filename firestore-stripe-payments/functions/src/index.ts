@@ -69,7 +69,30 @@ const createCustomerRecord = async ({
     };
     if (email) customerData.email = email;
     if (phone) customerData.phone = phone;
-    const customer = await stripe.customers.create(customerData);
+    let customer;
+
+
+    if(email) {
+
+    // Search for existing customer by email to avoid creating Stripe customers
+    const existingCustomers = await stripe.customers.list({
+      email: email,
+      limit: 1
+    });
+
+    if (existingCustomers.data.length > 0) {
+      
+      // Use existing customer and update their details and metadata
+      const existingCustomer = existingCustomers.data[0];
+      customer = await stripe.customers.update(
+        existingCustomer.id,
+        customerData
+      );
+    }
+    
+    if(!customer) {
+      customer = await stripe.customers.create(customerData);
+    }
 
     // Add a mapping record in Cloud Firestore.
     const customerRecord = {
