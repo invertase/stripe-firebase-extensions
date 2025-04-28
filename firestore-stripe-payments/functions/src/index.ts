@@ -136,6 +136,7 @@ exports.createCheckoutSession = functions
       allow_promotion_codes = false,
       trial_period_days,
       line_items,
+      payment_intent_data,
       billing_address_collection = 'required',
       collect_shipping_address = false,
       customer_update = {},
@@ -220,10 +221,12 @@ exports.createCheckoutSession = functions
             sessionCreateParams.subscription_data.default_tax_rates = tax_rates;
           }
         } else if (mode === 'payment') {
-          sessionCreateParams.payment_intent_data = {
-            metadata,
-            ...(setup_future_usage && { setup_future_usage }),
-          };
+          sessionCreateParams.payment_intent_data = payment_intent_data ?
+            payment_intent_data :
+            {
+              metadata,
+              ...(setup_future_usage && {setup_future_usage}),
+            };
           if (invoice_creation) {
             sessionCreateParams.invoice_creation = {
               enabled: true,
