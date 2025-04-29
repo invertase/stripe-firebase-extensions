@@ -105,6 +105,26 @@ exports.createCustomer = functions.auth
     });
   });
 
+function generateLineItems(
+  line_items: Stripe.Checkout.SessionCreateParams.LineItem[],
+  price: string,
+  quantity: number
+): Stripe.Checkout.SessionCreateParams.LineItem[] {
+  if (line_items) {
+    return line_items;
+  }
+
+  if (price && quantity)
+    return [
+      {
+        price,
+        quantity,
+      },
+    ];
+
+  return [];
+}
+
 /**
  * Create a CheckoutSession or PaymentIntent based on which client is being used.
  */
@@ -186,14 +206,7 @@ exports.createCheckoutSession = functions
           shipping_rates,
           customer,
           customer_update,
-          line_items: line_items
-            ? line_items
-            : [
-                {
-                  price,
-                  quantity,
-                },
-              ],
+          line_items: generateLineItems(line_items, price, quantity),
           mode,
           success_url,
           cancel_url,
@@ -206,6 +219,7 @@ exports.createCheckoutSession = functions
         if (payment_method_types) {
           sessionCreateParams.payment_method_types = payment_method_types;
         }
+
         if (mode === 'subscription') {
           sessionCreateParams.payment_method_collection =
             payment_method_collection;
@@ -248,15 +262,17 @@ exports.createCheckoutSession = functions
         }
         if (promotion_code) {
           sessionCreateParams.discounts = [{ promotion_code }];
-        } else {
+        } else if (mode !== 'setup') {
           sessionCreateParams.allow_promotion_codes = allow_promotion_codes;
         }
         if (client_reference_id)
           sessionCreateParams.client_reference_id = client_reference_id;
+
         const session = await stripe.checkout.sessions.create(
           sessionCreateParams,
           { idempotencyKey: context.params.id }
         );
+
         await snap.ref.set(
           {
             client,
