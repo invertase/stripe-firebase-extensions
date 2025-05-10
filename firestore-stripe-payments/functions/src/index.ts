@@ -602,6 +602,12 @@ const manageSubscriptionStatusChange = async (
     trial_end: subscription.trial_end
       ? Timestamp.fromMillis(subscription.trial_end * 1000)
       : null,
+    pause_collection: subscription.pause_collection
+      ? {
+        behavior: subscription.pause_collection.behavior,
+        resumes_at: Timestamp.fromMillis(subscription.pause_collection.resumes_at * 1000),
+      }
+      : null,
   };
   await subsDbRef.set(subscriptionData);
 
