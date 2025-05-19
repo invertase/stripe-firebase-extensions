@@ -102,6 +102,10 @@ export interface CommonSessionCreateParams {
    * to `true`.
    */
   trial_from_plan?: boolean;
+
+  /* Specifies the duration of the trial period in days. Overrides the default on the pricing plan.*/
+
+  trial_period_days?: number;
 }
 
 /**
