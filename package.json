@@ -10,10 +10,9 @@
     "firestore-stripe-invoices/functions"
   ],
   "scripts": {
-    "format": "prettier --write \"**/*.{js,md,yml,ts,json,yaml}\"",
-    "lint": "prettier --list-different \"**/*.{js,md,yml,ts,json,yaml}\"",
+    "lint": "biome check .",
+    "format": "biome format --write .",
     "build": "turbo run build",
-    "postinstall": "npm run build",
     "generate-readmes": "turbo run generate-readme",
     "dev": "cd $npm_config_ext/ && firebase ext:dev:emulators:start --test-params=../.env --project=$npm_config_project",
     "dev:invoices": "npm run dev --ext=firestore-stripe-invoices --project=stripe-subs-ext",
@@ -33,8 +32,8 @@
     "url": "https://github.com/stripe/stripe-firebase-extensions/issues"
   },
   "devDependencies": {
-    "turbo": "^1.12.4",
-    "prettier": "^2.4.1"
+    "@biomejs/biome": "1.5.3",
+    "turbo": "^1.12.4"
   },
   "dependencies": {
     "rimraf": "^3.0.2"

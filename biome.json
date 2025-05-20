@@ -1,0 +1,48 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
+  "organizeImports": {
+    "enabled": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "off"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 80
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "trailingComma": "es5",
+      "semicolons": "always"
+    }
+  },
+  "files": {
+    "ignore": [
+      "api-extractor.json",
+      "package.json",
+      "extension.yaml",
+      "package-lock.json",
+      "**/node_modules/**",
+      "README.md",
+      "**/etc/**",
+      "**/functions/lib/**",
+      "**/lib/**",
+      "**/dist/**",
+      "**/markdown/**",
+      "coverage",
+      "CHANGELOG.md",
+      "POSTINSTALL.md",
+      "PREINSTALL.md"
+    ]
+  }
+}
