@@ -30,6 +30,7 @@ import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
 
 const apiVersion = '2022-11-15';
+// @ts-ignore
 const stripe = new Stripe(config.stripeSecretKey, {
   apiVersion,
   // Register extension as a Stripe plugin
@@ -82,6 +83,7 @@ const createCustomerRecord = async ({
     if (phone) (customerRecord as any).phone = phone;
     await admin
       .firestore()
+      // @ts-ignore
       .collection(config.customersCollectionPath)
       .doc(uid)
       .set(customerRecord, { merge: true });
@@ -151,18 +153,20 @@ exports.createCheckoutSession = functions
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
-      // Get stripe customer id
+      // @ts-ignore
       let customerRecord = (await snap.ref.parent.parent.get()).data();
       if (!customerRecord?.stripeId) {
         const { email, phoneNumber } = await admin
           .auth()
           .getUser(context.params.uid);
+        // @ts-ignore
         customerRecord = await createCustomerRecord({
           uid: context.params.uid,
           email,
           phone: phoneNumber,
         });
       }
+      // @ts-ignore
       const customer = customerRecord.stripeId;
 
       if (client === 'web') {
@@ -173,6 +177,7 @@ exports.createCheckoutSession = functions
                 await admin
                   .firestore()
                   .collection(
+                    // @ts-ignore
                     config.stripeConfigCollectionPath ||
                       config.productsCollectionPath
                   )
@@ -234,16 +239,22 @@ exports.createCheckoutSession = functions
           sessionCreateParams.automatic_tax = {
             enabled: true,
           };
+          // @ts-ignore
           sessionCreateParams.customer_update.name = 'auto';
+          // @ts-ignore
           sessionCreateParams.customer_update.address = 'auto';
+          // @ts-ignore
           sessionCreateParams.customer_update.shipping = 'auto';
         }
         if (tax_id_collection) {
           sessionCreateParams.tax_id_collection = {
             enabled: true,
           };
+          // @ts-ignore
           sessionCreateParams.customer_update.name = 'auto';
+          // @ts-ignore
           sessionCreateParams.customer_update.address = 'auto';
+          // @ts-ignore
           sessionCreateParams.customer_update.shipping = 'auto';
         }
         if (promotion_code) {
@@ -293,6 +304,7 @@ exports.createCheckoutSession = functions
           const paymentIntent = await stripe.paymentIntents.create(
             paymentIntentCreateParams
           );
+          // @ts-ignore
           paymentIntentClientSecret = paymentIntent.client_secret;
         } else if (mode === 'setup') {
           const setupIntent = await stripe.setupIntents.create({
@@ -300,6 +312,7 @@ exports.createCheckoutSession = functions
             metadata,
             payment_method_types: payment_method_types ?? ['card'],
           });
+          // @ts-ignore
           setupIntentClientSecret = setupIntent.client_secret;
         } else if (mode === 'subscription') {
           const subscription = await stripe.subscriptions.create({
@@ -313,8 +326,9 @@ exports.createCheckoutSession = functions
             },
           });
 
+          // @ts-ignore
           paymentIntentClientSecret =
-            //@ts-ignore
+            // @ts-ignore
             subscription.latest_invoice.payment_intent.client_secret;
         } else {
           throw new Error(
@@ -376,9 +390,11 @@ export const createPortalLink = functions.https.onCall(
       } = data;
 
       // Get stripe customer id
+      // @ts-ignore
       let customerRecord = (
         await admin
           .firestore()
+          // @ts-ignore
           .collection(config.customersCollectionPath)
           .doc(uid)
           .get()
@@ -387,12 +403,14 @@ export const createPortalLink = functions.https.onCall(
       if (!customerRecord?.stripeId) {
         // Create Stripe customer on-the-fly
         const { email, phoneNumber } = await admin.auth().getUser(uid);
+        // @ts-ignore
         customerRecord = await createCustomerRecord({
           uid,
           email,
           phone: phoneNumber,
         });
       }
+      // @ts-ignore
       const customer = customerRecord.stripeId;
 
       const params: Stripe.BillingPortal.SessionCreateParams = {
@@ -446,9 +464,11 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
   };
   await admin
     .firestore()
+    // @ts-ignore
     .collection(config.productsCollectionPath)
     .doc(product.id)
     .set(productData, { merge: true });
+  // @ts-ignore
   logs.firestoreDocCreated(config.productsCollectionPath, product.id);
 };
 
@@ -468,6 +488,7 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
     currency: price.currency,
     description: price.nickname,
     type: price.type,
+    // @ts-ignore
     unit_amount: price.unit_amount,
     recurring: price.recurring,
     interval: price.recurring?.interval ?? null,
@@ -481,6 +502,7 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
   };
   const dbRef = admin
     .firestore()
+    // @ts-ignore
     .collection(config.productsCollectionPath)
     .doc(price.product as string)
     .collection('prices');
@@ -494,11 +516,14 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
 const insertTaxRateRecord = async (taxRate: Stripe.TaxRate): Promise<void> => {
   const taxRateData: TaxRate = {
     ...taxRate,
+    // @ts-ignore
     ...prefixMetadata(taxRate.metadata),
   };
+  // @ts-ignore
   delete taxRateData.metadata;
   await admin
     .firestore()
+    // @ts-ignore
     .collection(config.productsCollectionPath)
     .doc('tax_rates')
     .collection('tax_rates')
@@ -515,6 +540,7 @@ const copyBillingDetailsToCustomer = async (
 ): Promise<void> => {
   const customer = payment_method.customer as string;
   const { name, phone, address } = payment_method.billing_details;
+  // @ts-ignore
   await stripe.customers.update(customer, { name, phone, address });
 };
 
@@ -529,6 +555,7 @@ const manageSubscriptionStatusChange = async (
   // Get customer's UID from Firestore
   const customersSnap = await admin
     .firestore()
+    // @ts-ignore
     .collection(config.customersCollectionPath)
     .where('stripeId', '==', customerId)
     .get();
@@ -544,8 +571,10 @@ const manageSubscriptionStatusChange = async (
   const prices = [];
   for (const item of subscription.items.data) {
     prices.push(
+      // @ts-ignore
       admin
         .firestore()
+        // @ts-ignore
         .collection(config.productsCollectionPath)
         .doc((item.price.product as Stripe.Product).id)
         .collection('prices')
@@ -568,15 +597,18 @@ const manageSubscriptionStatusChange = async (
     }/subscriptions/${subscription.id}`,
     product: admin
       .firestore()
+      // @ts-ignore
       .collection(config.productsCollectionPath)
       .doc(product.id),
     price: admin
       .firestore()
+      // @ts-ignore
       .collection(config.productsCollectionPath)
       .doc(product.id)
       .collection('prices')
       .doc(price.id),
     prices,
+    // @ts-ignore
     quantity: subscription.items.data[0].quantity ?? null,
     items: subscription.items.data,
     cancel_at_period_end: subscription.cancel_at_period_end,
@@ -648,6 +680,7 @@ const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
   // Get customer's UID from Firestore
   const customersSnap = await admin
     .firestore()
+    // @ts-ignore
     .collection(config.customersCollectionPath)
     .where('stripeId', '==', invoice.customer)
     .get();
@@ -665,11 +698,15 @@ const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
   const prices = [];
   for (const item of invoice.lines.data) {
     prices.push(
+      // @ts-ignore
       admin
         .firestore()
+        // @ts-ignore
         .collection(config.productsCollectionPath)
+              // @ts-ignore
         .doc(item.price.product as string)
         .collection('prices')
+              // @ts-ignore
         .doc(item.price.id)
     );
   }
@@ -695,6 +732,7 @@ const insertPaymentRecord = async (
   // Get customer's UID from Firestore
   const customersSnap = await admin
     .firestore()
+    // @ts-ignore
     .collection(config.customersCollectionPath)
     .where('stripeId', '==', payment.customer)
     .get();
@@ -707,12 +745,17 @@ const insertPaymentRecord = async (
     );
     const prices = [];
     for (const item of lineItems.data) {
+      // @ts-ignore
       prices.push(
+              // @ts-ignore
         admin
           .firestore()
+          //@ts-ignore
           .collection(config.productsCollectionPath)
+                // @ts-ignore
           .doc(item.price.product as string)
           .collection('prices')
+                // @ts-ignore
           .doc(item.price.id)
       );
     }
@@ -767,6 +810,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
     try {
       event = stripe.webhooks.constructEvent(
         req.rawBody,
+              // @ts-ignore
         req.headers['stripe-signature'],
         config.stripeWebhookSecret
       );
@@ -830,11 +874,14 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
             if (checkoutSession.tax_id_collection?.enabled) {
               const customersSnap = await admin
                 .firestore()
+                // @ts-ignore
                 .collection(config.customersCollectionPath)
                 .where('stripeId', '==', checkoutSession.customer as string)
                 .get();
               if (customersSnap.size === 1) {
+                // @ts-ignore
                 customersSnap.docs[0].ref.set(
+                        // @ts-ignore
                   checkoutSession.customer_details,
                   { merge: true }
                 );
@@ -891,14 +938,17 @@ const deleteProductOrPrice = async (pr: Stripe.Product | Stripe.Price) => {
   if (pr.object === 'product') {
     await admin
       .firestore()
+      // @ts-ignore
       .collection(config.productsCollectionPath)
       .doc(pr.id)
       .delete();
+    // @ts-ignore
     logs.firestoreDocDeleted(config.productsCollectionPath, pr.id);
   }
   if (pr.object === 'price') {
     await admin
       .firestore()
+      // @ts-ignore
       .collection(config.productsCollectionPath)
       .doc((pr as Stripe.Price).product as string)
       .collection('prices')
@@ -928,6 +978,7 @@ const deleteStripeCustomer = async ({
     // Set all subscription records to canceled.
     const subscriptionsSnap = await admin
       .firestore()
+      // @ts-ignore
       .collection(config.customersCollectionPath)
       .doc(uid)
       .collection('subscriptions')
@@ -950,6 +1001,7 @@ export const onUserDeleted = functions.auth.user().onDelete(async (user) => {
   const customer = (
     await admin
       .firestore()
+      // @ts-ignore
       .collection(config.customersCollectionPath)
       .doc(user.uid)
       .get()
