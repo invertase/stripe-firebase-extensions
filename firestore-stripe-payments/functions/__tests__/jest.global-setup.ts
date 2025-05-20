@@ -14,7 +14,7 @@ declare global {
 export default async function globalSetup() {
   // Load environment variables from secret.local first
   dotenv.config({ path: pathTosecretsFile });
-  
+
   const stripeApiKey = process.env.STRIPE_API_KEY;
   if (!stripeApiKey) {
     throw new Error('STRIPE_API_KEY is required in your secrets file');
@@ -29,15 +29,19 @@ export default async function globalSetup() {
 
   return new Promise<string>((resolve, reject) => {
     // Start stripe listen in the background with API key
-    global.stripeListenProcess = spawn('stripe', [
-      'listen',
-      '--api-key',
-      stripeApiKey,
-      '--forward-to',
-      'localhost:5001/firestore-stripe-payments/us-central1/stripeWebhook'
-    ], {
-      stdio: ['ignore', 'pipe', 'pipe']
-    });
+    global.stripeListenProcess = spawn(
+      'stripe',
+      [
+        'listen',
+        '--api-key',
+        stripeApiKey,
+        '--forward-to',
+        'localhost:5001/firestore-stripe-payments/us-central1/stripeWebhook',
+      ],
+      {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      }
+    );
 
     let webhookSecret = '';
     let outputBuffer = '';
@@ -46,9 +50,11 @@ export default async function globalSetup() {
       const output = data.toString();
       console.log('Stripe:', output);
       outputBuffer += output;
-      
+
       // Look for the webhook signing secret
-      const secretMatch = output.match(/Ready! Your webhook signing secret is (whsec_\w+)/);
+      const secretMatch = output.match(
+        /Ready! Your webhook signing secret is (whsec_\w+)/
+      );
       if (secretMatch) {
         webhookSecret = secretMatch[1];
         console.log('Found webhook secret:', webhookSecret);
@@ -67,7 +73,9 @@ export default async function globalSetup() {
     // Set a timeout - IMPORTANT: Resolve after timeout even without a webhook secret
     setTimeout(() => {
       if (!webhookSecret) {
-        console.error('Warning: Timeout waiting for stripe listen webhook secret');
+        console.error(
+          'Warning: Timeout waiting for stripe listen webhook secret'
+        );
         console.error('Stripe output:', outputBuffer);
         // Still resolve with a dummy value so tests can proceed
         process.env.STRIPE_WEBHOOK_SECRET = 'whsec_dummy_for_tests';
