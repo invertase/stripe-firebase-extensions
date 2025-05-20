@@ -703,10 +703,10 @@ const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
         .firestore()
         // @ts-ignore
         .collection(config.productsCollectionPath)
-              // @ts-ignore
+        // @ts-ignore
         .doc(item.price.product as string)
         .collection('prices')
-              // @ts-ignore
+        // @ts-ignore
         .doc(item.price.id)
     );
   }
@@ -747,15 +747,15 @@ const insertPaymentRecord = async (
     for (const item of lineItems.data) {
       // @ts-ignore
       prices.push(
-              // @ts-ignore
+        // @ts-ignore
         admin
           .firestore()
           //@ts-ignore
           .collection(config.productsCollectionPath)
-                // @ts-ignore
+          // @ts-ignore
           .doc(item.price.product as string)
           .collection('prices')
-                // @ts-ignore
+          // @ts-ignore
           .doc(item.price.id)
       );
     }
@@ -810,7 +810,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
     try {
       event = stripe.webhooks.constructEvent(
         req.rawBody,
-              // @ts-ignore
+        // @ts-ignore
         req.headers['stripe-signature'],
         config.stripeWebhookSecret
       );
@@ -881,7 +881,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
               if (customersSnap.size === 1) {
                 // @ts-ignore
                 customersSnap.docs[0].ref.set(
-                        // @ts-ignore
+                  // @ts-ignore
                   checkoutSession.customer_details,
                   { merge: true }
                 );

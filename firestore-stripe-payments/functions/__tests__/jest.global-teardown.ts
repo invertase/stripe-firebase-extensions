@@ -3,4 +3,4 @@ export default async function globalTeardown() {
     global.stripeListenProcess.kill();
     global.stripeListenProcess = null;
   }
-} 
+}
