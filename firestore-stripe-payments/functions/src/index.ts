@@ -875,9 +875,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
         logs.webhookHandlerSucceeded(event.id, event.type);
       } catch (error) {
         logs.webhookHandlerError(error, event.id, event.type);
-        resp.json({
-          error: 'Webhook handler failed. View function logs in Firebase.',
-        });
+        resp.status(500).send('Webhook handler failed. View function logs in Firebase.');
         return;
       }
     }
