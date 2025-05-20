@@ -1,0 +1,4 @@
+ packages:
+  - 'firestore-stripe-web-sdk'
+  - 'firestore-stripe-payments/functions'
+  - 'firestore-stripe-invoices/functions'

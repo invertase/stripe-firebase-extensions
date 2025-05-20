@@ -1,6 +1,9 @@
 {
   "extensions": {
-    "firestore-stripe-payments": ".."
+    "firestore-stripe-payments": "..",
+    "predeploy": [
+      "cd ../functions && npm i --workspaces=false"
+    ]
   },
   "storage": {
     "rules": "storage.rules"

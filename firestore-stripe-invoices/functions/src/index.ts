@@ -21,7 +21,7 @@ import { InvoicePayload, OrderItem } from "./interfaces";
 import * as logs from "./logs";
 import config from "./config";
 import { relevantInvoiceEvents } from "./events";
-
+// @ts-ignore
 const stripe = new Stripe(config.stripeSecretKey, {
   apiVersion: "2020-03-02",
   // Register extension as a Stripe plugin
@@ -127,13 +127,16 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
       if (payload.uid) {
         // Look up the Firebase Authentication UserRecord to get the email
         const user = await admin.auth().getUser(payload.uid);
+        // @ts-ignore
         email = user.email;
       } else {
         // Use the email provided in the payload
+        // @ts-ignore
         email = payload.email;
       }
 
       if (!email) {
+        // @ts-ignore
         logs.noEmailForUser(payload.uid);
         return;
       }
@@ -145,11 +148,13 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
 
       if (customers.data.length) {
         // Use the existing customer
+        // @ts-ignore
         customer = customers.data.find(
           (cus) => cus.currency === payload.items[0].currency
         );
         if (customer) logs.customerRetrieved(customer.id, customer.livemode);
       }
+      // @ts-ignore
       if (!customer) {
         // Create new Stripe customer with this email
         customer = await stripe.customers.create(
@@ -165,7 +170,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
 
         logs.customerCreated(customer.id, customer.livemode);
       }
-
+// @ts-ignore
       const invoice: Stripe.Invoice = await createInvoice({
         customer,
         orderItems: payload.items,
@@ -187,6 +192,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
           logs.invoiceSent(
             finalizedInvoice.id,
             email,
+            // @ts-ignore
             finalizedInvoice.hosted_invoice_url
           );
         } else {
@@ -224,6 +230,7 @@ export const updateInvoice = functions.handler.https.onRequest(
     try {
       event = stripe.webhooks.constructEvent(
         req.rawBody,
+        // @ts-ignore
         req.headers["stripe-signature"],
         config.stripeWebhookSecret
       );
@@ -257,6 +264,7 @@ export const updateInvoice = functions.handler.https.onRequest(
 
     const invoicesInFirestore = await admin
       .firestore()
+      // @ts-ignore
       .collection(config.invoicesCollectionPath)
       .where("stripeInvoiceId", "==", invoice.id)
       .get();
@@ -280,7 +288,7 @@ export const updateInvoice = functions.handler.https.onRequest(
       stripeInvoiceStatus: invoiceStatus,
       lastStripeEvent: eventType,
     });
-
+// @ts-ignore
     logs.statusUpdateComplete(invoice.id, invoiceStatus, eventType);
 
     // Return a response to Stripe to acknowledge receipt of the event

@@ -1,11 +1,12 @@
 {
   "name": "firestore-stripe-invoices",
-   "engines": {
+  "version": "1.0.0",
+  "engines": {
     "node": "20"
   },
   "main": "lib/index.js",
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
     "build:watch": "npm run clean && tsc --watch",
     "clean": "rimraf lib",
     "compile": "tsc",
@@ -22,8 +23,11 @@
     "typescript": "^4.9.5"
   },
   "devDependencies": {
+    "@types/express": "^4.17.3",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^18.19.102",
     "firebase-functions-test": "^0.1.6",
-    "@types/express": "^4.17.3"
+    "jest": "^29.7.0"
   },
   "prettier": {
     "singleQuote": true,

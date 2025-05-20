@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Repository of Firebase extensions built by Stripe.",
   "private": true,
-  "packageManager": "npm@10.2.4",
+  "packageManager": "pnpm@10.11.0",
   "workspaces": [
     "firestore-stripe-web-sdk",
     "firestore-stripe-payments/functions",
@@ -17,10 +17,11 @@
     "dev": "cd $npm_config_ext/ && firebase ext:dev:emulators:start --test-params=../.env --project=$npm_config_project",
     "dev:invoices": "npm run dev --ext=firestore-stripe-invoices --project=stripe-subs-ext",
     "dev:subs": "npm run dev --ext=firestore-stripe-payments --project=stripe-subs-ext",
-    "ext:install": "npm run build && firebase ext:install ./$npm_config_ext/ --params=.env --project=$npm_config_project",
     "ext:update": "npm run build && firebase ext:update $npm_config_ext ./$npm_config_ext/ --project=$npm_config_project",
     "ext:uninstall": "firebase ext:uninstall $npm_config_ext --project=$npm_config_project",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "ext:install": "cd ../_emulator && firebase ext:install ..",
+    "ext:deploy": "npm install --workspaces=false && cd ../_emulator && firebase deploy --only=extensions --project=dev-extensions-testing"
   },
   "repository": {
     "type": "git",
