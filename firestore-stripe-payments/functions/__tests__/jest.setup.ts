@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 const path = require('path');
 
 import { setupEnvironment } from './helpers/setupEnvironment';
