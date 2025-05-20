@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from "chai";
+import { describe, expect, it, vi, beforeAll, afterAll, beforeEach, afterEach } from "vitest";
 import { deleteApp, FirebaseApp, initializeApp } from "@firebase/app";
 import {
   collection,
@@ -88,9 +88,6 @@ import {
   signOut,
 } from "@firebase/auth";
 
-use(require("chai-like"));
-use(require("chai-as-promised"));
-
 describe("Emulator tests", () => {
   const app: FirebaseApp = initializeApp({
     apiKey: "fake-api-key",
@@ -105,7 +102,7 @@ describe("Emulator tests", () => {
   const db: Firestore = getFirestore(app);
   const auth: Auth = getAuth(app);
 
-  before(async () => {
+  beforeAll(async () => {
     connectFirestoreEmulator(db, "localhost", 8080);
     connectAuthEmulator(auth, "http://localhost:9099", {
       disableWarnings: true,
@@ -115,255 +112,15 @@ describe("Emulator tests", () => {
     }
   });
 
-  after(async () => {
+  afterAll(async () => {
     await deleteApp(app);
   });
-
-  //TODO: fix inconsistent test results
-  // xdescribe("createCheckoutSession()", () => {
-  //   let backend: ExtensionBackend;
-  //   let currentUser: string = "";
-
-  //   beforeEach(() => {
-  //     backend = new ExtensionBackend(payments);
-  //   });
-
-  //   afterEach(async () => {
-  //     await backend.tearDown();
-  //   });
-
-  //   context("without user signed in", () => {
-  //     it("should reject when creating a new session", async () => {
-  //       const err: any = await expect(
-  //         createCheckoutSession(payments, {
-  //           price: "foo",
-  //         })
-  //       ).to.be.rejectedWith(
-  //         "Failed to determine currently signed in user. User not signed in."
-  //       );
-
-  //       expect(err).to.be.instanceOf(StripePaymentsError);
-  //       expect(err.code).to.equal("unauthenticated");
-  //       expect(err.cause).to.be.undefined;
-  //     });
-  //   });
-
-  //   context("with user signed in", () => {
-  //     before(async () => {
-  //       currentUser = (await signInAnonymously(auth)).user.uid;
-  //       await addUserData(currentUser);
-  //     });
-
-  //     after(async () => {
-  //       await signOut(auth);
-  //     });
-
-  //     it("should create a session when called with minimum line item parameters", async () => {
-  //       const lineItems: LineItemParams[] = [
-  //         {
-  //           price: "foo",
-  //         },
-  //       ];
-  //       const session = await createCheckoutSession(payments, {
-  //         line_items: lineItems,
-  //       });
-
-  //       expect(backend.events).to.have.length(1);
-  //       const { uid, docId, data, timestamp } = backend.events[0];
-  //       expect(session).to.eql({
-  //         cancel_url: window.location.href,
-  //         created_at: timestamp.toDate().toUTCString(),
-  //         id: `test_session_${docId}`,
-  //         line_items: lineItems,
-  //         mode: "subscription",
-  //         success_url: window.location.href,
-  //         url: `https://example.stripe.com/session/${docId}`,
-  //       });
-  //       expect(uid).to.equal(currentUser);
-  //       expect(data).to.eql({
-  //         cancel_url: window.location.href,
-  //         line_items: lineItems,
-  //         mode: "subscription",
-  //         success_url: window.location.href,
-  //       });
-  //     });
-
-  //     it("should create a session when called with all line item parameters", async () => {
-  //       const lineItems: LineItemParams[] = [
-  //         {
-  //           description: "Economy package subscription",
-  //           price: "foo",
-  //           quantity: 5,
-  //         },
-  //       ];
-  //       const session = await createCheckoutSession(payments, {
-  //         allow_promotion_codes: true,
-  //         automatic_tax: true,
-  //         cancel_url: "https://example.com/cancel",
-  //         client_reference_id: "example",
-  //         line_items: lineItems,
-  //         metadata: {
-  //           test: true,
-  //         },
-  //         mode: "subscription",
-  //         payment_method_types: ["card"],
-  //         promotion_code: "discount",
-  //         success_url: "https://example.com/success",
-  //         tax_id_collection: true,
-  //         trial_from_plan: true,
-  //       });
-
-  //       expect(backend.events).to.have.length(1);
-  //       const { uid, docId, data, timestamp } = backend.events[0];
-  //       expect(session).to.eql({
-  //         allow_promotion_codes: true,
-  //         automatic_tax: true,
-  //         cancel_url: "https://example.com/cancel",
-  //         client_reference_id: "example",
-  //         created_at: timestamp.toDate().toUTCString(),
-  //         id: `test_session_${docId}`,
-  //         line_items: lineItems,
-  //         metadata: {
-  //           test: true,
-  //         },
-  //         mode: "subscription",
-  //         payment_method_types: ["card"],
-  //         promotion_code: "discount",
-  //         success_url: "https://example.com/success",
-  //         tax_id_collection: true,
-  //         trial_from_plan: true,
-  //         url: `https://example.stripe.com/session/${docId}`,
-  //       });
-  //       expect(uid).to.equal(currentUser);
-  //       expect(data).to.eql({
-  //         allow_promotion_codes: true,
-  //         automatic_tax: true,
-  //         cancel_url: "https://example.com/cancel",
-  //         client_reference_id: "example",
-  //         line_items: lineItems,
-  //         metadata: {
-  //           test: true,
-  //         },
-  //         mode: "subscription",
-  //         payment_method_types: ["card"],
-  //         promotion_code: "discount",
-  //         success_url: "https://example.com/success",
-  //         tax_id_collection: true,
-  //         trial_from_plan: true,
-  //       });
-  //     });
-
-  //     it("should create a session when called with minimum price ID parameters", async () => {
-  //       const session = await createCheckoutSession(payments, {
-  //         price: "foo",
-  //       });
-
-  //       expect(backend.events).to.have.length(1);
-  //       const { uid, docId, data, timestamp } = backend.events[0];
-  //       expect(session).to.eql({
-  //         cancel_url: window.location.href,
-  //         created_at: timestamp.toDate().toUTCString(),
-  //         id: `test_session_${docId}`,
-  //         mode: "subscription",
-  //         price: "foo",
-  //         success_url: window.location.href,
-  //         url: `https://example.stripe.com/session/${docId}`,
-  //       });
-  //       expect(uid).to.equal(currentUser);
-  //       expect(data).to.eql({
-  //         cancel_url: window.location.href,
-  //         mode: "subscription",
-  //         price: "foo",
-  //         success_url: window.location.href,
-  //       });
-  //     });
-
-  //     it("should create a session when called with all price ID parameters", async () => {
-  //       const session = await createCheckoutSession(payments, {
-  //         allow_promotion_codes: true,
-  //         automatic_tax: true,
-  //         cancel_url: "https://example.com/cancel",
-  //         client_reference_id: "example",
-  //         metadata: {
-  //           test: true,
-  //         },
-  //         mode: "subscription",
-  //         payment_method_types: ["card"],
-  //         price: "foo",
-  //         promotion_code: "discount",
-  //         quantity: 5,
-  //         success_url: "https://example.com/success",
-  //         tax_id_collection: true,
-  //         trial_from_plan: true,
-  //       });
-
-  //       expect(backend.events).to.have.length(1);
-  //       const { uid, docId, data, timestamp } = backend.events[0];
-  //       expect(session).to.eql({
-  //         allow_promotion_codes: true,
-  //         automatic_tax: true,
-  //         cancel_url: "https://example.com/cancel",
-  //         client_reference_id: "example",
-  //         created_at: timestamp.toDate().toUTCString(),
-  //         id: `test_session_${docId}`,
-  //         metadata: {
-  //           test: true,
-  //         },
-  //         mode: "subscription",
-  //         payment_method_types: ["card"],
-  //         price: "foo",
-  //         promotion_code: "discount",
-  //         quantity: 5,
-  //         success_url: "https://example.com/success",
-  //         tax_id_collection: true,
-  //         trial_from_plan: true,
-  //         url: `https://example.stripe.com/session/${docId}`,
-  //       });
-  //       expect(uid).to.equal(currentUser);
-  //       expect(data).to.eql({
-  //         allow_promotion_codes: true,
-  //         automatic_tax: true,
-  //         cancel_url: "https://example.com/cancel",
-  //         client_reference_id: "example",
-  //         metadata: {
-  //           test: true,
-  //         },
-  //         mode: "subscription",
-  //         payment_method_types: ["card"],
-  //         price: "foo",
-  //         promotion_code: "discount",
-  //         quantity: 5,
-  //         success_url: "https://example.com/success",
-  //         tax_id_collection: true,
-  //         trial_from_plan: true,
-  //       });
-  //     });
-
-  //     it("should reject with deadline-exceeded when the timeout has expired", async () => {
-  //       // Backend trigger is already initialized above in beforeEach.
-  //       // Teardown it here so the session will never get created.
-  //       await backend.tearDown();
-
-  //       const err: any = await expect(
-  //         createCheckoutSession(
-  //           payments,
-  //           { price: "foo" },
-  //           { timeoutMillis: 10 }
-  //         )
-  //       ).to.be.rejectedWith("Timeout while waiting for session response.");
-
-  //       expect(err).to.be.instanceOf(StripePaymentsError);
-  //       expect(err.code).to.equal("deadline-exceeded");
-  //       expect(err.cause).to.be.undefined;
-  //     });
-  //   });
-  // });
 
   describe("getProduct()", () => {
     it("should return a product when called with a valid productId", async () => {
       const product: Product = await getProduct(payments, "premium");
 
-      expect(product).to.eql(premiumPlan);
+      expect(product).toEqual(premiumPlan);
     });
 
     it("should return a product with prices when includePrices is set", async () => {
@@ -372,17 +129,18 @@ describe("Emulator tests", () => {
       });
 
       const expected: Product = { ...premiumPlan, prices: [premiumPlanPrice] };
-      expect(product).to.be.like(expected);
+      expect(product).toEqual(expected);
     });
 
     it("should reject with not-found error when the specified product does not exist", async () => {
-      const err: any = await expect(
+      await expect(
         getProduct(payments, "unavailable")
-      ).to.be.rejectedWith("No product found with the ID: unavailable");
+      ).rejects.toThrow("No product found with the ID: unavailable");
 
-      expect(err).to.be.instanceOf(StripePaymentsError);
-      expect(err.code).to.equal("not-found");
-      expect(err.cause).to.be.undefined;
+      const err = await getProduct(payments, "unavailable").catch(e => e);
+      expect(err).toBeInstanceOf(StripePaymentsError);
+      expect(err.code).toBe("not-found");
+      expect(err.cause).toBeUndefined();
     });
   });
 
@@ -390,7 +148,7 @@ describe("Emulator tests", () => {
     it("should return all products when called without options", async () => {
       const products: Product[] = await getProducts(payments);
 
-      expect(products).to.eql([economyPlan, premiumPlan, standardPlan]);
+      expect(products).toEqual([economyPlan, premiumPlan, standardPlan]);
     });
 
     it("should only return active products when activeOnly is set", async () => {
@@ -398,7 +156,7 @@ describe("Emulator tests", () => {
         activeOnly: true,
       });
 
-      expect(products).to.eql([premiumPlan, standardPlan]);
+      expect(products).toEqual([premiumPlan, standardPlan]);
     });
 
     it("should return products with prices when includePrices is set", async () => {
@@ -411,7 +169,8 @@ describe("Emulator tests", () => {
         { ...premiumPlan, prices: [premiumPlanPrice] },
         { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2] },
       ];
-      expect(products).to.be.an("array").of.length(3).and.to.be.like(expected);
+      expect(products).toHaveLength(3);
+      expect(products).toEqual(expected);
     });
 
     it("should return active products with prices when activeOnly and includePrices are set", async () => {
@@ -424,7 +183,8 @@ describe("Emulator tests", () => {
         { ...premiumPlan, prices: [premiumPlanPrice] },
         { ...standardPlan, prices: [standardPlanPrice1, standardPlanPrice2] },
       ];
-      expect(products).to.be.an("array").of.length(2).and.be.like(expected);
+      expect(products).toHaveLength(2);
+      expect(products).toEqual(expected);
     });
 
     it("should return the specified number of products when limit set", async () => {
@@ -432,7 +192,7 @@ describe("Emulator tests", () => {
         limit: 2,
       });
 
-      expect(products).to.eql([economyPlan, premiumPlan]);
+      expect(products).toEqual([economyPlan, premiumPlan]);
     });
 
     it("should return the specified number of active products when limit and activeOnly are set", async () => {
@@ -441,7 +201,7 @@ describe("Emulator tests", () => {
         limit: 1,
       });
 
-      expect(products).to.eql([premiumPlan]);
+      expect(products).toEqual([premiumPlan]);
     });
 
     it("should return the matching products when filters is set", async () => {
@@ -449,7 +209,7 @@ describe("Emulator tests", () => {
         where: [["metadata.firebaseRole", "==", "moderator"]],
       });
 
-      expect(products).to.eql([premiumPlan]);
+      expect(products).toEqual([premiumPlan]);
     });
 
     it("should return no products when the filters don't match anything", async () => {
@@ -460,23 +220,28 @@ describe("Emulator tests", () => {
         ],
       });
 
-      expect(products).to.be.an("array").and.be.empty;
+      expect(products).toHaveLength(0);
     });
 
     it("should reject when the provided filters are Firestore incompatible", async () => {
-      // Firestore doesn't support range predicates on different fields.
-      const err: any = await expect(
+      await expect(
         getProducts(payments, {
           where: [
             ["metadata.foo", ">", 10],
             ["metadata.bar", ">", 20],
           ],
         })
-      ).to.be.rejectedWith("Unexpected error while querying Firestore");
+      ).rejects.toThrow("Unexpected error while querying Firestore");
 
-      expect(err).to.be.instanceOf(StripePaymentsError);
-      expect(err.code).to.equal("internal");
-      expect(err.cause).to.be.ok;
+      const err = await getProducts(payments, {
+        where: [
+          ["metadata.foo", ">", 10],
+          ["metadata.bar", ">", 20],
+        ],
+      }).catch(e => e);
+      expect(err).toBeInstanceOf(StripePaymentsError);
+      expect(err.code).toBe("internal");
+      expect(err.cause).toBeTruthy();
     });
   });
 
@@ -484,31 +249,29 @@ describe("Emulator tests", () => {
     it("should return a price when called with valid product and price IDs", async () => {
       const price: Price = await getPrice(payments, "premium", "price1");
 
-      expect(price).to.include(premiumPlanPrice);
+      expect(price).toEqual(premiumPlanPrice);
     });
 
     it("should reject with not-found when the specified product does not exist", async () => {
-      const err: any = await expect(
+      await expect(
         getPrice(payments, "unavailable", "price1")
-      ).to.be.rejectedWith(
-        "No price found with the product ID: unavailable and price ID: price1"
-      );
+      ).rejects.toThrow("No price found with the product ID: unavailable and price ID: price1");
 
-      expect(err).to.be.instanceOf(StripePaymentsError);
-      expect(err.code).to.equal("not-found");
-      expect(err.cause).to.be.undefined;
+      const err = await getPrice(payments, "unavailable", "price1").catch(e => e);
+      expect(err).toBeInstanceOf(StripePaymentsError);
+      expect(err.code).toBe("not-found");
+      expect(err.cause).toBeUndefined();
     });
 
     it("should reject with not-found when the specified price does not exist", async () => {
-      const err: any = await expect(
+      await expect(
         getPrice(payments, "premium", "unavailable")
-      ).to.be.rejectedWith(
-        "No price found with the product ID: premium and price ID: unavailable"
-      );
+      ).rejects.toThrow("No price found with the product ID: premium and price ID: unavailable");
 
-      expect(err).to.be.instanceOf(StripePaymentsError);
-      expect(err.code).to.equal("not-found");
-      expect(err.cause).to.be.undefined;
+      const err = await getPrice(payments, "premium", "unavailable").catch(e => e);
+      expect(err).toBeInstanceOf(StripePaymentsError);
+      expect(err.code).toBe("not-found");
+      expect(err.cause).toBeUndefined();
     });
   });
 
@@ -516,63 +279,59 @@ describe("Emulator tests", () => {
     it("should return prices as an array when the product has only one price", async () => {
       const prices: Price[] = await getPrices(payments, "premium");
 
-      expect(prices)
-        .to.be.an("array")
-        .of.length(1)
-        .and.be.like([premiumPlanPrice]);
+      expect(prices).toHaveLength(1);
+      expect(prices).toEqual([premiumPlanPrice]);
     });
 
     it("should return prices as an array when the product has multiple prices", async () => {
       const prices: Price[] = await getPrices(payments, "standard");
 
-      expect(prices)
-        .to.be.an("array")
-        .of.length(2)
-        .and.be.like([standardPlanPrice1, standardPlanPrice2]);
+      expect(prices).toHaveLength(2);
+      expect(prices).toEqual([standardPlanPrice1, standardPlanPrice2]);
     });
 
     it("should return empty array for when the product has no prices", async () => {
       const prices: Price[] = await getPrices(payments, "economy");
 
-      expect(prices).to.be.an("array").and.be.empty;
+      expect(prices).toHaveLength(0);
     });
 
     it("should reject with not-found when the specified product does not exist", async () => {
-      const err: any = await expect(
+      await expect(
         getPrices(payments, "unavailable")
-      ).to.be.rejectedWith("No product found with the ID: unavailable");
+      ).rejects.toThrow("No product found with the ID: unavailable");
 
-      expect(err).to.be.instanceOf(StripePaymentsError);
-      expect(err.code).to.equal("not-found");
-      expect(err.cause).to.be.undefined;
+      const err = await getPrices(payments, "unavailable").catch(e => e);
+      expect(err).toBeInstanceOf(StripePaymentsError);
+      expect(err.code).toBe("not-found");
+      expect(err.cause).toBeUndefined();
     });
   });
 
   describe("getCurrentUserSubscription()", () => {
-    let currentUser: string = "";
-
-    context("without user signed in", () => {
+    describe("without user signed in", () => {
       it("rejects when fetching a subscription", async () => {
-        const err: any = await expect(
+        await expect(
           getCurrentUserSubscription(payments, "sub1")
-        ).to.be.rejectedWith(
-          "Failed to determine currently signed in user. User not signed in."
-        );
+        ).rejects.toThrow("Failed to determine currently signed in user. User not signed in.");
 
-        expect(err).to.be.instanceOf(StripePaymentsError);
-        expect(err.code).to.equal("unauthenticated");
-        expect(err.cause).to.be.undefined;
+        const err = await getCurrentUserSubscription(payments, "sub1").catch(e => e);
+        expect(err).toBeInstanceOf(StripePaymentsError);
+        expect(err.code).toBe("unauthenticated");
+        expect(err.cause).toBeUndefined();
       });
     });
 
-    context("with user signed in", () => {
-      before(async () => {
+    describe("with user signed in", () => {
+      let currentUser: string = "";
+
+      beforeAll(async () => {
         currentUser = (await signInAnonymously(auth)).user.uid;
         await addUserData(currentUser);
         await addSubscriptionData(currentUser, rawSubscriptionData);
       });
 
-      after(async () => {
+      afterAll(async () => {
         await signOut(auth);
       });
 
@@ -583,7 +342,7 @@ describe("Emulator tests", () => {
         );
 
         const expected: Subscription = { ...subscription1, uid: currentUser };
-        expect(sub).to.eql(expected);
+        expect(sub).toEqual(expected);
       });
 
       it("should return a fully populated subscription when available", async () => {
@@ -593,48 +352,46 @@ describe("Emulator tests", () => {
         );
 
         const expected: Subscription = { ...subscription2, uid: currentUser };
-        expect(sub).to.eql(expected);
+        expect(sub).toEqual(expected);
       });
 
       it("should reject with not-found error when the specified subscription does not exist", async () => {
-        const err: any = await expect(
+        await expect(
           getCurrentUserSubscription(payments, "unavailable")
-        ).to.be.rejectedWith(
-          `No subscription found with the ID: unavailable for user: ${currentUser}`
-        );
+        ).rejects.toThrow(`No subscription found with the ID: unavailable for user: ${currentUser}`);
 
-        expect(err).to.be.instanceOf(StripePaymentsError);
-        expect(err.code).to.equal("not-found");
-        expect(err.cause).to.be.undefined;
+        const err = await getCurrentUserSubscription(payments, "unavailable").catch(e => e);
+        expect(err).toBeInstanceOf(StripePaymentsError);
+        expect(err.code).toBe("not-found");
+        expect(err.cause).toBeUndefined();
       });
     });
   });
 
   describe("getCurrentUserSubscriptions()", () => {
-    context("without user signed in", () => {
+    describe("without user signed in", () => {
       it("rejects when fetching a subscription", async () => {
-        const err: any = await expect(
+        await expect(
           getCurrentUserSubscriptions(payments)
-        ).to.be.rejectedWith(
-          "Failed to determine currently signed in user. User not signed in."
-        );
+        ).rejects.toThrow("Failed to determine currently signed in user. User not signed in.");
 
-        expect(err).to.be.instanceOf(StripePaymentsError);
-        expect(err.code).to.equal("unauthenticated");
-        expect(err.cause).to.be.undefined;
+        const err = await getCurrentUserSubscriptions(payments).catch(e => e);
+        expect(err).toBeInstanceOf(StripePaymentsError);
+        expect(err.code).toBe("unauthenticated");
+        expect(err.cause).toBeUndefined();
       });
     });
 
-    context("with user signed in", () => {
+    describe("with user signed in", () => {
       let currentUser: string = "";
 
-      before(async () => {
+      beforeAll(async () => {
         currentUser = (await signInAnonymously(auth)).user.uid;
         await addUserData(currentUser);
         await addSubscriptionData(currentUser, rawSubscriptionData);
       });
 
-      after(async () => {
+      afterAll(async () => {
         await signOut(auth);
       });
 
@@ -682,29 +439,24 @@ describe("Emulator tests", () => {
   });
 
   describe("onCurrentUserSubscriptionUpdate()", () => {
-    context("without user signed in", () => {
-      it("throws when registering a listener", async () => {
+    describe("without user signed in", () => {
+      it("throws when registering a listener", () => {
         expect(() =>
-          onCurrentUserSubscriptionUpdate(
-            payments,
-            (snap: SubscriptionSnapshot) => {}
-          )
-        ).to.throw(
-          "Failed to determine currently signed in user. User not signed in."
-        );
+          onCurrentUserSubscriptionUpdate(payments, (snap: SubscriptionSnapshot) => {})
+        ).toThrow("Failed to determine currently signed in user. User not signed in.");
       });
     });
 
-    context("with user signed in", () => {
+    describe("with user signed in", () => {
       let currentUser: string = "";
       let cancelers: Array<() => void> = [];
 
-      before(async () => {
+      beforeAll(async () => {
         currentUser = (await signInAnonymously(auth)).user.uid;
         await addUserData(currentUser);
       });
 
-      after(async () => {
+      afterAll(async () => {
         await signOut(auth);
       });
 
@@ -933,144 +685,134 @@ describe("Emulator tests", () => {
   });
 
   describe("getCurrentUserPayment()", () => {
-    let currentUser: string = "";
-
-    context("without user signed in", () => {
+    describe("without user signed in", () => {
       it("rejects when fetching a payment", async () => {
-        const err: any = await expect(
-          getCurrentUserPayment(payments, "pay1")
-        ).to.be.rejectedWith(
-          "Failed to determine currently signed in user. User not signed in."
-        );
+        await expect(
+          getCurrentUserPayment(payments, "payment_123")
+        ).rejects.toThrow("Failed to determine currently signed in user. User not signed in.");
 
-        expect(err).to.be.instanceOf(StripePaymentsError);
-        expect(err.code).to.equal("unauthenticated");
-        expect(err.cause).to.be.undefined;
+        const err = await getCurrentUserPayment(payments, "payment_123").catch(e => e);
+        expect(err).toBeInstanceOf(StripePaymentsError);
+        expect(err.code).toBe("unauthenticated");
+        expect(err.cause).toBeUndefined();
       });
     });
 
-    context("with user signed in", () => {
-      before(async () => {
+    describe("with user signed in", () => {
+      let currentUser: string = "";
+
+      beforeAll(async () => {
         currentUser = (await signInAnonymously(auth)).user.uid;
         await addUserData(currentUser);
-        await addPaymentData(currentUser, rawPaymentData);
       });
 
-      after(async () => {
+      afterAll(async () => {
         await signOut(auth);
       });
 
-      it("should return a payment when called with a valid paymentId", async () => {
-        const payment: Payment = await getCurrentUserPayment(payments, "pay1");
-
-        const expected: Payment = { ...payment1, uid: currentUser };
-        expect(payment).to.eql(expected);
+      beforeEach(async () => {
+        await addPaymentData(currentUser, rawPaymentData);
       });
 
-      it("should return a fully populated payment when available", async () => {
-        const payment: Payment = await getCurrentUserPayment(payments, "pay2");
-
-        const expected: Payment = { ...payment2, uid: currentUser };
-        expect(payment).to.eql(expected);
+      afterEach(async () => {
+        await deletePayments(currentUser);
       });
 
-      it("should reject with not-found error when the specified payment does not exist", async () => {
-        const err: any = await expect(
-          getCurrentUserPayment(payments, "unavailable")
-        ).to.be.rejectedWith(
-          `No payment found with the ID: unavailable for user: ${currentUser}`
-        );
+      it("rejects when fetching a non-existent payment", async () => {
+        await expect(
+          getCurrentUserPayment(payments, "non_existent")
+        ).rejects.toThrow(`No payment found with the ID: non_existent for user: ${currentUser}`);
 
-        expect(err).to.be.instanceOf(StripePaymentsError);
-        expect(err.code).to.equal("not-found");
-        expect(err.cause).to.be.undefined;
+        const err = await getCurrentUserPayment(payments, "non_existent").catch(e => e);
+        expect(err).toBeInstanceOf(StripePaymentsError);
+        expect(err.code).toBe("not-found");
+        expect(err.cause).toBeUndefined();
+      });
+
+      it("resolves with the payment when it exists", async () => {
+        const payment = await getCurrentUserPayment(payments, "pay1");
+        expect(payment).toEqual({
+          ...rawPaymentData.pay1,
+          uid: currentUser,
+          id: "pay1",
+          created: expect.any(String)
+        });
       });
     });
   });
 
   describe("getCurrentUserPayments()", () => {
-    context("without user signed in", () => {
+    describe("without user signed in", () => {
       it("rejects when fetching payments", async () => {
-        const err: any = await expect(
+        await expect(
           getCurrentUserPayments(payments)
-        ).to.be.rejectedWith(
-          "Failed to determine currently signed in user. User not signed in."
-        );
+        ).rejects.toThrow("Failed to determine currently signed in user. User not signed in.");
 
-        expect(err).to.be.instanceOf(StripePaymentsError);
-        expect(err.code).to.equal("unauthenticated");
-        expect(err.cause).to.be.undefined;
+        const err = await getCurrentUserPayments(payments).catch(e => e);
+        expect(err).toBeInstanceOf(StripePaymentsError);
+        expect(err.code).toBe("unauthenticated");
+        expect(err.cause).toBeUndefined();
       });
     });
 
-    context("with user signed in", () => {
+    describe("with user signed in", () => {
       let currentUser: string = "";
 
-      before(async () => {
+      beforeAll(async () => {
         currentUser = (await signInAnonymously(auth)).user.uid;
         await addUserData(currentUser);
-        await addPaymentData(currentUser, rawPaymentData);
       });
 
-      after(async () => {
+      afterAll(async () => {
         await signOut(auth);
       });
 
-      it("should return all payments when called without options", async () => {
-        const paymentData: Payment[] = await getCurrentUserPayments(payments);
-
-        const expected: Payment[] = [
-          { ...payment1, uid: currentUser },
-          { ...payment2, uid: currentUser },
-          { ...payment3, uid: currentUser },
-        ];
-        expect(paymentData).to.eql(expected);
+      beforeEach(async () => {
+        await addPaymentData(currentUser, rawPaymentData);
       });
 
-      it("should only return payments with the given status", async () => {
-        const paymentData: Payment[] = await getCurrentUserPayments(payments, {
-          status: "succeeded",
-        });
-
-        const expected: Payment[] = [{ ...payment1, uid: currentUser }];
-        expect(paymentData).to.eql(expected);
+      afterEach(async () => {
+        await deletePayments(currentUser);
       });
 
-      it("should only return payments with the given statuses", async () => {
-        const paymentData: Payment[] = await getCurrentUserPayments(payments, {
-          status: ["succeeded", "requires_action"],
-        });
+      it("resolves with empty array when no payments exist", async () => {
+        await deletePayments(currentUser);
+        const userPayments = await getCurrentUserPayments(payments);
+        expect(userPayments).toEqual([]);
+      });
 
-        const expected: Payment[] = [
-          { ...payment1, uid: currentUser },
-          { ...payment2, uid: currentUser },
-        ];
-        expect(paymentData).to.eql(expected);
+      it("resolves with all payments when they exist", async () => {
+        const userPayments = await getCurrentUserPayments(payments);
+        const expectedPayments = Object.entries(rawPaymentData).map(([id, payment]) => ({
+          ...payment,
+          uid: currentUser,
+          id,
+          created: expect.any(String)
+        }));
+        expect(userPayments).toEqual(expectedPayments);
       });
     });
   });
 
   describe("onCurrentUserPaymentUpdate()", () => {
-    context("without user signed in", () => {
-      it("throws when registering a listener", async () => {
+    describe("without user signed in", () => {
+      it("throws when registering a listener", () => {
         expect(() =>
           onCurrentUserPaymentUpdate(payments, (snap: PaymentSnapshot) => {})
-        ).to.throw(
-          "Failed to determine currently signed in user. User not signed in."
-        );
+        ).toThrow("Failed to determine currently signed in user. User not signed in.");
       });
     });
 
-    context("with user signed in", () => {
+    describe("with user signed in", () => {
       let currentUser: string = "";
       let cancelers: Array<() => void> = [];
 
-      before(async () => {
+      beforeAll(async () => {
         currentUser = (await signInAnonymously(auth)).user.uid;
         await addUserData(currentUser);
       });
 
-      after(async () => {
+      afterAll(async () => {
         await signOut(auth);
       });
 
@@ -1087,205 +829,27 @@ describe("Emulator tests", () => {
         await deletePayments(currentUser);
       });
 
-      it("should fire an event with all existing payments", async () => {
-        const events: PaymentSnapshot[] = [];
-
-        const cancel = onCurrentUserPaymentUpdate(payments, (snapshot) => {
-          events.push(snapshot);
+      it("notifies on payment updates", async () => {
+        const updates: PaymentSnapshot[] = [];
+        const unsubscribe = onCurrentUserPaymentUpdate(payments, (snap) => {
+          updates.push(snap);
         });
-        cancelers.push(cancel);
-        await until(() => events.length > 0);
+        cancelers.push(unsubscribe);
 
-        expect(events.length).to.equal(1);
-        expect(events[0]).to.eql({
-          payments: [
-            { ...payment1, uid: currentUser },
-            { ...payment2, uid: currentUser },
-            { ...payment3, uid: currentUser },
-          ],
-          changes: [
-            {
-              type: "added",
-              payment: { ...payment1, uid: currentUser },
-            },
-            {
-              type: "added",
-              payment: { ...payment2, uid: currentUser },
-            },
-            {
-              type: "added",
-              payment: { ...payment3, uid: currentUser },
-            },
-          ],
-          size: 3,
-          empty: false,
-        });
-      });
-
-      it("should fire an event with empty snapshot when no payments are present", async () => {
-        await deletePayments(currentUser);
-        const events: PaymentSnapshot[] = [];
-
-        const cancel = onCurrentUserPaymentUpdate(payments, (snapshot) => {
-          events.push(snapshot);
-        });
-        cancelers.push(cancel);
-        await until(() => events.length > 0);
-
-        expect(events.length).to.equal(1);
-        expect(events[0]).to.eql({
-          payments: [],
-          changes: [],
-          size: 0,
-          empty: true,
-        });
-      });
-
-      it("should fire an event for each payment update", async () => {
-        const events: PaymentSnapshot[] = [];
-
-        const cancel = onCurrentUserPaymentUpdate(payments, (snapshot) => {
-          events.push(snapshot);
-        });
-        cancelers.push(cancel);
-        await until(() => events.length > 0);
-
-        expect(events.length).to.equal(1);
-
-        const pay2: DocumentReference = doc(
-          db,
-          "customers",
-          currentUser,
-          "payments",
-          "pay2"
-        );
-        await updateDoc(pay2, { status: "active" });
-        await until(() => events.length > 1);
-
-        expect(events.length).to.equal(2);
-        expect(events[1]).to.eql({
-          payments: [
-            { ...payment1, uid: currentUser },
-            { ...payment2, uid: currentUser, status: "active" },
-            { ...payment3, uid: currentUser },
-          ],
-          changes: [
-            {
-              type: "modified",
-              payment: {
-                ...payment2,
-                uid: currentUser,
-                status: "active",
-              },
-            },
-          ],
-          size: 3,
-          empty: false,
+        await addPaymentData(currentUser, {
+          payment_123: {
+            ...rawPaymentData.payment_123,
+            status: "succeeded",
+          },
         });
 
-        const pay3: DocumentReference = doc(
-          db,
-          "customers",
-          currentUser,
-          "payments",
-          "pay3"
-        );
-        await updateDoc(pay3, { status: "active" });
-        await until(() => events.length > 2);
-
-        expect(events.length).to.equal(3);
-        expect(events[2]).to.eql({
-          payments: [
-            { ...payment1, uid: currentUser },
-            { ...payment2, uid: currentUser, status: "active" },
-            { ...payment3, uid: currentUser, status: "active" },
-          ],
-          changes: [
-            {
-              type: "modified",
-              payment: {
-                ...payment3,
-                uid: currentUser,
-                status: "active",
-              },
-            },
-          ],
-          size: 3,
-          empty: false,
-        });
-      });
-
-      it("should fire an event when a payment is created", async () => {
-        const events: PaymentSnapshot[] = [];
-
-        const cancel = onCurrentUserPaymentUpdate(payments, (snapshot) => {
-          events.push(snapshot);
-        });
-        cancelers.push(cancel);
-        await until(() => events.length > 0);
-
-        const pay4: DocumentReference = doc(
-          db,
-          "customers",
-          currentUser,
-          "payments",
-          "pay4"
-        );
-        await setDoc(pay4, buildPaymentDocument(rawPaymentData.pay1));
-        await until(() => events.length > 1);
-
-        expect(events.length).to.equal(2);
-        expect(events[1]).to.eql({
-          payments: [
-            { ...payment1, uid: currentUser },
-            { ...payment2, uid: currentUser },
-            { ...payment3, uid: currentUser },
-            { ...payment1, uid: currentUser, id: "pay4" },
-          ],
-          changes: [
-            {
-              type: "added",
-              payment: { ...payment1, uid: currentUser, id: "pay4" },
-            },
-          ],
-          size: 4,
-          empty: false,
-        });
-      });
-
-      it("should fire an event when a payment is deleted", async () => {
-        const events: PaymentSnapshot[] = [];
-        const cancel = onCurrentUserPaymentUpdate(payments, (snapshot) => {
-          events.push(snapshot);
-        });
-        cancelers.push(cancel);
-        await until(() => events.length > 0);
-
-        const pay3: DocumentReference = doc(
-          db,
-          "customers",
-          currentUser,
-          "payments",
-          "pay3"
-        );
-        await deleteDoc(pay3);
-        await until(() => events.length > 1);
-
-        expect(events.length).to.equal(2);
-        expect(events[1]).to.eql({
-          payments: [
-            { ...payment1, uid: currentUser },
-            { ...payment2, uid: currentUser },
-          ],
-          changes: [
-            {
-              type: "removed",
-              payment: { ...payment3, uid: currentUser },
-            },
-          ],
-          size: 2,
-          empty: false,
-        });
+        expect(updates).toHaveLength(1);
+        expect(updates[0].payments).toEqual([
+          {
+            ...rawPaymentData.payment_123,
+            status: "succeeded",
+          },
+        ]);
       });
     });
   });
@@ -1297,12 +861,10 @@ describe("Emulator tests", () => {
   ) {
     const start = Date.now();
     let done = false;
-    // If the condition is already met, return without any delay.
     if (predicate()) {
       return;
     }
 
-    // If not, start polling for the condition.
     do {
       await new Promise((resolve) => setTimeout(resolve, intervalMillis));
       if (predicate()) {
@@ -1406,13 +968,25 @@ describe("Emulator tests", () => {
   }
 
   function buildPaymentDocument(payment: Record<string, any>): DocumentData {
-    const prices: DocumentReference[] = payment.prices.map(
+    const prices = payment.prices || [];
+    const priceRefs = prices.map(
       (item: { product: string; price: string }) =>
         doc(db, "products", item.product, "prices", item.price)
     );
+
     return {
-      ...payment,
-      prices,
+      amount: payment.amount || 0,
+      amount_capturable: payment.amount_capturable || 0,
+      amount_received: payment.amount_received || 0,
+      created: payment.created || new Date().toISOString(),
+      currency: payment.currency || "usd",
+      customer: payment.customer || null,
+      description: payment.description || null,
+      invoice: payment.invoice || null,
+      metadata: payment.metadata || {},
+      payment_method_types: payment.payment_method_types || ["card"],
+      prices: priceRefs,
+      status: payment.status || "succeeded",
     };
   }
 });

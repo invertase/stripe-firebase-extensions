@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from "chai";
-import { fake as sinonFake, SinonSpy } from "sinon";
+import { describe, expect, it, vi } from "vitest";
 import { FirebaseApp } from "@firebase/app";
 import {
   CREATE_SESSION_TIMEOUT_MILLIS,
@@ -29,8 +28,13 @@ import {
 import { SessionDAO, setSessionDAO } from "../src/session";
 import { setUserDAO, UserDAO } from "../src/user";
 
-use(require("chai-as-promised"));
-use(require("sinon-chai"));
+// Mock window object for Node.js environment
+const mockWindow = {
+  location: {
+    href: "https://example.com",
+  },
+};
+global.window = mockWindow as any;
 
 const app: FirebaseApp = {
   name: "mock",
@@ -73,7 +77,7 @@ describe("createCheckoutSession()", () => {
           cancel_url: cancelUrl,
           price: "price1",
         })
-      ).to.throw("cancel_url must be a non-empty string.");
+      ).toThrow("cancel_url must be a non-empty string.");
     });
   });
 
@@ -84,7 +88,7 @@ describe("createCheckoutSession()", () => {
           success_url: successUrl,
           price: "price1",
         })
-      ).to.throw("success_url must be a non-empty string.");
+      ).toThrow("success_url must be a non-empty string.");
     });
   });
 
@@ -94,7 +98,7 @@ describe("createCheckoutSession()", () => {
         createCheckoutSession(payments, {
           line_items: lineItems,
         })
-      ).to.throw("line_items must be a non-empty array.");
+      ).toThrow("line_items must be a non-empty array.");
     });
   });
 
@@ -104,7 +108,7 @@ describe("createCheckoutSession()", () => {
         createCheckoutSession(payments, {
           price,
         })
-      ).to.throw("price must be a non-empty string.");
+      ).toThrow("price must be a non-empty string.");
     });
   });
 
@@ -115,7 +119,7 @@ describe("createCheckoutSession()", () => {
           quantity,
           price: "price1",
         })
-      ).to.throw("quantity must be a positive integer.");
+      ).toThrow("quantity must be a positive integer.");
     });
   });
 
@@ -130,22 +134,23 @@ describe("createCheckoutSession()", () => {
           },
           { timeoutMillis }
         )
-      ).to.throw("timeoutMillis must be a positive number.");
+      ).toThrow("timeoutMillis must be a positive number.");
     });
   });
 
   it("should return a session when called with minimum valid parameters", async () => {
-    const fake: SinonSpy = sinonFake.resolves(testSession);
+    const fake = vi.fn().mockResolvedValue(testSession);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const session: Session = await createCheckoutSession(payments, {
       price: "price1",
     });
 
-    expect(session).to.eql(testSession);
-    expect(fake).to.have.been.calledOnceWithExactly(
+    expect(session).toEqual(testSession);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith(
       "alice",
       {
         cancel_url: window.location.href,
@@ -155,13 +160,14 @@ describe("createCheckoutSession()", () => {
       },
       CREATE_SESSION_TIMEOUT_MILLIS
     );
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   it("should return a session when called with line items", async () => {
-    const fake: SinonSpy = sinonFake.resolves(testSession);
+    const fake = vi.fn().mockResolvedValue(testSession);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
     const params: SessionCreateParams = {
       cancel_url: "https://example.com/cancel",
@@ -178,19 +184,21 @@ describe("createCheckoutSession()", () => {
 
     const session: Session = await createCheckoutSession(payments, params);
 
-    expect(session).to.eql(testSession);
-    expect(fake).to.have.been.calledOnceWithExactly(
+    expect(session).toEqual(testSession);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith(
       "alice",
       params,
       CREATE_SESSION_TIMEOUT_MILLIS
     );
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   it("should return a session when called with price ID", async () => {
-    const fake: SinonSpy = sinonFake.resolves(testSession);
+    const fake = vi.fn().mockResolvedValue(testSession);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
     const params: SessionCreateParams = {
       allow_promotion_codes: true,
@@ -212,19 +220,21 @@ describe("createCheckoutSession()", () => {
 
     const session: Session = await createCheckoutSession(payments, params);
 
-    expect(session).to.eql(testSession);
-    expect(fake).to.have.been.calledOnceWithExactly(
+    expect(session).toEqual(testSession);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith(
       "alice",
       params,
       CREATE_SESSION_TIMEOUT_MILLIS
     );
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   it("should return a session when called with valid timeout", async () => {
-    const fake: SinonSpy = sinonFake.resolves(testSession);
+    const fake = vi.fn().mockResolvedValue(testSession);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const session: Session = await createCheckoutSession(
@@ -235,8 +245,9 @@ describe("createCheckoutSession()", () => {
       { timeoutMillis: 3000 }
     );
 
-    expect(session).to.eql(testSession);
-    expect(fake).to.have.been.calledOnceWithExactly(
+    expect(session).toEqual(testSession);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith(
       "alice",
       {
         cancel_url: window.location.href,
@@ -246,7 +257,8 @@ describe("createCheckoutSession()", () => {
       },
       3000
     );
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   it("should reject when the session data access object throws", async () => {
@@ -254,17 +266,18 @@ describe("createCheckoutSession()", () => {
       "internal",
       "failed to create session"
     );
-    const fake: SinonSpy = sinonFake.rejects(error);
+    const fake = vi.fn().mockRejectedValue(error);
     setSessionDAO(payments, testSessionDAO("createCheckoutSession", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(
       createCheckoutSession(payments, { price: "price1" })
-    ).to.be.rejectedWith(error);
+    ).rejects.toThrow(error);
 
-    expect(fake).to.have.been.calledOnce;
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   it("should reject when the user data access object throws", async () => {
@@ -272,24 +285,26 @@ describe("createCheckoutSession()", () => {
       "unauthenticated",
       "user not signed in"
     );
-    const userFake: SinonSpy = sinonFake.throws(error);
+    const userFake = vi.fn().mockImplementation(() => {
+      throw error;
+    });
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(
       createCheckoutSession(payments, { price: "price1" })
-    ).to.be.rejectedWith(error);
+    ).rejects.toThrow(error);
 
-    expect(userFake).to.have.been.calledOnce;
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 });
 
-function testSessionDAO(name: string, fake: SinonSpy): SessionDAO {
+function testSessionDAO(name: string, fake: ReturnType<typeof vi.fn>): SessionDAO {
   return {
     [name]: fake,
   } as unknown as SessionDAO;
 }
 
-function testUserDAO(fake: SinonSpy): UserDAO {
+function testUserDAO(fake: ReturnType<typeof vi.fn>): UserDAO {
   return {
     getCurrentUser: fake,
   } as UserDAO;

@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from "chai";
-import { fake as sinonFake, SinonSpy } from "sinon";
+import { describe, expect, it, vi } from "vitest";
 import { FirebaseApp } from "@firebase/app";
 import {
   getCurrentUserSubscription,
@@ -33,9 +32,6 @@ import {
   SubscriptionSnapshot,
 } from "../src/subscription";
 import { setUserDAO, UserDAO } from "../src/user";
-
-use(require("chai-as-promised"));
-use(require("sinon-chai"));
 
 const app: FirebaseApp = {
   name: "mock",
@@ -55,15 +51,15 @@ describe("getCurrentUserSubscription()", () => {
     )}`, () => {
       expect(() =>
         getCurrentUserSubscription(payments, subscriptionId)
-      ).to.throw("subscriptionId must be a non-empty string.");
+      ).toThrow("subscriptionId must be a non-empty string.");
     });
   });
 
   it("should return a subscription when called with a valid subscriptionId", async () => {
     const expected: Subscription = { ...subscription1, uid: "alice" };
-    const fake: SinonSpy = sinonFake.resolves(expected);
+    const fake = vi.fn().mockResolvedValue(expected);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscription", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const subscription: Subscription = await getCurrentUserSubscription(
@@ -71,9 +67,11 @@ describe("getCurrentUserSubscription()", () => {
       "sub1"
     );
 
-    expect(subscription).to.eql(expected);
-    expect(fake).to.have.been.calledOnceWithExactly("alice", "sub1");
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(subscription).toEqual(expected);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", "sub1");
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   it("should reject when the subscription data access object throws", async () => {
@@ -81,17 +79,19 @@ describe("getCurrentUserSubscription()", () => {
       "not-found",
       "no such subscription"
     );
-    const fake: SinonSpy = sinonFake.rejects(error);
+    const fake = vi.fn().mockRejectedValue(error);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscription", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(
       getCurrentUserSubscription(payments, "sub1")
-    ).to.be.rejectedWith(error);
+    ).rejects.toThrow(error);
 
-    expect(fake).to.have.been.calledOnceWithExactly("alice", "sub1");
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", "sub1");
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   it("should reject when the user data access object throws", async () => {
@@ -99,47 +99,52 @@ describe("getCurrentUserSubscription()", () => {
       "unauthenticated",
       "user not signed in"
     );
-    const userFake: SinonSpy = sinonFake.throws(error);
+    const userFake = vi.fn().mockImplementation(() => {
+      throw error;
+    });
     setUserDAO(payments, testUserDAO(userFake));
 
     await expect(
       getCurrentUserSubscription(payments, "subscription1")
-    ).to.be.rejectedWith(error);
+    ).rejects.toThrow(error);
 
-    expect(userFake).to.have.been.calledOnce;
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("getCurrentUserSubscriptions()", () => {
   it("should return all subscriptions when called without options", async () => {
-    const fake: SinonSpy = sinonFake.resolves([subscription1, subscription2]);
+    const fake = vi.fn().mockResolvedValue([subscription1, subscription2]);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const subscriptions: Subscription[] =
       await getCurrentUserSubscriptions(payments);
 
-    expect(subscriptions).to.eql([subscription1, subscription2]);
-    expect(fake).to.have.been.calledOnceWithExactly("alice", {});
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(subscriptions).toEqual([subscription1, subscription2]);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", {});
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   it("should return empty array if no subscriptions are available", async () => {
-    const fake: SinonSpy = sinonFake.resolves([]);
+    const fake = vi.fn().mockResolvedValue([]);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
 
     const subscriptions: Subscription[] =
       await getCurrentUserSubscriptions(payments);
 
-    expect(subscriptions).to.be.an("array").and.be.empty;
-    expect(fake).to.have.been.calledOnceWithExactly("alice", {});
+    expect(subscriptions).toEqual([]);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", {});
   });
 
   it("should only return subscriptions with the given status", async () => {
-    const fake: SinonSpy = sinonFake.resolves([subscription1]);
+    const fake = vi.fn().mockResolvedValue([subscription1]);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
@@ -149,17 +154,19 @@ describe("getCurrentUserSubscriptions()", () => {
       }
     );
 
-    expect(subscriptions).to.eql([subscription1]);
-    expect(fake).to.have.been.calledOnceWithExactly("alice", {
+    expect(subscriptions).toEqual([subscription1]);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", {
       status: ["active"],
     });
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   it("should only return subscriptions with the given statuses", async () => {
-    const fake: SinonSpy = sinonFake.resolves([subscription1, subscription2]);
+    const fake = vi.fn().mockResolvedValue([subscription1, subscription2]);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
@@ -169,11 +176,13 @@ describe("getCurrentUserSubscriptions()", () => {
       }
     );
 
-    expect(subscriptions).to.eql([subscription1, subscription2]);
-    expect(fake).to.have.been.calledOnceWithExactly("alice", {
+    expect(subscriptions).toEqual([subscription1, subscription2]);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", {
       status: ["active", "incomplete"],
     });
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   [null, [], {}, true, 1, 0, NaN].forEach((status: any) => {
@@ -184,7 +193,7 @@ describe("getCurrentUserSubscriptions()", () => {
         getCurrentUserSubscriptions(payments, {
           status,
         })
-      ).to.throw("status must be a non-empty array.");
+      ).toThrow("status must be a non-empty array.");
     });
   });
 
@@ -193,17 +202,17 @@ describe("getCurrentUserSubscriptions()", () => {
       "not-found",
       "no such subscription"
     );
-    const fake: SinonSpy = sinonFake.rejects(error);
+    const fake = vi.fn().mockRejectedValue(error);
     setSubscriptionDAO(payments, testSubscriptionDAO("getSubscriptions", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
-    await expect(getCurrentUserSubscriptions(payments)).to.be.rejectedWith(
-      error
-    );
+    await expect(getCurrentUserSubscriptions(payments)).rejects.toThrow(error);
 
-    expect(fake).to.have.been.calledOnceWithExactly("alice", {});
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", {});
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   it("should reject when the user data access object throws", async () => {
@@ -211,53 +220,51 @@ describe("getCurrentUserSubscriptions()", () => {
       "unauthenticated",
       "user not signed in"
     );
-    const userFake: SinonSpy = sinonFake.throws(error);
+    const userFake = vi.fn().mockImplementation(() => {
+      throw error;
+    });
     setUserDAO(payments, testUserDAO(userFake));
 
-    await expect(getCurrentUserSubscriptions(payments)).to.be.rejectedWith(
-      error
-    );
+    await expect(getCurrentUserSubscriptions(payments)).rejects.toThrow(error);
 
-    expect(userFake).to.have.been.calledOnce;
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("onCurrentUserSubscriptionUpdate()", () => {
   it("should register a callback to receive subscription updates", () => {
     let canceled: boolean = false;
-    const fake: SinonSpy = sinonFake.returns(() => {
+    const fake = vi.fn().mockReturnValue(() => {
       canceled = true;
     });
     setSubscriptionDAO(
       payments,
       testSubscriptionDAO("onSubscriptionUpdate", fake)
     );
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
     const onUpdate: (snap: SubscriptionSnapshot) => void = () => {};
 
     const cancel = onCurrentUserSubscriptionUpdate(payments, onUpdate);
     cancel();
 
-    expect(canceled).to.be.true;
-    expect(fake).to.have.been.calledOnceWithExactly(
-      "alice",
-      onUpdate,
-      undefined
-    );
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(canceled).toBe(true);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", onUpdate, undefined);
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   it("should register a callback to receive errors when specified", () => {
     let canceled: boolean = false;
-    const fake: SinonSpy = sinonFake.returns(() => {
+    const fake = vi.fn().mockReturnValue(() => {
       canceled = true;
     });
     setSubscriptionDAO(
       payments,
       testSubscriptionDAO("onSubscriptionUpdate", fake)
     );
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
     const onUpdate: (snap: SubscriptionSnapshot) => void = () => {};
     const onError: (err: StripePaymentsError) => void = () => {};
@@ -265,9 +272,11 @@ describe("onCurrentUserSubscriptionUpdate()", () => {
     const cancel = onCurrentUserSubscriptionUpdate(payments, onUpdate, onError);
     cancel();
 
-    expect(canceled).to.be.true;
-    expect(fake).to.have.been.calledOnceWithExactly("alice", onUpdate, onError);
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(canceled).toBe(true);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", onUpdate, onError);
+    expect(userFake).toHaveBeenCalledTimes(1);
+    expect(userFake.mock.invocationCallOrder[0]).toBeLessThan(fake.mock.invocationCallOrder[0]);
   });
 
   it("should throw when the user data access object throws", () => {
@@ -275,24 +284,24 @@ describe("onCurrentUserSubscriptionUpdate()", () => {
       "unauthenticated",
       "user not signed in"
     );
-    const userFake: SinonSpy = sinonFake.throws(error);
+    const userFake = vi.fn().mockImplementation(() => {
+      throw error;
+    });
     setUserDAO(payments, testUserDAO(userFake));
 
-    expect(() => onCurrentUserSubscriptionUpdate(payments, () => {})).to.throw(
-      error
-    );
+    expect(() => onCurrentUserSubscriptionUpdate(payments, () => {})).toThrow(error);
 
-    expect(userFake).to.have.been.calledOnce;
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 });
 
-function testSubscriptionDAO(name: string, fake: SinonSpy): SubscriptionDAO {
+function testSubscriptionDAO(name: string, fake: ReturnType<typeof vi.fn>): SubscriptionDAO {
   return {
     [name]: fake,
   } as unknown as SubscriptionDAO;
 }
 
-function testUserDAO(fake: SinonSpy): UserDAO {
+function testUserDAO(fake: ReturnType<typeof vi.fn>): UserDAO {
   return {
     getCurrentUser: fake,
   } as UserDAO;
