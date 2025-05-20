@@ -1,6 +1,6 @@
-import * as admin from 'firebase-admin';
-import { Query, DocumentData } from '@google-cloud/firestore';
-import { UserRecord } from 'firebase-functions/v1/auth';
+import * as admin from "firebase-admin";
+import { Query, DocumentData } from "@google-cloud/firestore";
+import { UserRecord } from "firebase-functions/v1/auth";
 
 export async function repeat(
   fn: { (): Promise<any>; (): any },
@@ -15,7 +15,7 @@ export async function repeat(
       await new Promise((r) => setTimeout(r, interval));
       return repeat(fn, until, retriesLeft - 1, interval);
     }
-    throw new Error('Max repeats count reached');
+    throw new Error("Max repeats count reached");
   }
 
   return result;

@@ -1,21 +1,21 @@
-import * as admin from 'firebase-admin';
-import { DocumentReference, DocumentData } from '@google-cloud/firestore';
-import { UserRecord } from 'firebase-functions/v1/auth';
-import setupEmulator from '../../helpers/setupEmulator';
-import { generateRecurringPrice } from '../../helpers/setupProducts';
+import * as admin from "firebase-admin";
+import { DocumentReference, DocumentData } from "@google-cloud/firestore";
+import { UserRecord } from "firebase-functions/v1/auth";
+import setupEmulator from "../../helpers/setupEmulator";
+import { generateRecurringPrice } from "../../helpers/setupProducts";
 import {
   createFirebaseUser,
   waitForDocumentToExistInCollection,
   waitForDocumentToExistWithField,
-} from '../../helpers/utils';
-import { Subscription } from '../../../src/interfaces';
+} from "../../helpers/utils";
+import { Subscription } from "../../../src/interfaces";
 
-admin.initializeApp({ projectId: 'demo-project' });
+admin.initializeApp({ projectId: "demo-project" });
 setupEmulator();
 
 const firestore = admin.firestore();
 
-describe('createCheckoutSession', () => {
+describe("createCheckoutSession", () => {
   let user: UserRecord;
   let price = null;
 
@@ -28,24 +28,24 @@ describe('createCheckoutSession', () => {
     await admin.auth().deleteUser(user.uid);
   });
 
-  describe('using a web client', () => {
-    test('successfully creates a checkout session', async () => {
-      const collection = firestore.collection('customers');
+  describe("using a web client", () => {
+    test("successfully creates a checkout session", async () => {
+      const collection = firestore.collection("customers");
 
       const customer: DocumentData = await waitForDocumentToExistInCollection(
         collection,
-        'email',
+        "email",
         user.email
       );
 
       const checkoutSessionCollection = collection
         .doc(customer.doc.id)
-        .collection('checkout_sessions');
+        .collection("checkout_sessions");
 
       const checkoutSessionDocument: DocumentReference =
         await checkoutSessionCollection.add({
-          success_url: 'http://test.com/success',
-          cancel_url: 'http://test.com/cancel',
+          success_url: "http://test.com/success",
+          cancel_url: "http://test.com/cancel",
           line_items: [
             {
               //@ts-ignore
@@ -57,54 +57,54 @@ describe('createCheckoutSession', () => {
 
       const customerDoc = await waitForDocumentToExistWithField(
         checkoutSessionDocument,
-        'created'
+        "created"
       );
 
       const { client, success_url } = customerDoc.data();
 
-      expect(client).toBe('web');
-      expect(success_url).toBe('http://test.com/success');
+      expect(client).toBe("web");
+      expect(success_url).toBe("http://test.com/success");
     });
 
-    test.skip('throws an error when success_url has not been provided', async () => {});
+    test.skip("throws an error when success_url has not been provided", async () => {});
 
-    test.skip('throws an error when cancel_url has not been provided', async () => {});
-    test.skip('throws an error when a line items parameter has not been provided', async () => {});
-    test.skip('throws an error when a subscription data array parameter has not been provided', async () => {});
+    test.skip("throws an error when cancel_url has not been provided", async () => {});
+    test.skip("throws an error when a line items parameter has not been provided", async () => {});
+    test.skip("throws an error when a subscription data array parameter has not been provided", async () => {});
   });
 
-  describe('using a mobile client', () => {
+  describe("using a mobile client", () => {
     let price: Subscription;
     beforeEach(async () => {
       price = await generateRecurringPrice();
     });
 
-    test('successfully creates a checkout session', async () => {
-      const collection = firestore.collection('customers');
+    test("successfully creates a checkout session", async () => {
+      const collection = firestore.collection("customers");
 
       const customer: DocumentData = await waitForDocumentToExistInCollection(
         collection,
-        'email',
+        "email",
         user.email
       );
 
       const checkoutSessionCollection = collection
         .doc(customer.doc.id)
-        .collection('checkout_sessions');
+        .collection("checkout_sessions");
 
       const checkoutSessionDocument: DocumentReference =
         await checkoutSessionCollection.add({
-          client: 'mobile',
-          mode: 'subscription',
-          success_url: 'http://test.com/success',
-          cancel_url: 'http://test.com/cancel',
+          client: "mobile",
+          mode: "subscription",
+          success_url: "http://test.com/success",
+          cancel_url: "http://test.com/cancel",
           //@ts-ignore
           price: price.id,
         });
 
       const customerDoc = await waitForDocumentToExistWithField(
         checkoutSessionDocument,
-        'created'
+        "created"
       );
 
       const {
@@ -116,8 +116,8 @@ describe('createCheckoutSession', () => {
         error,
       } = customerDoc.data();
 
-      expect(client).toBe('mobile');
-      expect(success_url).toBe('http://test.com/success');
+      expect(client).toBe("mobile");
+      expect(success_url).toBe("http://test.com/success");
       expect(paymentIntentClientSecret).toBeDefined();
       expect(ephemeralKeySecret).toBeDefined();
       expect(error).toBeUndefined();

@@ -1,25 +1,25 @@
-import * as admin from 'firebase-admin';
-import runCheckout from '../../helpers/forms/runCheckout';
+import * as admin from "firebase-admin";
+import runCheckout from "../../helpers/forms/runCheckout";
 
-import { UserRecord } from 'firebase-functions/v1/auth';
-import { Subscription } from '../../../src/interfaces';
-import setupEmulator from '../../helpers/setupEmulator';
-import { createRandomSubscription } from '../../helpers/stripeApi/subscriptions';
-import { createFirebaseUser } from '../../helpers/utils';
+import { UserRecord } from "firebase-functions/v1/auth";
+import { Subscription } from "../../../src/interfaces";
+import setupEmulator from "../../helpers/setupEmulator";
+import { createRandomSubscription } from "../../helpers/stripeApi/subscriptions";
+import { createFirebaseUser } from "../../helpers/utils";
 
 import {
   findCustomerInCollection,
   createCheckoutSession,
   findCustomerPaymentInCollection,
-} from '../../helpers/collections';
+} from "../../helpers/collections";
 
 if (admin.apps.length === 0) {
-  admin.initializeApp({ projectId: 'demo-project' });
+  admin.initializeApp({ projectId: "demo-project" });
 }
 
 setupEmulator();
 
-describe('createSubscriptionCheckoutSession', () => {
+describe("createSubscriptionCheckoutSession", () => {
   let user: UserRecord;
 
   beforeEach(async () => {
@@ -30,16 +30,15 @@ describe('createSubscriptionCheckoutSession', () => {
     await admin.auth().deleteUser(user.uid);
   });
 
-  describe('using a web client', () => {
+  describe("using a web client", () => {
     // TODO: Fix this test
-    test.skip('successfully creates a subscription based checkout session', async () => {
+    test.skip("successfully creates a subscription based checkout session", async () => {
       /** find the customer document */
       const { docId, stripeId } = await findCustomerInCollection(user);
 
       /** create a new subscription */
-      const stripeSubscription: Subscription = await createRandomSubscription(
-        stripeId
-      );
+      const stripeSubscription: Subscription =
+        await createRandomSubscription(stripeId);
 
       /** create a new checkout session */
       const { client, success_url, url } = await createCheckoutSession(docId, {
@@ -52,8 +51,8 @@ describe('createSubscriptionCheckoutSession', () => {
         ],
       });
 
-      expect(client).toBe('web');
-      expect(success_url).toBe('http://test.com/success');
+      expect(client).toBe("web");
+      expect(success_url).toBe("http://test.com/success");
 
       /** complete the checkout fortm */
       await runCheckout(url);

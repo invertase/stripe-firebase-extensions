@@ -1,17 +1,17 @@
-import * as admin from 'firebase-admin';
-import { DocumentData } from '@google-cloud/firestore';
-import * as fft from 'firebase-functions-test';
-import * as cloudFunctions from '../../../src';
-import setupEmulator from '../../helpers/setupEmulator';
+import * as admin from "firebase-admin";
+import { DocumentData } from "@google-cloud/firestore";
+import * as fft from "firebase-functions-test";
+import * as cloudFunctions from "../../../src";
+import setupEmulator from "../../helpers/setupEmulator";
 
 import {
   createFirebaseUser,
   waitForDocumentToExistInCollection,
   waitForDocumentToExistWithField,
-} from '../../helpers/utils';
-import { UserRecord } from 'firebase-functions/v1/auth';
+} from "../../helpers/utils";
+import { UserRecord } from "firebase-functions/v1/auth";
 
-const testEnv = fft({ projectId: 'demo-project' });
+const testEnv = fft({ projectId: "demo-project" });
 const createPortalLink = testEnv.wrap(cloudFunctions.createPortalLink);
 setupEmulator();
 
@@ -23,14 +23,14 @@ function request(uid: string, returnUrl: string) {
     {
       auth: {
         uid,
-        token: 'test',
+        token: "test",
       },
     }
   );
 }
 
 // TODO: Fix this test
-describe.skip('createPortalLink', () => {
+describe.skip("createPortalLink", () => {
   let user: UserRecord;
   beforeEach(async () => {
     user = await createFirebaseUser();
@@ -40,22 +40,22 @@ describe.skip('createPortalLink', () => {
     await admin.auth().deleteUser(user.uid);
   });
 
-  test('successfully creates a new portal link', async () => {
-    const collection = firestore.collection('customers');
+  test("successfully creates a new portal link", async () => {
+    const collection = firestore.collection("customers");
 
     const customer: DocumentData = await waitForDocumentToExistInCollection(
       collection,
-      'email',
+      "email",
       user.email
     );
 
     const doc = collection.doc(customer.doc.id);
-    const customerDoc = await waitForDocumentToExistWithField(doc, 'stripeId');
+    const customerDoc = await waitForDocumentToExistWithField(doc, "stripeId");
 
-    const returnUrl = 'http://test.com';
+    const returnUrl = "http://test.com";
     const result = await request(customerDoc.id, returnUrl);
 
-    expect(result.object).toBe('billing_portal.session');
+    expect(result.object).toBe("billing_portal.session");
     expect(result.customer).toBe(customerDoc.data().stripeId);
     expect(result.livemode).toBe(false);
     expect(result.return_url).toBe(returnUrl);

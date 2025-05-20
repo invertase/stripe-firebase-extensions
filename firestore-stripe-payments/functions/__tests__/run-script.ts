@@ -1,10 +1,10 @@
-const concurrently = require('concurrently');
+const concurrently = require("concurrently");
 
 import {
   setupProxy,
   cleanupProxy,
   cleanupAllWebhooks,
-} from './helpers/setupProxy';
+} from "./helpers/setupProxy";
 
 (async () => {
   /** Clear all webhooks with ngrok.io,
@@ -17,8 +17,8 @@ import {
   const { result } = await concurrently(
     [
       {
-        command: 'npm run exec:emulator',
-        name: 'testing',
+        command: "npm run exec:emulator",
+        name: "testing",
       },
     ],
     {}

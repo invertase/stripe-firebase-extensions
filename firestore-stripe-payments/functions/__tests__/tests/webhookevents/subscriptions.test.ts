@@ -1,22 +1,22 @@
-import * as admin from 'firebase-admin';
-import { DocumentData } from '@google-cloud/firestore';
-import { Subscription } from '../../../src/interfaces';
-import setupEmulator from '../../helpers/setupEmulator';
+import * as admin from "firebase-admin";
+import { DocumentData } from "@google-cloud/firestore";
+import { Subscription } from "../../../src/interfaces";
+import setupEmulator from "../../helpers/setupEmulator";
 
-import { createRandomSubscription } from '../../helpers/stripeApi/subscriptions';
+import { createRandomSubscription } from "../../helpers/stripeApi/subscriptions";
 import {
   createFirebaseUser,
   waitForDocumentToExistInCollection,
   waitForDocumentToExistWithField,
-} from '../../helpers/utils';
-import { UserRecord } from 'firebase-functions/v1/auth';
+} from "../../helpers/utils";
+import { UserRecord } from "firebase-functions/v1/auth";
 
-admin.initializeApp({ projectId: 'demo-project' });
+admin.initializeApp({ projectId: "demo-project" });
 setupEmulator();
 
 const firestore = admin.firestore();
 
-describe('subscription webhook events', () => {
+describe("subscription webhook events", () => {
   let user: UserRecord;
 
   beforeEach(async () => {
@@ -27,38 +27,37 @@ describe('subscription webhook events', () => {
     await admin.auth().deleteUser(user.uid);
   });
 
-  describe('successfully creates a subscription', () => {
+  describe("successfully creates a subscription", () => {
     // TODO: Fix this test
-    test.skip('successfully creates a new subscription', async () => {
-      const collection = firestore.collection('customers');
+    test.skip("successfully creates a new subscription", async () => {
+      const collection = firestore.collection("customers");
 
       const customer: DocumentData = await waitForDocumentToExistInCollection(
         collection,
-        'email',
+        "email",
         user.email
       );
 
       const doc = collection.doc(customer.doc.id);
       const customerDoc = await waitForDocumentToExistWithField(
         doc,
-        'stripeId'
+        "stripeId"
       );
 
       const { stripeId } = customerDoc.data();
 
-      const stripeSubscription: Subscription = await createRandomSubscription(
-        stripeId
-      );
+      const stripeSubscription: Subscription =
+        await createRandomSubscription(stripeId);
 
       const subscriptionCollection = firestore
-        .collection('customers')
+        .collection("customers")
         .doc(user.uid)
-        .collection('payments');
+        .collection("payments");
 
       const subscriptionDoc: DocumentData =
         await waitForDocumentToExistInCollection(
           subscriptionCollection,
-          'invoice',
+          "invoice",
           stripeSubscription.latest_invoice
         );
 

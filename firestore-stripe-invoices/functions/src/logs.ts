@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { logger } from 'firebase-functions';
-import Stripe from 'stripe';
-import { InvoicePayload } from './interfaces';
+import { logger } from "firebase-functions";
+import Stripe from "stripe";
+import { InvoicePayload } from "./interfaces";
 
 export function startInvoiceCreate() {
-  logger.log('🙂 Received new invoice, starting processing');
+  logger.log("🙂 Received new invoice, starting processing");
 }
 
 export function startInvoiceUpdate(eventType: string) {
@@ -29,20 +29,20 @@ export function startInvoiceUpdate(eventType: string) {
 export function incorrectPayload(payload: InvoicePayload) {
   if (!payload.items.length) {
     logger.error(
-      new Error('😞[Error] Missing at least one line item in items[]')
+      new Error("😞[Error] Missing at least one line item in items[]")
     );
   }
   if (!payload.email && !payload.uid) {
     logger.error(
       new Error(
-        '😞[Error] Missing either a customer email address or Firebase Authentication uid'
+        "😞[Error] Missing either a customer email address or Firebase Authentication uid"
       )
     );
   }
   if (payload.email && payload.uid) {
     logger.error(
       new Error(
-        '😞[Error] Only either email or uid is permitted, you specified both.'
+        "😞[Error] Only either email or uid is permitted, you specified both."
       )
     );
   }
@@ -56,14 +56,14 @@ export function noEmailForUser(uid: string) {
 
 export function stripeError(err: Stripe.StripeCardError) {
   logger.error(
-    new Error('😞[Error] Error when making a request to the Stripe API:'),
+    new Error("😞[Error] Error when making a request to the Stripe API:"),
     err
   );
 }
 
 export function invoiceCreatedError(invoice?: Stripe.Invoice) {
   logger.error(
-    new Error('😞[Error] Error when creating the invoice:'),
+    new Error("😞[Error] Error when creating the invoice:"),
     invoice
   );
 }
@@ -71,7 +71,7 @@ export function invoiceCreatedError(invoice?: Stripe.Invoice) {
 export function customerCreated(id: string, livemode: boolean) {
   logger.log(
     `👤 Created a new customer: https://dashboard.stripe.com${
-      livemode ? '' : '/test'
+      livemode ? "" : "/test"
     }/customers/${id}`
   );
 }
@@ -79,7 +79,7 @@ export function customerCreated(id: string, livemode: boolean) {
 export function customerRetrieved(id: string, livemode: boolean) {
   logger.log(
     `🙋 Found existing customer by email: https://dashboard.stripe.com${
-      livemode ? '' : '/test'
+      livemode ? "" : "/test"
     }/customers/${id}`
   );
 }
@@ -87,7 +87,7 @@ export function customerRetrieved(id: string, livemode: boolean) {
 export function invoiceCreated(id: string, livemode: boolean) {
   logger.log(
     `🧾 Created invoice: https://dashboard.stripe.com${
-      livemode ? '' : '/test'
+      livemode ? "" : "/test"
     }/invoices/${id}`
   );
 }
@@ -102,7 +102,7 @@ export function invoiceSent(
 
 export function badSignature(err: Error) {
   logger.error(
-    '😞[Error] Webhook signature verification failed. Is your Stripe webhook secret parameter configured correctly?',
+    "😞[Error] Webhook signature verification failed. Is your Stripe webhook secret parameter configured correctly?",
     err
   );
 }
@@ -111,12 +111,12 @@ export function malformedEvent(event: Stripe.Event) {
   let err;
 
   if (!event?.data?.object) {
-    err = new Error('Could not find event.data.object');
+    err = new Error("Could not find event.data.object");
   } else if (!event?.type) {
-    err = new Error('Could not find event.type');
+    err = new Error("Could not find event.type");
   }
 
-  logger.error('😞[Error] Malformed event', err);
+  logger.error("😞[Error] Malformed event", err);
 }
 
 export function ignoreEvent(eventType: string) {
@@ -130,7 +130,7 @@ export function unexpectedInvoiceAmount(
   invoiceId: string
 ) {
   logger.error(
-    '😞[Error] could not find invoice',
+    "😞[Error] could not find invoice",
     new Error(
       `Expected 1 invoice with ID "${invoiceId}", but found ${numInvoices}`
     )

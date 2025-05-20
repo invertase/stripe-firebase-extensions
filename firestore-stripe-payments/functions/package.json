@@ -5,7 +5,6 @@
   },
   "main": "lib/index.js",
   "scripts": {
-    "prepare": "npm run build",
     "clean": "rimraf lib",
     "build": "npm run clean && tsc -p tsconfig.build.json",
     "build:watch": "tsc -p tsconfig.build.json --watch",

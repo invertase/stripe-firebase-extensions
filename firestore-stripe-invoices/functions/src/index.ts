@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
-import Stripe from 'stripe';
-import { InvoicePayload, OrderItem } from './interfaces';
-import * as logs from './logs';
-import config from './config';
-import { relevantInvoiceEvents } from './events';
+import * as admin from "firebase-admin";
+import * as functions from "firebase-functions";
+import Stripe from "stripe";
+import { InvoicePayload, OrderItem } from "./interfaces";
+import * as logs from "./logs";
+import config from "./config";
+import { relevantInvoiceEvents } from "./events";
 
 const stripe = new Stripe(config.stripeSecretKey, {
-  apiVersion: '2020-03-02',
+  apiVersion: "2020-03-02",
   // Register extension as a Stripe plugin
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
-    name: 'Firebase Invertase firestore-stripe-invoices',
-    version: '0.2.3',
+    name: "Firebase Invertase firestore-stripe-invoices",
+    version: "0.2.3",
   },
 });
 
@@ -42,7 +42,7 @@ const createInvoice = async function ({
   idempotencyKey,
   default_tax_rates = [],
   transfer_data,
-  description = '',
+  description = "",
 }: {
   customer: Stripe.Customer;
   orderItems: Array<OrderItem>;
@@ -78,7 +78,7 @@ const createInvoice = async function ({
 
     const invoiceCreateParams: Stripe.InvoiceCreateParams = {
       customer: customer.id,
-      collection_method: 'send_invoice',
+      collection_method: "send_invoice",
       days_until_due: daysUntilDue,
       auto_advance: true,
       default_tax_rates,
@@ -157,7 +157,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
             email,
             metadata: {
               createdBy:
-                'Created by the Firebase Extension: Send Invoices using Stripe', // optional metadata, adds a note
+                "Created by the Firebase Extension: Send Invoices using Stripe", // optional metadata, adds a note
             },
           },
           { idempotencyKey: `customers-create-${eventId}` }
@@ -182,7 +182,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
           await stripe.invoices.sendInvoice(invoice.id, {
             idempotencyKey: `invoices-sendInvoice-${eventId}`,
           });
-        if (finalizedInvoice.status === 'open') {
+        if (finalizedInvoice.status === "open") {
           // Successfully emailed the invoice
           logs.invoiceSent(
             finalizedInvoice.id,
@@ -199,7 +199,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
           stripeInvoiceId: finalizedInvoice.id,
           stripeInvoiceUrl: finalizedInvoice.hosted_invoice_url,
           stripeInvoiceRecord: `https://dashboard.stripe.com${
-            invoice.livemode ? '' : '/test'
+            invoice.livemode ? "" : "/test"
           }/invoices/${finalizedInvoice.id}`,
         });
       } else {
@@ -224,12 +224,12 @@ export const updateInvoice = functions.handler.https.onRequest(
     try {
       event = stripe.webhooks.constructEvent(
         req.rawBody,
-        req.headers['stripe-signature'],
+        req.headers["stripe-signature"],
         config.stripeWebhookSecret
       );
     } catch (err) {
       logs.badSignature(err);
-      resp.status(401).send('Webhook Error: Invalid Secret');
+      resp.status(401).send("Webhook Error: Invalid Secret");
       return;
     }
 
@@ -258,7 +258,7 @@ export const updateInvoice = functions.handler.https.onRequest(
     const invoicesInFirestore = await admin
       .firestore()
       .collection(config.invoicesCollectionPath)
-      .where('stripeInvoiceId', '==', invoice.id)
+      .where("stripeInvoiceId", "==", invoice.id)
       .get();
 
     if (invoicesInFirestore.size !== 1) {
@@ -271,8 +271,8 @@ export const updateInvoice = functions.handler.https.onRequest(
     // Keep a special status for `payment_failed`
     // because otherwise the invoice would still be marked `open`
     const invoiceStatus =
-      eventType === 'invoice.payment_failed'
-        ? 'payment_failed'
+      eventType === "invoice.payment_failed"
+        ? "payment_failed"
         : invoice.status;
 
     const doc = invoicesInFirestore.docs[0];

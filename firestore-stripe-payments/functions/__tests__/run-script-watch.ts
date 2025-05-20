@@ -1,6 +1,6 @@
-const concurrently = require('concurrently');
+const concurrently = require("concurrently");
 
-import { setupProxy, cleanupProxy } from './helpers/setupProxy';
+import { setupProxy, cleanupProxy } from "./helpers/setupProxy";
 
 (async () => {
   // const proxyId = await setupProxy();
@@ -8,8 +8,8 @@ import { setupProxy, cleanupProxy } from './helpers/setupProxy';
   const { result } = await concurrently(
     [
       {
-        command: 'npm run exec:emulator:watch',
-        name: 'testing',
+        command: "npm run exec:emulator:watch",
+        name: "testing",
       },
     ],
     {}
