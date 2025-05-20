@@ -8,11 +8,11 @@
     "inlineSources": true,
     "declaration": true,
     "declarationMap": true,
-    "target": "ES6",
+    "target": "ES2018",
     "outDir": "lib",
     "forceConsistentCasingInFileNames": true,
     "stripInternal": true
   },
-  "include": ["src/*.ts"],
+  "include": ["src/*.ts","__tests__/*.ts"],
   "exclude": ["node_modules"]
 }

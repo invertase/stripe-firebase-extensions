@@ -15,7 +15,7 @@
  */
 
 import { FirebaseApp } from "@firebase/app";
-import { expect } from "chai";
+import { describe, expect, it } from "vitest";
 import {
   getStripePayments,
   StripePayments,
@@ -35,8 +35,8 @@ describe("getStripePayments()", () => {
       productsCollection: "products",
     });
 
-    expect(payments).to.be.instanceOf(StripePayments);
-    expect(payments.app).to.equal(app);
+    expect(payments).toBeInstanceOf(StripePayments);
+    expect(payments.app).toBe(app);
   });
 });
 
@@ -47,27 +47,27 @@ describe("StripePayments", () => {
   });
 
   it("should expose customersCollection as a property", () => {
-    expect(payments.customersCollection).to.equal("customers");
+    expect(payments.customersCollection).toBe("customers");
   });
 
   it("should expose productsCollection as a property", () => {
-    expect(payments.productsCollection).to.equal("products");
+    expect(payments.productsCollection).toBe("products");
   });
 
   it("should expose FirebaseApp as a property", () => {
-    expect(payments.app).to.equal(app);
+    expect(payments.app).toBe(app);
   });
 
   describe("getComponent()", () => {
     it("should return null when a non-existing component is requested", () => {
-      expect(payments.getComponent("non-existing")).to.be.null;
+      expect(payments.getComponent("non-existing")).toBeNull();
     });
 
     it("should return the requested component when available", () => {
       const component: any = {};
       payments.setComponent("test-component", component);
 
-      expect(payments.getComponent("test-component")).to.equal(component);
+      expect(payments.getComponent("test-component")).toBe(component);
     });
   });
 
@@ -77,10 +77,10 @@ describe("StripePayments", () => {
       const otherComponent: any = { other: true };
 
       payments.setComponent("test-component", component);
-      expect(payments.getComponent("test-component")).to.equal(component);
+      expect(payments.getComponent("test-component")).toBe(component);
 
       payments.setComponent("test-component", otherComponent);
-      expect(payments.getComponent("test-component")).to.equal(otherComponent);
+      expect(payments.getComponent("test-component")).toBe(otherComponent);
     });
   });
 });
@@ -89,17 +89,17 @@ describe("StripePaymentsError", () => {
   it("should be able to create an error with code and message", () => {
     const error = new StripePaymentsError("not-found", "test message");
 
-    expect(error.code).to.equal("not-found");
-    expect(error.message).to.equal("test message");
-    expect(error.cause).to.be.undefined;
+    expect(error.code).toBe("not-found");
+    expect(error.message).toBe("test message");
+    expect(error.cause).toBeUndefined();
   });
 
   it("should be able to create an error with code, message and cause", () => {
     const cause = new Error("root cause");
     const error = new StripePaymentsError("not-found", "test message", cause);
 
-    expect(error.code).to.equal("not-found");
-    expect(error.message).to.equal("test message");
-    expect(error.cause).to.equal(cause);
+    expect(error.code).toBe("not-found");
+    expect(error.message).toBe("test message");
+    expect(error.cause).toBe(cause);
   });
 });

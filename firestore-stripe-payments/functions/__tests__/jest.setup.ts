@@ -1,8 +1,19 @@
-import dotenv from 'dotenv';
-const path = require('path');
-
-import { setupEnvironment } from './helpers/setupEnvironment';
+import { setupEnvironment } from "./helpers/setupEnvironment";
 
 (async function () {
-  setupEnvironment();
+  try {
+    setupEnvironment();
+    // Verify critical environment variables are set
+    if (!process.env.CUSTOMERS_COLLECTION) {
+      throw new Error("CUSTOMERS_COLLECTION environment variable is not set");
+    }
+    if (!process.env.PROJECT_ID) {
+      throw new Error("PROJECT_ID environment variable is not set");
+    }
+  } catch (error) {
+    console.error("Failed to setup test environment:", error);
+    process.exit(1);
+  }
 })();
+
+// This file ensures Jest globals are available in all test files

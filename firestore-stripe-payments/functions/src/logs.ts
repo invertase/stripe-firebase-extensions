@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { logger } from 'firebase-functions';
+import { logger } from "firebase-functions";
 
 export const creatingCustomer = (uid: string) => {
   logger.log(`⚙️ Creating customer object for [${uid}].`);
@@ -37,7 +37,7 @@ export const customerDeletionError = (error: Error, uid: string) => {
 export function customerCreated(id: string, livemode: boolean) {
   logger.log(
     `✅Created a new customer: https://dashboard.stripe.com${
-      livemode ? '' : '/test'
+      livemode ? "" : "/test"
     }/customers/${id}.`
   );
 }
@@ -96,7 +96,7 @@ export function userCustomClaimSet(
 
 export function badWebhookSecret(error: Error) {
   logger.error(
-    '❗️[Error]: Webhook signature verification failed. Is your Stripe webhook secret parameter configured correctly?',
+    "❗️[Error]: Webhook signature verification failed. Is your Stripe webhook secret parameter configured correctly?",
     error.message
   );
 }

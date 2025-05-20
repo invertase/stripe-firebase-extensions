@@ -1,30 +1,30 @@
-import * as admin from 'firebase-admin';
-import { DocumentData } from '@google-cloud/firestore';
+import * as admin from "firebase-admin";
+import { DocumentData } from "@google-cloud/firestore";
 
-import setupEmulator from '../../helpers/setupEmulator';
-import { UserRecord } from 'firebase-functions/v1/auth';
+import setupEmulator from "../../helpers/setupEmulator";
+import { UserRecord } from "firebase-functions/v1/auth";
 import {
   createFirebaseUser,
   waitForDocumentToExistInCollection,
-} from '../../helpers/utils';
+} from "../../helpers/utils";
 
-admin.initializeApp({ projectId: 'demo-project' });
+admin.initializeApp({ projectId: "demo-project" });
 setupEmulator();
 
 const firestore = admin.firestore();
 
-describe('createCustomer', () => {
+describe("createCustomer", () => {
   let user: UserRecord;
   beforeEach(async () => {
     user = await createFirebaseUser();
   });
 
-  test('successfully creates a new customers', async () => {
-    const collection = firestore.collection('customers');
+  test("successfully creates a new customers", async () => {
+    const collection = firestore.collection("customers");
 
     const customer: DocumentData = await waitForDocumentToExistInCollection(
       collection,
-      'email',
+      "email",
       user.email
     );
 

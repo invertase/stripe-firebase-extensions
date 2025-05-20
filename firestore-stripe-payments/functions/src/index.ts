@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-import * as admin from 'firebase-admin';
-import { getEventarc } from 'firebase-admin/eventarc';
-import * as functions from 'firebase-functions';
-import Stripe from 'stripe';
+import * as admin from "firebase-admin";
+import { getEventarc } from "firebase-admin/eventarc";
+import * as functions from "firebase-functions";
+import Stripe from "stripe";
 import {
   Product,
   Price,
   Subscription,
   CustomerData,
   TaxRate,
-} from './interfaces';
-import * as logs from './logs';
-import config from './config';
-import { Timestamp } from 'firebase-admin/firestore';
+} from "./interfaces";
+import * as logs from "./logs";
+import config from "./config";
+import { Timestamp } from "firebase-admin/firestore";
 
-const apiVersion = '2022-11-15';
+const apiVersion = "2022-11-15";
+// @ts-ignore
 const stripe = new Stripe(config.stripeSecretKey, {
   apiVersion,
   // Register extension as a Stripe plugin
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
-    name: 'Firebase Invertase firestore-stripe-payments',
-    version: '0.3.5',
+    name: "Firebase Invertase firestore-stripe-payments",
+    version: "0.3.5",
   },
 });
 
@@ -76,12 +77,13 @@ const createCustomerRecord = async ({
       email: customer.email,
       stripeId: customer.id,
       stripeLink: `https://dashboard.stripe.com${
-        customer.livemode ? '' : '/test'
+        customer.livemode ? "" : "/test"
       }/customers/${customer.id}`,
     };
     if (phone) (customerRecord as any).phone = phone;
     await admin
       .firestore()
+      // @ts-ignore
       .collection(config.customersCollectionPath)
       .doc(uid)
       .set(customerRecord, { merge: true });
@@ -117,10 +119,10 @@ exports.createCheckoutSession = functions
   )
   .onCreate(async (snap, context) => {
     const {
-      client = 'web',
+      client = "web",
       amount,
       currency,
-      mode = 'subscription',
+      mode = "subscription",
       price,
       success_url,
       cancel_url,
@@ -136,10 +138,10 @@ exports.createCheckoutSession = functions
       allow_promotion_codes = false,
       trial_period_days,
       line_items,
-      billing_address_collection = 'required',
+      billing_address_collection = "required",
       collect_shipping_address = false,
       customer_update = {},
-      locale = 'auto',
+      locale = "auto",
       promotion_code,
       client_reference_id,
       setup_future_usage,
@@ -147,25 +149,27 @@ exports.createCheckoutSession = functions
       consent_collection = {},
       expires_at,
       phone_number_collection = {},
-      payment_method_collection = 'always',
+      payment_method_collection = "always",
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
-      // Get stripe customer id
+      // @ts-ignore
       let customerRecord = (await snap.ref.parent.parent.get()).data();
       if (!customerRecord?.stripeId) {
         const { email, phoneNumber } = await admin
           .auth()
           .getUser(context.params.uid);
+        // @ts-ignore
         customerRecord = await createCustomerRecord({
           uid: context.params.uid,
           email,
           phone: phoneNumber,
         });
       }
+      // @ts-ignore
       const customer = customerRecord.stripeId;
 
-      if (client === 'web') {
+      if (client === "web") {
         // Get shipping countries
         const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] =
           collect_shipping_address
@@ -173,12 +177,13 @@ exports.createCheckoutSession = functions
                 await admin
                   .firestore()
                   .collection(
+                    // @ts-ignore
                     config.stripeConfigCollectionPath ||
                       config.productsCollectionPath
                   )
-                  .doc('shipping_countries')
+                  .doc("shipping_countries")
                   .get()
-              ).data()?.['allowed_countries'] ?? []
+              ).data()?.["allowed_countries"] ?? []
             : [];
         const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
           billing_address_collection,
@@ -206,7 +211,7 @@ exports.createCheckoutSession = functions
         if (payment_method_types) {
           sessionCreateParams.payment_method_types = payment_method_types;
         }
-        if (mode === 'subscription') {
+        if (mode === "subscription") {
           sessionCreateParams.payment_method_collection =
             payment_method_collection;
           sessionCreateParams.subscription_data = {
@@ -219,7 +224,7 @@ exports.createCheckoutSession = functions
           if (!automatic_tax) {
             sessionCreateParams.subscription_data.default_tax_rates = tax_rates;
           }
-        } else if (mode === 'payment') {
+        } else if (mode === "payment") {
           sessionCreateParams.payment_intent_data = {
             metadata,
             ...(setup_future_usage && { setup_future_usage }),
@@ -234,17 +239,23 @@ exports.createCheckoutSession = functions
           sessionCreateParams.automatic_tax = {
             enabled: true,
           };
-          sessionCreateParams.customer_update.name = 'auto';
-          sessionCreateParams.customer_update.address = 'auto';
-          sessionCreateParams.customer_update.shipping = 'auto';
+          // @ts-ignore
+          sessionCreateParams.customer_update.name = "auto";
+          // @ts-ignore
+          sessionCreateParams.customer_update.address = "auto";
+          // @ts-ignore
+          sessionCreateParams.customer_update.shipping = "auto";
         }
         if (tax_id_collection) {
           sessionCreateParams.tax_id_collection = {
             enabled: true,
           };
-          sessionCreateParams.customer_update.name = 'auto';
-          sessionCreateParams.customer_update.address = 'auto';
-          sessionCreateParams.customer_update.shipping = 'auto';
+          // @ts-ignore
+          sessionCreateParams.customer_update.name = "auto";
+          // @ts-ignore
+          sessionCreateParams.customer_update.address = "auto";
+          // @ts-ignore
+          sessionCreateParams.customer_update.shipping = "auto";
         }
         if (promotion_code) {
           sessionCreateParams.discounts = [{ promotion_code }];
@@ -267,10 +278,10 @@ exports.createCheckoutSession = functions
           },
           { merge: true }
         );
-      } else if (client === 'mobile') {
+      } else if (client === "mobile") {
         let paymentIntentClientSecret = null;
         let setupIntentClientSecret = null;
-        if (mode === 'payment') {
+        if (mode === "payment") {
           if (!amount || !currency) {
             throw new Error(
               `When using 'client:mobile' and 'mode:payment' you must specify amount and currency!`
@@ -293,28 +304,31 @@ exports.createCheckoutSession = functions
           const paymentIntent = await stripe.paymentIntents.create(
             paymentIntentCreateParams
           );
+          // @ts-ignore
           paymentIntentClientSecret = paymentIntent.client_secret;
-        } else if (mode === 'setup') {
+        } else if (mode === "setup") {
           const setupIntent = await stripe.setupIntents.create({
             customer,
             metadata,
-            payment_method_types: payment_method_types ?? ['card'],
+            payment_method_types: payment_method_types ?? ["card"],
           });
+          // @ts-ignore
           setupIntentClientSecret = setupIntent.client_secret;
-        } else if (mode === 'subscription') {
+        } else if (mode === "subscription") {
           const subscription = await stripe.subscriptions.create({
             customer,
             items: [{ price }],
             trial_period_days: trial_period_days,
-            payment_behavior: 'default_incomplete',
-            expand: ['latest_invoice.payment_intent'],
+            payment_behavior: "default_incomplete",
+            expand: ["latest_invoice.payment_intent"],
             metadata: {
               firebaseUserUID: context.params.id,
             },
           });
 
+          // @ts-ignore
           paymentIntentClientSecret =
-            //@ts-ignore
+            // @ts-ignore
             subscription.latest_invoice.payment_intent.client_secret;
         } else {
           throw new Error(
@@ -363,22 +377,24 @@ export const createPortalLink = functions.https.onCall(
     if (!uid) {
       // Throwing an HttpsError so that the client gets the error details.
       throw new functions.https.HttpsError(
-        'unauthenticated',
-        'The function must be called while authenticated!'
+        "unauthenticated",
+        "The function must be called while authenticated!"
       );
     }
     try {
       const {
         returnUrl: return_url,
-        locale = 'auto',
+        locale = "auto",
         configuration,
         flow_data,
       } = data;
 
       // Get stripe customer id
+      // @ts-ignore
       let customerRecord = (
         await admin
           .firestore()
+          // @ts-ignore
           .collection(config.customersCollectionPath)
           .doc(uid)
           .get()
@@ -387,12 +403,14 @@ export const createPortalLink = functions.https.onCall(
       if (!customerRecord?.stripeId) {
         // Create Stripe customer on-the-fly
         const { email, phoneNumber } = await admin.auth().getUser(uid);
+        // @ts-ignore
         customerRecord = await createCustomerRecord({
           uid,
           email,
           phone: phoneNumber,
         });
       }
+      // @ts-ignore
       const customer = customerRecord.stripeId;
 
       const params: Stripe.BillingPortal.SessionCreateParams = {
@@ -414,7 +432,7 @@ export const createPortalLink = functions.https.onCall(
       return session;
     } catch (error) {
       logs.billingPortalLinkCreationError(uid, error);
-      throw new functions.https.HttpsError('internal', error.message);
+      throw new functions.https.HttpsError("internal", error.message);
     }
   }
 );
@@ -446,9 +464,11 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
   };
   await admin
     .firestore()
+    // @ts-ignore
     .collection(config.productsCollectionPath)
     .doc(product.id)
     .set(productData, { merge: true });
+  // @ts-ignore
   logs.firestoreDocCreated(config.productsCollectionPath, product.id);
 };
 
@@ -456,9 +476,9 @@ const createProductRecord = async (product: Stripe.Product): Promise<void> => {
  * Create a price (billing price plan) and insert it into a subcollection in Products.
  */
 const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
-  if (price.billing_scheme === 'tiered')
+  if (price.billing_scheme === "tiered")
     // Tiers aren't included by default, we need to retireve and expand.
-    price = await stripe.prices.retrieve(price.id, { expand: ['tiers'] });
+    price = await stripe.prices.retrieve(price.id, { expand: ["tiers"] });
 
   const priceData: Price = {
     active: price.active,
@@ -468,6 +488,7 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
     currency: price.currency,
     description: price.nickname,
     type: price.type,
+    // @ts-ignore
     unit_amount: price.unit_amount,
     recurring: price.recurring,
     interval: price.recurring?.interval ?? null,
@@ -481,11 +502,12 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
   };
   const dbRef = admin
     .firestore()
+    // @ts-ignore
     .collection(config.productsCollectionPath)
     .doc(price.product as string)
-    .collection('prices');
+    .collection("prices");
   await dbRef.doc(price.id).set(priceData, { merge: true });
-  logs.firestoreDocCreated('prices', price.id);
+  logs.firestoreDocCreated("prices", price.id);
 };
 
 /**
@@ -494,17 +516,20 @@ const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
 const insertTaxRateRecord = async (taxRate: Stripe.TaxRate): Promise<void> => {
   const taxRateData: TaxRate = {
     ...taxRate,
+    // @ts-ignore
     ...prefixMetadata(taxRate.metadata),
   };
+  // @ts-ignore
   delete taxRateData.metadata;
   await admin
     .firestore()
+    // @ts-ignore
     .collection(config.productsCollectionPath)
-    .doc('tax_rates')
-    .collection('tax_rates')
+    .doc("tax_rates")
+    .collection("tax_rates")
     .doc(taxRate.id)
     .set(taxRateData);
-  logs.firestoreDocCreated('tax_rates', taxRate.id);
+  logs.firestoreDocCreated("tax_rates", taxRate.id);
 };
 
 /**
@@ -515,6 +540,7 @@ const copyBillingDetailsToCustomer = async (
 ): Promise<void> => {
   const customer = payment_method.customer as string;
   const { name, phone, address } = payment_method.billing_details;
+  // @ts-ignore
   await stripe.customers.update(customer, { name, phone, address });
 };
 
@@ -529,26 +555,29 @@ const manageSubscriptionStatusChange = async (
   // Get customer's UID from Firestore
   const customersSnap = await admin
     .firestore()
+    // @ts-ignore
     .collection(config.customersCollectionPath)
-    .where('stripeId', '==', customerId)
+    .where("stripeId", "==", customerId)
     .get();
   if (customersSnap.size !== 1) {
-    throw new Error('User not found!');
+    throw new Error("User not found!");
   }
   const uid = customersSnap.docs[0].id;
   // Retrieve latest subscription status and write it to the Firestore
   const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-    expand: ['default_payment_method', 'items.data.price.product'],
+    expand: ["default_payment_method", "items.data.price.product"],
   });
   const price: Stripe.Price = subscription.items.data[0].price;
   const prices = [];
   for (const item of subscription.items.data) {
     prices.push(
+      // @ts-ignore
       admin
         .firestore()
+        // @ts-ignore
         .collection(config.productsCollectionPath)
         .doc((item.price.product as Stripe.Product).id)
-        .collection('prices')
+        .collection("prices")
         .doc(item.price.id)
     );
   }
@@ -556,7 +585,7 @@ const manageSubscriptionStatusChange = async (
   const role = product.metadata.firebaseRole ?? null;
   // Get reference to subscription doc in Cloud Firestore.
   const subsDbRef = customersSnap.docs[0].ref
-    .collection('subscriptions')
+    .collection("subscriptions")
     .doc(subscription.id);
   // Update with new Subscription status
   const subscriptionData: Subscription = {
@@ -564,19 +593,22 @@ const manageSubscriptionStatusChange = async (
     role,
     status: subscription.status,
     stripeLink: `https://dashboard.stripe.com${
-      subscription.livemode ? '' : '/test'
+      subscription.livemode ? "" : "/test"
     }/subscriptions/${subscription.id}`,
     product: admin
       .firestore()
+      // @ts-ignore
       .collection(config.productsCollectionPath)
       .doc(product.id),
     price: admin
       .firestore()
+      // @ts-ignore
       .collection(config.productsCollectionPath)
       .doc(product.id)
-      .collection('prices')
+      .collection("prices")
       .doc(price.id),
     prices,
+    // @ts-ignore
     quantity: subscription.items.data[0].quantity ?? null,
     items: subscription.items.data,
     cancel_at_period_end: subscription.cancel_at_period_end,
@@ -605,7 +637,7 @@ const manageSubscriptionStatusChange = async (
   };
   await subsDbRef.set(subscriptionData);
 
-  logs.firestoreDocCreated('subscriptions', subscription.id);
+  logs.firestoreDocCreated("subscriptions", subscription.id);
 
   // Update their custom claims
   if (role) {
@@ -613,13 +645,13 @@ const manageSubscriptionStatusChange = async (
       // Get existing claims for the user
       const { customClaims } = await admin.auth().getUser(uid);
       // Set new role in custom claims as long as the subs status allows
-      if (['trialing', 'active'].includes(subscription.status)) {
-        logs.userCustomClaimSet(uid, 'stripeRole', role);
+      if (["trialing", "active"].includes(subscription.status)) {
+        logs.userCustomClaimSet(uid, "stripeRole", role);
         await admin
           .auth()
           .setCustomUserClaims(uid, { ...customClaims, stripeRole: role });
       } else {
-        logs.userCustomClaimSet(uid, 'stripeRole', 'null');
+        logs.userCustomClaimSet(uid, "stripeRole", "null");
         await admin
           .auth()
           .setCustomUserClaims(uid, { ...customClaims, stripeRole: null });
@@ -648,28 +680,33 @@ const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
   // Get customer's UID from Firestore
   const customersSnap = await admin
     .firestore()
+    // @ts-ignore
     .collection(config.customersCollectionPath)
-    .where('stripeId', '==', invoice.customer)
+    .where("stripeId", "==", invoice.customer)
     .get();
   if (customersSnap.size !== 1) {
-    throw new Error('User not found!');
+    throw new Error("User not found!");
   }
   // Write to invoice to a subcollection on the subscription doc.
   await customersSnap.docs[0].ref
-    .collection('subscriptions')
+    .collection("subscriptions")
     .doc(invoice.subscription as string)
-    .collection('invoices')
+    .collection("invoices")
     .doc(invoice.id)
     .set(invoice);
 
   const prices = [];
   for (const item of invoice.lines.data) {
     prices.push(
+      // @ts-ignore
       admin
         .firestore()
+        // @ts-ignore
         .collection(config.productsCollectionPath)
+        // @ts-ignore
         .doc(item.price.product as string)
-        .collection('prices')
+        .collection("prices")
+        // @ts-ignore
         .doc(item.price.id)
     );
   }
@@ -679,10 +716,10 @@ const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
 
   // Update subscription payment with price data
   await customersSnap.docs[0].ref
-    .collection('payments')
+    .collection("payments")
     .doc(recordId)
     .set({ prices }, { merge: true });
-  logs.firestoreDocCreated('invoices', invoice.id);
+  logs.firestoreDocCreated("invoices", invoice.id);
 };
 
 /**
@@ -695,11 +732,12 @@ const insertPaymentRecord = async (
   // Get customer's UID from Firestore
   const customersSnap = await admin
     .firestore()
+    // @ts-ignore
     .collection(config.customersCollectionPath)
-    .where('stripeId', '==', payment.customer)
+    .where("stripeId", "==", payment.customer)
     .get();
   if (customersSnap.size !== 1) {
-    throw new Error('User not found!');
+    throw new Error("User not found!");
   }
   if (checkoutSession) {
     const lineItems = await stripe.checkout.sessions.listLineItems(
@@ -707,24 +745,29 @@ const insertPaymentRecord = async (
     );
     const prices = [];
     for (const item of lineItems.data) {
+      // @ts-ignore
       prices.push(
+        // @ts-ignore
         admin
           .firestore()
+          //@ts-ignore
           .collection(config.productsCollectionPath)
+          // @ts-ignore
           .doc(item.price.product as string)
-          .collection('prices')
+          .collection("prices")
+          // @ts-ignore
           .doc(item.price.id)
       );
     }
-    payment['prices'] = prices;
-    payment['items'] = lineItems.data;
+    payment["prices"] = prices;
+    payment["items"] = lineItems.data;
   }
   // Write to invoice to a subcollection on the customer doc.
   await customersSnap.docs[0].ref
-    .collection('payments')
+    .collection("payments")
     .doc(payment.id)
     .set(payment, { merge: true });
-  logs.firestoreDocCreated('payments', payment.id);
+  logs.firestoreDocCreated("payments", payment.id);
 };
 
 /**
@@ -733,30 +776,30 @@ const insertPaymentRecord = async (
 export const handleWebhookEvents = functions.handler.https.onRequest(
   async (req: functions.https.Request, resp) => {
     const relevantEvents = new Set([
-      'product.created',
-      'product.updated',
-      'product.deleted',
-      'price.created',
-      'price.updated',
-      'price.deleted',
-      'checkout.session.completed',
-      'checkout.session.async_payment_succeeded',
-      'checkout.session.async_payment_failed',
-      'customer.subscription.created',
-      'customer.subscription.updated',
-      'customer.subscription.deleted',
-      'tax_rate.created',
-      'tax_rate.updated',
-      'invoice.paid',
-      'invoice.payment_succeeded',
-      'invoice.payment_failed',
-      'invoice.upcoming',
-      'invoice.marked_uncollectible',
-      'invoice.payment_action_required',
-      'payment_intent.processing',
-      'payment_intent.succeeded',
-      'payment_intent.canceled',
-      'payment_intent.payment_failed',
+      "product.created",
+      "product.updated",
+      "product.deleted",
+      "price.created",
+      "price.updated",
+      "price.deleted",
+      "checkout.session.completed",
+      "checkout.session.async_payment_succeeded",
+      "checkout.session.async_payment_failed",
+      "customer.subscription.created",
+      "customer.subscription.updated",
+      "customer.subscription.deleted",
+      "tax_rate.created",
+      "tax_rate.updated",
+      "invoice.paid",
+      "invoice.payment_succeeded",
+      "invoice.payment_failed",
+      "invoice.upcoming",
+      "invoice.marked_uncollectible",
+      "invoice.payment_action_required",
+      "payment_intent.processing",
+      "payment_intent.succeeded",
+      "payment_intent.canceled",
+      "payment_intent.payment_failed",
     ]);
     let event: Stripe.Event;
 
@@ -767,12 +810,13 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
     try {
       event = stripe.webhooks.constructEvent(
         req.rawBody,
-        req.headers['stripe-signature'],
+        // @ts-ignore
+        req.headers["stripe-signature"],
         config.stripeWebhookSecret
       );
     } catch (error) {
       logs.badWebhookSecret(error);
-      resp.status(401).send('Webhook Error: Invalid Secret');
+      resp.status(401).send("Webhook Error: Invalid Secret");
       return;
     }
 
@@ -780,40 +824,40 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
       logs.startWebhookEventProcessing(event.id, event.type);
       try {
         switch (event.type) {
-          case 'product.created':
-          case 'product.updated':
+          case "product.created":
+          case "product.updated":
             await createProductRecord(event.data.object as Stripe.Product);
             break;
-          case 'price.created':
-          case 'price.updated':
+          case "price.created":
+          case "price.updated":
             await insertPriceRecord(event.data.object as Stripe.Price);
             break;
-          case 'product.deleted':
+          case "product.deleted":
             await deleteProductOrPrice(event.data.object as Stripe.Product);
             break;
-          case 'price.deleted':
+          case "price.deleted":
             await deleteProductOrPrice(event.data.object as Stripe.Price);
             break;
-          case 'tax_rate.created':
-          case 'tax_rate.updated':
+          case "tax_rate.created":
+          case "tax_rate.updated":
             await insertTaxRateRecord(event.data.object as Stripe.TaxRate);
             break;
-          case 'customer.subscription.created':
-          case 'customer.subscription.updated':
-          case 'customer.subscription.deleted':
+          case "customer.subscription.created":
+          case "customer.subscription.updated":
+          case "customer.subscription.deleted":
             const subscription = event.data.object as Stripe.Subscription;
             await manageSubscriptionStatusChange(
               subscription.id,
               subscription.customer as string,
-              event.type === 'customer.subscription.created'
+              event.type === "customer.subscription.created"
             );
             break;
-          case 'checkout.session.completed':
-          case 'checkout.session.async_payment_succeeded':
-          case 'checkout.session.async_payment_failed':
+          case "checkout.session.completed":
+          case "checkout.session.async_payment_succeeded":
+          case "checkout.session.async_payment_failed":
             const checkoutSession = event.data
               .object as Stripe.Checkout.Session;
-            if (checkoutSession.mode === 'subscription') {
+            if (checkoutSession.mode === "subscription") {
               const subscriptionId = checkoutSession.subscription as string;
               await manageSubscriptionStatusChange(
                 subscriptionId,
@@ -822,44 +866,46 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
               );
             } else {
               const paymentIntentId = checkoutSession.payment_intent as string;
-              const paymentIntent = await stripe.paymentIntents.retrieve(
-                paymentIntentId
-              );
+              const paymentIntent =
+                await stripe.paymentIntents.retrieve(paymentIntentId);
               await insertPaymentRecord(paymentIntent, checkoutSession);
             }
             if (checkoutSession.tax_id_collection?.enabled) {
               const customersSnap = await admin
                 .firestore()
+                // @ts-ignore
                 .collection(config.customersCollectionPath)
-                .where('stripeId', '==', checkoutSession.customer as string)
+                .where("stripeId", "==", checkoutSession.customer as string)
                 .get();
               if (customersSnap.size === 1) {
+                // @ts-ignore
                 customersSnap.docs[0].ref.set(
+                  // @ts-ignore
                   checkoutSession.customer_details,
                   { merge: true }
                 );
               }
             }
             break;
-          case 'invoice.paid':
-          case 'invoice.payment_succeeded':
-          case 'invoice.payment_failed':
-          case 'invoice.upcoming':
-          case 'invoice.marked_uncollectible':
-          case 'invoice.payment_action_required':
+          case "invoice.paid":
+          case "invoice.payment_succeeded":
+          case "invoice.payment_failed":
+          case "invoice.upcoming":
+          case "invoice.marked_uncollectible":
+          case "invoice.payment_action_required":
             const invoice = event.data.object as Stripe.Invoice;
             await insertInvoiceRecord(invoice);
             break;
-          case 'payment_intent.processing':
-          case 'payment_intent.succeeded':
-          case 'payment_intent.canceled':
-          case 'payment_intent.payment_failed':
+          case "payment_intent.processing":
+          case "payment_intent.succeeded":
+          case "payment_intent.canceled":
+          case "payment_intent.payment_failed":
             const paymentIntent = event.data.object as Stripe.PaymentIntent;
             await insertPaymentRecord(paymentIntent);
             break;
           default:
             logs.webhookHandlerError(
-              new Error('Unhandled relevant event!'),
+              new Error("Unhandled relevant event!"),
               event.id,
               event.type
             );
@@ -876,7 +922,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
       } catch (error) {
         logs.webhookHandlerError(error, event.id, event.type);
         resp.json({
-          error: 'Webhook handler failed. View function logs in Firebase.',
+          error: "Webhook handler failed. View function logs in Firebase.",
         });
         return;
       }
@@ -888,23 +934,26 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
 );
 
 const deleteProductOrPrice = async (pr: Stripe.Product | Stripe.Price) => {
-  if (pr.object === 'product') {
+  if (pr.object === "product") {
     await admin
       .firestore()
+      // @ts-ignore
       .collection(config.productsCollectionPath)
       .doc(pr.id)
       .delete();
+    // @ts-ignore
     logs.firestoreDocDeleted(config.productsCollectionPath, pr.id);
   }
-  if (pr.object === 'price') {
+  if (pr.object === "price") {
     await admin
       .firestore()
+      // @ts-ignore
       .collection(config.productsCollectionPath)
       .doc((pr as Stripe.Price).product as string)
-      .collection('prices')
+      .collection("prices")
       .doc(pr.id)
       .delete();
-    logs.firestoreDocDeleted('prices', pr.id);
+    logs.firestoreDocDeleted("prices", pr.id);
   }
 };
 
@@ -922,16 +971,17 @@ const deleteStripeCustomer = async ({
     logs.customerDeleted(stripeId);
     // Mark all their subscriptions as cancelled in Firestore.
     const update = {
-      status: 'canceled',
+      status: "canceled",
       ended_at: Timestamp.now(),
     };
     // Set all subscription records to canceled.
     const subscriptionsSnap = await admin
       .firestore()
+      // @ts-ignore
       .collection(config.customersCollectionPath)
       .doc(uid)
-      .collection('subscriptions')
-      .where('status', 'in', ['trialing', 'active'])
+      .collection("subscriptions")
+      .where("status", "in", ["trialing", "active"])
       .get();
     subscriptionsSnap.forEach((doc) => {
       doc.ref.set(update, { merge: true });
@@ -950,6 +1000,7 @@ export const onUserDeleted = functions.auth.user().onDelete(async (user) => {
   const customer = (
     await admin
       .firestore()
+      // @ts-ignore
       .collection(config.customersCollectionPath)
       .doc(user.uid)
       .get()
