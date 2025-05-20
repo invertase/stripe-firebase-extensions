@@ -1,3 +1,4 @@
+import "@types/jest";
 import { setupEnvironment } from "./helpers/setupEnvironment";
 
 (async function () {
@@ -15,3 +16,5 @@ import { setupEnvironment } from "./helpers/setupEnvironment";
     process.exit(1);
   }
 })();
+
+// This file ensures Jest globals are available in all test files

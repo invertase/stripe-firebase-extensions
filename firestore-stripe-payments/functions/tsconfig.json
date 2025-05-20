@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "types": ["node", "jest"],
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types", "../node_modules/@types"]
   },
   "compileOnSave": true,
   "include": ["src", "./__tests__"],

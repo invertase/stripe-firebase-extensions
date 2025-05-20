@@ -9,6 +9,7 @@ module.exports = {
       "ts-jest",
       {
         tsconfig: "<rootDir>/tsconfig.json",
+        isolatedModules: true
       },
     ],
   },
@@ -37,4 +38,5 @@ module.exports = {
     "firebase-admin/extensions":
       "<rootDir>/node_modules/firebase-admin/lib/extensions",
   },
+  setupFilesAfterEnv: ["<rootDir>/__tests__/jest.setup.ts"]
 };
