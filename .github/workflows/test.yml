@@ -44,13 +44,9 @@ jobs:
           sudo mv stripe /usr/local/bin/
 
       - name: NPM install
-        run: |
-          cd firestore-stripe-payments/functions
-          npm install
+        run: npm install
 
       - name: Run tests
-        run: |
-          cd firestore-stripe-payments/functions
-          npm run test
+        run: npm run test
         env:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}

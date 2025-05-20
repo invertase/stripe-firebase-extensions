@@ -1,4 +1,3 @@
-import "@types/jest";
 import { setupEnvironment } from "./helpers/setupEnvironment";
 
 (async function () {

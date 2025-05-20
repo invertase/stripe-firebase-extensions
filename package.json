@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.5.3",
-    "turbo": "^1.12.4"
+    "turbo": "^2.5.3"
   },
   "dependencies": {
     "rimraf": "^3.0.2"
