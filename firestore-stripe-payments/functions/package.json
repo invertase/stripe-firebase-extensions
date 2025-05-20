@@ -12,7 +12,6 @@
     "compile": "tsc",
     "generate-readme": "firebase ext:info .. --markdown > ../README.md",
     "test": "cd ../_emulator && firebase emulators:exec -P demo-project \"jest --config=../functions/jest.config.js\"",
-    "test:watch": "ts-node ./__tests__/run-script-watch.ts",
     "start:emulator": "cd ../_emulator && firebase emulators:start -P demo-project",
     "exec:emulator": "cd ../_emulator && firebase emulators:exec \"../runTests.sh\" -P demo-project",
     "exec:emulator:watch": "cd ../_emulator && firebase emulators:exec \"../runTestsWatch.sh\" -P demo-project",
