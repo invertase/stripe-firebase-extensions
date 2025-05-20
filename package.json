@@ -4,11 +4,6 @@
   "description": "Repository of Firebase extensions built by Stripe.",
   "private": true,
   "packageManager": "pnpm@10.11.0",
-  "workspaces": [
-    "firestore-stripe-web-sdk",
-    "firestore-stripe-payments/functions",
-    "firestore-stripe-invoices/functions"
-  ],
   "scripts": {
     "lint": "biome check .",
     "format": "biome format --write .",
@@ -19,9 +14,7 @@
     "dev:subs": "npm run dev --ext=firestore-stripe-payments --project=stripe-subs-ext",
     "ext:update": "npm run build && firebase ext:update $npm_config_ext ./$npm_config_ext/ --project=$npm_config_project",
     "ext:uninstall": "firebase ext:uninstall $npm_config_ext --project=$npm_config_project",
-    "test": "turbo run test",
-    "ext:install": "cd ../_emulator && firebase ext:install ..",
-    "ext:deploy": "npm install --workspaces=false && cd ../_emulator && firebase deploy --only=extensions --project=dev-extensions-testing"
+    "test": "turbo run test"
   },
   "repository": {
     "type": "git",
