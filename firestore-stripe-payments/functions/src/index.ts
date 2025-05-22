@@ -152,21 +152,36 @@ exports.createCheckoutSession = functions
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
-      // @ts-ignore
-      let customerRecord = (await snap.ref.parent.parent.get()).data();
+      const parentRef = snap.ref.parent.parent;
+      if (!parentRef) {
+        throw new Error('Parent reference is null');
+      }
+      let customerRecord = (
+        await parentRef.get()
+      ).data() as CustomerData | null;
       if (!customerRecord?.stripeId) {
         const { email, phoneNumber } = await admin
           .auth()
           .getUser(context.params.uid);
-        // @ts-ignore
-        customerRecord = await createCustomerRecord({
+        const newCustomerRecord = await createCustomerRecord({
           uid: context.params.uid,
-          email,
-          phone: phoneNumber,
+          email: email || undefined,
+          phone: phoneNumber || undefined,
         });
+        if (newCustomerRecord) {
+          customerRecord = {
+            metadata: { firebaseUID: context.params.uid },
+            email: (newCustomerRecord.email ?? undefined) as string | undefined,
+            phone: (newCustomerRecord as any).phone ?? undefined,
+            stripeId: newCustomerRecord.stripeId,
+            stripeLink: newCustomerRecord.stripeLink,
+          };
+        }
       }
-      // @ts-ignore
-      const customer = customerRecord.stripeId;
+      const customer = customerRecord?.stripeId;
+      if (!customer) {
+        throw new Error('Customer ID is required');
+      }
 
       if (client === 'web') {
         // Get shipping countries
@@ -237,22 +252,23 @@ exports.createCheckoutSession = functions
           sessionCreateParams.automatic_tax = {
             enabled: true,
           };
-          // @ts-ignore
-          sessionCreateParams.customer_update.name = 'auto';
-          // @ts-ignore
-          sessionCreateParams.customer_update.address = 'auto';
-          // @ts-ignore
-          sessionCreateParams.customer_update.shipping = 'auto';
+          sessionCreateParams.customer_update = {
+            ...sessionCreateParams.customer_update,
+            name: 'auto',
+            address: 'auto',
+            shipping: 'auto',
+          };
         }
         if (tax_id_collection) {
           sessionCreateParams.tax_id_collection = {
             enabled: true,
-          }; // @ts-ignore
-          sessionCreateParams.customer_update.name = 'auto';
-          // @ts-ignore
-          sessionCreateParams.customer_update.address = 'auto';
-          // @ts-ignore
-          sessionCreateParams.customer_update.shipping = 'auto';
+          };
+          sessionCreateParams.customer_update = {
+            ...sessionCreateParams.customer_update,
+            name: 'auto',
+            address: 'auto',
+            shipping: 'auto',
+          };
         }
         if (promotion_code) {
           sessionCreateParams.discounts = [{ promotion_code }];
@@ -276,8 +292,8 @@ exports.createCheckoutSession = functions
           { merge: true }
         );
       } else if (client === 'mobile') {
-        let paymentIntentClientSecret = null;
-        let setupIntentClientSecret = null;
+        let paymentIntentClientSecret: string | null = null;
+        let setupIntentClientSecret: string | null = null;
         if (mode === 'payment') {
           if (!amount || !currency) {
             throw new Error(
@@ -301,16 +317,18 @@ exports.createCheckoutSession = functions
           const paymentIntent = await stripe.paymentIntents.create(
             paymentIntentCreateParams
           );
-          // @ts-ignore
-          paymentIntentClientSecret = paymentIntent.client_secret;
+          paymentIntentClientSecret = (paymentIntent.client_secret ?? null) as
+            | string
+            | null;
         } else if (mode === 'setup') {
           const setupIntent = await stripe.setupIntents.create({
             customer,
             metadata,
             payment_method_types: payment_method_types ?? ['card'],
           });
-          // @ts-ignore
-          setupIntentClientSecret = setupIntent.client_secret;
+          setupIntentClientSecret = (setupIntent.client_secret ?? null) as
+            | string
+            | null;
         } else if (mode === 'subscription') {
           const subscription = await stripe.subscriptions.create({
             customer,
@@ -323,9 +341,15 @@ exports.createCheckoutSession = functions
             },
           });
 
-          paymentIntentClientSecret =
-            // @ts-ignore
-            subscription.latest_invoice.payment_intent.client_secret;
+          const latestInvoice = subscription.latest_invoice as Stripe.Invoice;
+          if (
+            !latestInvoice.payment_intent ||
+            typeof latestInvoice.payment_intent === 'string'
+          ) {
+            throw new Error('Payment intent not found in invoice');
+          }
+          paymentIntentClientSecret = (latestInvoice.payment_intent
+            .client_secret ?? null) as string | null;
         } else {
           throw new Error(
             `Mode '${mode} is not supported for 'client:mobile'!`
@@ -385,27 +409,35 @@ export const createPortalLink = functions.https.onCall(
         flow_data,
       } = data;
 
-      // Get stripe customer id
       let customerRecord = (
         await admin
           .firestore()
           .collection(config.customersCollectionPath)
           .doc(uid)
           .get()
-      ).data();
+      ).data() as CustomerData | null;
 
       if (!customerRecord?.stripeId) {
-        // Create Stripe customer on-the-fly
         const { email, phoneNumber } = await admin.auth().getUser(uid);
-        // @ts-ignore
-        customerRecord = await createCustomerRecord({
+        const newCustomerRecord = await createCustomerRecord({
           uid,
-          email,
-          phone: phoneNumber,
+          email: email || undefined,
+          phone: phoneNumber || undefined,
         });
+        if (newCustomerRecord) {
+          customerRecord = {
+            metadata: { firebaseUID: uid },
+            email: (newCustomerRecord.email ?? undefined) as string | undefined,
+            phone: (newCustomerRecord as any).phone ?? undefined,
+            stripeId: newCustomerRecord.stripeId,
+            stripeLink: newCustomerRecord.stripeLink,
+          };
+        }
       }
-      // @ts-ignore
-      const customer = customerRecord.stripeId;
+      const customer = customerRecord?.stripeId;
+      if (!customer) {
+        throw new Error('Customer ID is required');
+      }
 
       const params: Stripe.BillingPortal.SessionCreateParams = {
         customer,
@@ -415,11 +447,10 @@ export const createPortalLink = functions.https.onCall(
       if (configuration) {
         params.configuration = configuration;
       }
-      if (flow_data) {
-        // Ignore type-checking because `flow_data` was added to
-        // `Stripe.BillingPortal.SessionCreateParams` in
-        // stripe@11.2.0 (API version 2022-12-06)
-        (params as any).flow_data = flow_data;
+      const flowData =
+        data.flow_data as Stripe.BillingPortal.SessionCreateParams['flow_data'];
+      if (flowData) {
+        params.flow_data = flowData;
       }
       const session = await stripe.billingPortal.sessions.create(params);
       logs.createdBillingPortalLink(uid);
@@ -557,17 +588,19 @@ const manageSubscriptionStatusChange = async (
     expand: ['default_payment_method', 'items.data.price.product'],
   });
   const price: Stripe.Price = subscription.items.data[0].price;
-  const prices = [];
+  const prices: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>[] =
+    [];
   for (const item of subscription.items.data) {
-    prices.push(
-      // @ts-ignore
-      admin
-        .firestore()
-        .collection(config.productsCollectionPath)
-        .doc((item.price.product as Stripe.Product).id)
-        .collection('prices')
-        .doc(item.price.id)
-    );
+    if (item.price && item.price.product) {
+      prices.push(
+        admin
+          .firestore()
+          .collection(config.productsCollectionPath)
+          .doc((item.price.product as Stripe.Product).id)
+          .collection('prices')
+          .doc(item.price.id)
+      );
+    }
   }
   const product: Stripe.Product = price.product as Stripe.Product;
   const role = product.metadata.firebaseRole ?? null;
@@ -680,19 +713,19 @@ const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
     .doc(invoice.id)
     .set(invoice);
 
-  const prices = [];
+  const prices: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>[] =
+    [];
   for (const item of invoice.lines.data) {
-    prices.push(
-      // @ts-ignore
-      admin
-        .firestore()
-        .collection(config.productsCollectionPath)
-        // @ts-ignore
-        .doc(item.price.product as string)
-        .collection('prices')
-        // @ts-ignore
-        .doc(item.price.id)
-    );
+    if (item.price && item.price.product) {
+      prices.push(
+        admin
+          .firestore()
+          .collection(config.productsCollectionPath)
+          .doc(item.price.product as string)
+          .collection('prices')
+          .doc(item.price.id)
+      );
+    }
   }
 
   // An Invoice object does not always have an associated Payment Intent
@@ -726,19 +759,19 @@ const insertPaymentRecord = async (
     const lineItems = await stripe.checkout.sessions.listLineItems(
       checkoutSession.id
     );
-    const prices = [];
+    const prices: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>[] =
+      [];
     for (const item of lineItems.data) {
-      prices.push(
-        // @ts-ignore
-        admin
-          .firestore()
-          .collection(config.productsCollectionPath)
-          // @ts-ignore
-          .doc(item.price.product as string)
-          .collection('prices')
-          // @ts-ignore
-          .doc(item.price.id)
-      );
+      if (item.price && item.price.product) {
+        prices.push(
+          admin
+            .firestore()
+            .collection(config.productsCollectionPath)
+            .doc(item.price.product as string)
+            .collection('prices')
+            .doc(item.price.id)
+        );
+      }
     }
     payment['prices'] = prices;
     payment['items'] = lineItems.data;
@@ -791,9 +824,8 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
     try {
       event = stripe.webhooks.constructEvent(
         req.rawBody,
-        // @ts-ignore
-        req.headers['stripe-signature'],
-        config.stripeWebhookSecret
+        (req.headers['stripe-signature'] || '') as string,
+        config.stripeWebhookSecret || ''
       );
     } catch (error) {
       logs.badWebhookSecret(error);
@@ -860,8 +892,7 @@ export const handleWebhookEvents = functions.handler.https.onRequest(
                 .get();
               if (customersSnap.size === 1) {
                 customersSnap.docs[0].ref.set(
-                  // @ts-ignore
-                  checkoutSession.customer_details,
+                  checkoutSession.customer_details as FirebaseFirestore.DocumentData,
                   { merge: true }
                 );
               }
