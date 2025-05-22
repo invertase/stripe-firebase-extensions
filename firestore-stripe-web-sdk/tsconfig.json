@@ -8,6 +8,7 @@
     "inlineSources": true,
     "declaration": true,
     "declarationMap": true,
+    "skipLibCheck": true,
     "target": "ES6",
     "outDir": "lib",
     "forceConsistentCasingInFileNames": true,
