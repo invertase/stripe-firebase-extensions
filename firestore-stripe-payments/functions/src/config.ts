@@ -14,14 +14,27 @@
  * limitations under the License.
  */
 
-export default {
-  stripeSecretKey: process.env.STRIPE_API_KEY,
+export interface ExtensionConfig {
+  stripeSecretKey: string;
+  stripeWebhookSecret?: string;
+  productsCollectionPath: string;
+  customersCollectionPath: string;
+  stripeConfigCollectionPath?: string;
+  syncUsersOnCreate: boolean;
+  autoDeleteUsers: boolean;
+  minCheckoutInstances: number;
+}
+
+const config: ExtensionConfig = {
+  stripeSecretKey: process.env.STRIPE_API_KEY as string,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
-  productsCollectionPath: process.env.PRODUCTS_COLLECTION,
-  customersCollectionPath: process.env.CUSTOMERS_COLLECTION,
+  productsCollectionPath: process.env.PRODUCTS_COLLECTION as string,
+  customersCollectionPath: process.env.CUSTOMERS_COLLECTION as string,
   stripeConfigCollectionPath: process.env.STRIPE_CONFIG_COLLECTION,
   syncUsersOnCreate: process.env.SYNC_USERS_ON_CREATE === 'Sync',
   autoDeleteUsers: process.env.DELETE_STRIPE_CUSTOMERS === 'Auto delete',
   minCheckoutInstances:
     Number(process.env.CREATE_CHECKOUT_SESSION_MIN_INSTANCES) ?? 0,
 };
+
+export default config;
