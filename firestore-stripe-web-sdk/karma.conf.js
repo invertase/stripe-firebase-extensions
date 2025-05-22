@@ -3,7 +3,11 @@ const webpackTestConfig = require("./webpack.test");
 
 const config = {
   // files to load into karma
-  files: ["test/**/*.ts", "src/**/*.ts"],
+  files: [
+    "test/**/*.spec.ts",
+    "src/**/*.ts",
+    "!test/**/*.vitest.spec.ts"
+  ],
 
   // frameworks to use
   // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
