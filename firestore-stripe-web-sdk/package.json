@@ -10,11 +10,7 @@
     "api-extractor:local": "npm run build && api-extractor run --local --verbose",
     "build": "tsc -p tsconfig.build.json",
     "postbuild": "node ./postbuild.js",
-    "test": "cd _emulator && firebase emulators:exec --project=demo-test 'NODE_OPTIONS=--openssl-legacy-provider npm run test:unit' && exit 0",
-    "test:unit": "karma start --single-run",
-    "test:vitest": "vitest run",
-    "test:vitest:watch": "vitest",
-    "test:vitest:coverage": "vitest run --coverage"
+    "test": "cd _emulator && firebase emulators:exec --project=demo-project \"cd .. && vitest run\""
   },
   "keywords": [
     "firebase",
@@ -36,34 +32,13 @@
   "devDependencies": {
     "@microsoft/api-documenter": "^7.13.65",
     "@microsoft/api-extractor": "^7.18.17",
-    "@types/chai": "^4.2.21",
-    "@types/chai-as-promised": "^7.1.4",
-    "@types/chai-like": "^1.1.1",
-    "@types/mocha": "^9.1.1",
-    "@types/sinon": "10.0.6",
-    "@types/sinon-chai": "^3.2.5",
     "@vitest/coverage-v8": "^1.2.2",
-    "chai": "^4.3.4",
-    "chai-as-promised": "^7.1.1",
-    "chai-like": "^1.1.1",
     "firebase-tools": "^9.18.0",
     "jsdom": "^26.1.0",
-    "karma": "^6.3.4",
-    "karma-chrome-launcher": "^3.1.0",
-    "karma-mocha": "^2.0.1",
-    "karma-mocha-reporter": "^2.2.5",
-    "karma-sourcemap-loader": "^0.3.8",
-    "karma-webpack": "^4.0.2",
-    "mocha": "^9.1.1",
     "replace-in-file": "^6.2.0",
-    "sinon": "^11.1.2",
-    "sinon-chai": "^3.7.0",
-    "source-map-loader": "^1.1.3",
-    "ts-loader": "^8.3.0",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.2",
-    "vitest": "^1.2.2",
-    "webpack": "^4.46.0"
+    "vitest": "^1.2.2"
   },
   "dependencies": {
     "@firebase/app": "^0.11.4",
