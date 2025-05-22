@@ -51,7 +51,7 @@ expect.extend({
   },
 });
 
-declare module 'vitest' {
+declare module "vitest" {
   interface Assertion<T = any> {
     toHaveBeenCalledBefore(expected: any): T;
   }
@@ -146,11 +146,9 @@ describe("getProduct()", () => {
 
 describe("getProducts()", () => {
   it("should return all products when called without options", async () => {
-    const fake = vi.fn().mockResolvedValue([
-      economyPlan,
-      premiumPlan,
-      standardPlan,
-    ]);
+    const fake = vi
+      .fn()
+      .mockResolvedValue([economyPlan, premiumPlan, standardPlan]);
     setProductDAO(payments, testProductDAO("getProducts", fake));
 
     const products: Product[] = await getProducts(payments);
@@ -186,7 +184,9 @@ describe("getProducts()", () => {
 
   it("should return products with prices when includePrices is set", async () => {
     const fakes = {
-      getProducts: vi.fn().mockResolvedValue([economyPlan, premiumPlan, standardPlan]),
+      getProducts: vi
+        .fn()
+        .mockResolvedValue([economyPlan, premiumPlan, standardPlan]),
       getPrices: vi.fn(getPricesForTest),
     };
     setProductDAO(payments, testProductDAO(fakes));
@@ -361,7 +361,9 @@ describe("getPrice()", () => {
     const fake = vi.fn().mockRejectedValue(error);
     setProductDAO(payments, testProductDAO("getPrice", fake));
 
-    await expect(getPrice(payments, "premium", "price1")).rejects.toThrow(error);
+    await expect(getPrice(payments, "premium", "price1")).rejects.toThrow(
+      error
+    );
 
     expect(fake).toHaveBeenCalledTimes(1);
     expect(fake).toHaveBeenCalledWith("premium", "price1");
@@ -450,4 +452,4 @@ function testProductDAO(
   }
 
   return nameOrFakes as unknown as ProductDAO;
-} 
+}

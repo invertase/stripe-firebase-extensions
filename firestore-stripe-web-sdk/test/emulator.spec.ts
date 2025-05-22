@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+} from "vitest";
 import { deleteApp, FirebaseApp, initializeApp } from "@firebase/app";
 import {
   collection,
@@ -106,7 +114,10 @@ describe("Emulator tests", () => {
   const db: Firestore = getFirestore(app);
   const auth: Auth = getAuth(app);
 
-  async function addProductData(productId: string, data: ProductData): Promise<void> {
+  async function addProductData(
+    productId: string,
+    data: ProductData
+  ): Promise<void> {
     const batch: WriteBatch = writeBatch(db);
     batch.set(doc(db, payments.productsCollection, productId), data.product);
     for (const [priceId, price] of Object.entries(data.prices)) {
@@ -123,7 +134,10 @@ describe("Emulator tests", () => {
     await setDoc(doc(db, payments.customersCollection, uid), { uid });
   }
 
-  async function addSubscriptionData(uid: string, data: SubscriptionData): Promise<void> {
+  async function addSubscriptionData(
+    uid: string,
+    data: SubscriptionData
+  ): Promise<void> {
     const batch: WriteBatch = writeBatch(db);
     for (const [id, subscription] of Object.entries(data)) {
       batch.set(
@@ -148,7 +162,9 @@ describe("Emulator tests", () => {
   }
 
   async function deleteSubscriptions(uid: string): Promise<void> {
-    const subs = await getDocs(collection(db, "customers", uid, "subscriptions"));
+    const subs = await getDocs(
+      collection(db, "customers", uid, "subscriptions")
+    );
     const batch: WriteBatch = writeBatch(db);
     subs.forEach((sub) => {
       batch.delete(sub.ref);
@@ -167,7 +183,9 @@ describe("Emulator tests", () => {
     await batch.commit();
   }
 
-  function buildSubscriptionDocument(subscription: Record<string, any>): DocumentData {
+  function buildSubscriptionDocument(
+    subscription: Record<string, any>
+  ): DocumentData {
     const prices: DocumentReference[] = subscription.prices.map(
       (item: { product: string; price: string }) =>
         doc(db, "products", item.product, "prices", item.price)
@@ -370,7 +388,9 @@ describe("Emulator tests", () => {
           createCheckoutSession(payments, {
             price: "foo",
           })
-        ).rejects.toThrow("Failed to determine currently signed in user. User not signed in.");
+        ).rejects.toThrow(
+          "Failed to determine currently signed in user. User not signed in."
+        );
       });
     });
 
@@ -394,12 +414,14 @@ describe("Emulator tests", () => {
           line_items: lineItems,
         });
 
-        expect(session).toEqual(expect.objectContaining({
-          cancel_url: window.location.href,
-          line_items: lineItems,
-          mode: "subscription",
-          success_url: window.location.href,
-        }));
+        expect(session).toEqual(
+          expect.objectContaining({
+            cancel_url: window.location.href,
+            line_items: lineItems,
+            mode: "subscription",
+            success_url: window.location.href,
+          })
+        );
       });
 
       it("should create a session when called with all line item parameters", async () => {
@@ -518,7 +540,9 @@ describe("Emulator tests", () => {
       it("rejects when fetching a subscription", async () => {
         await expect(
           getCurrentUserSubscription(payments, "sub1")
-        ).rejects.toThrow("Failed to determine currently signed in user. User not signed in.");
+        ).rejects.toThrow(
+          "Failed to determine currently signed in user. User not signed in."
+        );
       });
     });
 
@@ -556,7 +580,9 @@ describe("Emulator tests", () => {
       it("should reject with not-found error when the specified subscription does not exist", async () => {
         await expect(
           getCurrentUserSubscription(payments, "unavailable")
-        ).rejects.toThrow(`No subscription found with the ID: unavailable for user: ${currentUser}`);
+        ).rejects.toThrow(
+          `No subscription found with the ID: unavailable for user: ${currentUser}`
+        );
       });
     });
   });
@@ -564,9 +590,9 @@ describe("Emulator tests", () => {
   describe("getCurrentUserSubscriptions()", () => {
     describe("without user signed in", () => {
       it("rejects when fetching a subscription", async () => {
-        await expect(
-          getCurrentUserSubscriptions(payments)
-        ).rejects.toThrow("Failed to determine currently signed in user. User not signed in.");
+        await expect(getCurrentUserSubscriptions(payments)).rejects.toThrow(
+          "Failed to determine currently signed in user. User not signed in."
+        );
       });
     });
 
@@ -728,9 +754,9 @@ describe("Emulator tests", () => {
 
     describe("without user signed in", () => {
       it("rejects when fetching a payment", async () => {
-        await expect(
-          getCurrentUserPayment(payments, "pay1")
-        ).rejects.toThrow("Failed to determine currently signed in user. User not signed in.");
+        await expect(getCurrentUserPayment(payments, "pay1")).rejects.toThrow(
+          "Failed to determine currently signed in user. User not signed in."
+        );
       });
     });
 
@@ -762,7 +788,9 @@ describe("Emulator tests", () => {
       it("should reject with not-found error when the specified payment does not exist", async () => {
         await expect(
           getCurrentUserPayment(payments, "unavailable")
-        ).rejects.toThrow(`No payment found with the ID: unavailable for user: ${currentUser}`);
+        ).rejects.toThrow(
+          `No payment found with the ID: unavailable for user: ${currentUser}`
+        );
       });
     });
   });
@@ -770,9 +798,9 @@ describe("Emulator tests", () => {
   describe("getCurrentUserPayments()", () => {
     describe("without user signed in", () => {
       it("rejects when fetching payments", async () => {
-        await expect(
-          getCurrentUserPayments(payments)
-        ).rejects.toThrow("Failed to determine currently signed in user. User not signed in.");
+        await expect(getCurrentUserPayments(payments)).rejects.toThrow(
+          "Failed to determine currently signed in user. User not signed in."
+        );
       });
     });
 
@@ -1136,4 +1164,4 @@ class ExtensionBackend {
       { merge: true }
     );
   }
-} 
+}

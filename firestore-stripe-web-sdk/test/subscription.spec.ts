@@ -47,7 +47,7 @@ expect.extend({
   },
 });
 
-declare module 'vitest' {
+declare module "vitest" {
   interface Assertion<T = any> {
     toHaveBeenCalledBefore(expected: any): T;
   }
@@ -104,9 +104,9 @@ describe("getCurrentUserSubscription()", () => {
     const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
-    await expect(
-      getCurrentUserSubscription(payments, "sub1")
-    ).rejects.toThrow(error);
+    await expect(getCurrentUserSubscription(payments, "sub1")).rejects.toThrow(
+      error
+    );
 
     expect(fake).toHaveBeenCalledTimes(1);
     expect(fake).toHaveBeenCalledWith("alice", "sub1");
@@ -321,7 +321,10 @@ describe("onCurrentUserSubscriptionUpdate()", () => {
   });
 });
 
-function testSubscriptionDAO(name: string, fake: ReturnType<typeof vi.fn>): SubscriptionDAO {
+function testSubscriptionDAO(
+  name: string,
+  fake: ReturnType<typeof vi.fn>
+): SubscriptionDAO {
   return {
     [name]: fake,
   } as unknown as SubscriptionDAO;
@@ -331,4 +334,4 @@ function testUserDAO(fake: ReturnType<typeof vi.fn>): UserDAO {
   return {
     getCurrentUser: fake,
   } as UserDAO;
-} 
+}
