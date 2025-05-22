@@ -22,6 +22,8 @@ export interface CustomerData {
   };
   email?: string;
   phone?: string;
+  stripeId?: string;
+  stripeLink?: string;
 }
 
 export interface Price {
