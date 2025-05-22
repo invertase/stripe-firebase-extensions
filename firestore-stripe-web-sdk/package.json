@@ -8,10 +8,13 @@
     "api-documenter": "api-documenter markdown --input-folder temp --output-folder markdown",
     "api-extractor": "api-extractor run --verbose",
     "api-extractor:local": "npm run build && api-extractor run --local --verbose",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "postbuild": "node ./postbuild.js",
     "test": "cd _emulator && firebase emulators:exec --project=demo-test 'NODE_OPTIONS=--openssl-legacy-provider npm run test:unit' && exit 0",
-    "test:unit": "karma start --single-run"
+    "test:unit": "karma start --single-run",
+    "test:vitest": "vitest run",
+    "test:vitest:watch": "vitest",
+    "test:vitest:coverage": "vitest run --coverage"
   },
   "keywords": [
     "firebase",
@@ -36,9 +39,10 @@
     "@types/chai": "^4.2.21",
     "@types/chai-as-promised": "^7.1.4",
     "@types/chai-like": "^1.1.1",
-    "@types/mocha": "^9.0.0",
+    "@types/mocha": "^9.1.1",
     "@types/sinon": "10.0.6",
     "@types/sinon-chai": "^3.2.5",
+    "@vitest/coverage-v8": "^1.2.2",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
     "chai-like": "^1.1.1",
@@ -57,6 +61,7 @@
     "ts-loader": "^8.3.0",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.2",
+    "vitest": "^1.2.2",
     "webpack": "^4.46.0"
   },
   "dependencies": {
