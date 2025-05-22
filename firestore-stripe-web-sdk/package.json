@@ -47,6 +47,7 @@
     "chai-as-promised": "^7.1.1",
     "chai-like": "^1.1.1",
     "firebase-tools": "^9.18.0",
+    "jsdom": "^26.1.0",
     "karma": "^6.3.4",
     "karma-chrome-launcher": "^3.1.0",
     "karma-mocha": "^2.0.1",
