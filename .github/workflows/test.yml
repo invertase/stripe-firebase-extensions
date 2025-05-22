@@ -3,16 +3,14 @@ name: Testing
 on:
   push:
     branches:
-      - "**"
+      - next
+      - master
   pull_request:
     branches:
       - "**"
 
 jobs:
   nodejs:
-    if:
-      github.event_name == 'push' || (github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name != github.repository)
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}
@@ -23,19 +21,29 @@ jobs:
       max-parallel: 1
     name: node.js_${{ matrix.node }}_test
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build emulator functions
+        run: |
+          cd firestore-stripe-payments/_emulator/functions && npm i && cd ../../..
+          cd firestore-stripe-web-sdk/_emulator/functions && npm i && cd ../../..
 
       - name: Install Firebase CLI
-        uses: nick-invision/retry@v2
+        uses: nick-invision/retry@v1
         with:
           timeout_minutes: 10
           retry_wait_seconds: 60
           max_attempts: 3
-          command: npm i -g firebase-tools
+          command: npm i -g firebase-tools@14
 
       - name: Install Stripe CLI
         run: |
@@ -43,14 +51,7 @@ jobs:
           tar -xzf stripe_1.27.0_linux_x86_64.tar.gz
           sudo mv stripe /usr/local/bin/
 
-      - name: NPM install
-        run: |
-          cd firestore-stripe-payments/functions
-          npm install
-
-      - name: Run tests
-        run: |
-          cd firestore-stripe-payments/functions
-          npm run test
+      - name: Run Tests
+        run: npm test
         env:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
