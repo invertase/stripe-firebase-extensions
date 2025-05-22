@@ -1,3 +1,7 @@
+## Version 0.3.11 - 2025-05-24
+
+[chore] - improve tests and CI
+
 ## Version 0.3.10 - 2025-03-24
 
 [fix] - upgrade resources to node 20
