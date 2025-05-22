@@ -43,7 +43,7 @@ expect.extend({
   },
 });
 
-declare module 'vitest' {
+declare module "vitest" {
   interface Assertion<T = any> {
     toHaveBeenCalledBefore(expected: any): T;
   }
@@ -96,7 +96,9 @@ describe("getCurrentUserPayment()", () => {
     const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
-    await expect(getCurrentUserPayment(payments, "pay1")).rejects.toThrow(error);
+    await expect(getCurrentUserPayment(payments, "pay1")).rejects.toThrow(
+      error
+    );
 
     expect(fake).toHaveBeenCalledTimes(1);
     expect(fake).toHaveBeenCalledWith("alice", "pay1");
@@ -113,7 +115,9 @@ describe("getCurrentUserPayment()", () => {
     });
     setUserDAO(payments, testUserDAO(userFake));
 
-    await expect(getCurrentUserPayment(payments, "pay1")).rejects.toThrow(error);
+    await expect(getCurrentUserPayment(payments, "pay1")).rejects.toThrow(
+      error
+    );
 
     expect(userFake).toHaveBeenCalledTimes(1);
   });
@@ -284,7 +288,10 @@ describe("onCurrentUserPaymentUpdate()", () => {
   });
 });
 
-function testPaymentDAO(name: string, fake: ReturnType<typeof vi.fn>): PaymentDAO {
+function testPaymentDAO(
+  name: string,
+  fake: ReturnType<typeof vi.fn>
+): PaymentDAO {
   return {
     [name]: fake,
   } as unknown as PaymentDAO;
@@ -294,4 +301,4 @@ function testUserDAO(fake: ReturnType<typeof vi.fn>): UserDAO {
   return {
     getCurrentUser: fake,
   } as UserDAO;
-} 
+}

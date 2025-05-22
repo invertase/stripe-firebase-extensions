@@ -42,7 +42,7 @@ expect.extend({
   },
 });
 
-declare module 'vitest' {
+declare module "vitest" {
   interface Assertion<T = any> {
     toHaveBeenCalledBefore(expected: any): T;
   }
@@ -310,7 +310,10 @@ describe("createCheckoutSession()", () => {
   });
 });
 
-function testSessionDAO(name: string, fake: ReturnType<typeof vi.fn>): SessionDAO {
+function testSessionDAO(
+  name: string,
+  fake: ReturnType<typeof vi.fn>
+): SessionDAO {
   return {
     [name]: fake,
   } as unknown as SessionDAO;
@@ -320,4 +323,4 @@ function testUserDAO(fake: ReturnType<typeof vi.fn>): UserDAO {
   return {
     getCurrentUser: fake,
   } as UserDAO;
-} 
+}

@@ -102,4 +102,4 @@ describe("StripePaymentsError", () => {
     expect(error.message).toBe("test message");
     expect(error.cause).toBe(cause);
   });
-}); 
+});
