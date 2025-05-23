@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 import { DocumentData } from '@google-cloud/firestore';
-import * as fft from 'firebase-functions-test';
+import fft from 'firebase-functions-test';
 import * as cloudFunctions from '../../../src';
 import setupEmulator from '../../helpers/setupEmulator';
 
@@ -29,8 +29,7 @@ function request(uid: string, returnUrl: string) {
   );
 }
 
-// TODO: Fix this test
-describe.skip('createPortalLink', () => {
+describe('createPortalLink', () => {
   let user: UserRecord;
   beforeEach(async () => {
     user = await createFirebaseUser();
