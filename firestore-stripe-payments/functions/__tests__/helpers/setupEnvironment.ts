@@ -1,4 +1,5 @@
-const path = require('path');
+import path from 'path';
+import dotenv from 'dotenv';
 
 export const pathToenvFile = path.resolve(
   __dirname,
@@ -11,11 +12,14 @@ export const pathTosecretsFile = path.resolve(
 );
 
 export const setupEnvironment = () => {
-  require('dotenv').config({
+  dotenv.config({
     path: pathToenvFile,
   });
+  console.log('CUSTOMERS_COLLECTION:', process.env.CUSTOMERS_COLLECTION);
 
-  require('dotenv').config({
+  console.log('Loading secrets file from:', pathTosecretsFile);
+  dotenv.config({
     path: pathTosecretsFile,
   });
+  console.log('STRIPE_API_KEY exists:', !!process.env.STRIPE_API_KEY);
 };

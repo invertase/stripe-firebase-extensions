@@ -1,19 +1,38 @@
 {
+  "extensions": {
+    "firestore-stripe-payments": "../../firestore-stripe-payments"
+  },
   "emulators": {
+    "hub": {
+      "port": 4000
+    },
     "firestore": {
-      "port": 8080,
-      "host": "0.0.0.0"
+      "port": 8080
     },
     "auth": {
-      "port": 9099,
-      "host": "0.0.0.0"
+      "port": 9099
     },
     "ui": {
       "enabled": true
+    },
+    "functions": {
+      "port": 5001
     }
   },
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
-  }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ]
+    }
+  ]
 }
