@@ -1,8 +1,7 @@
 import { spawn } from 'child_process';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import * as dotenv from 'dotenv';
-import { pathTosecretsFile } from './helpers/setupEnvironment';
+import { setupEnvironment } from './helpers/setupEnvironment';
 
 const execAsync = promisify(exec);
 
@@ -12,8 +11,8 @@ declare global {
 }
 
 export default async function globalSetup() {
-  // Load environment variables from secret.local first
-  dotenv.config({ path: pathTosecretsFile });
+  // Load all environment variables
+  setupEnvironment();
 
   const stripeApiKey = process.env.STRIPE_API_KEY;
   if (!stripeApiKey) {

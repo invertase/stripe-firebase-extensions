@@ -2,7 +2,6 @@ import { setupEnvironment } from './helpers/setupEnvironment';
 
 (async function () {
   try {
-    setupEnvironment();
     // Verify critical environment variables are set
     if (!process.env.CUSTOMERS_COLLECTION) {
       throw new Error('CUSTOMERS_COLLECTION environment variable is not set');
