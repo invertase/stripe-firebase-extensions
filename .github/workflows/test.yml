@@ -38,7 +38,7 @@ jobs:
           cd firestore-stripe-web-sdk/_emulator/functions && npm i && cd ../../..
 
       - name: Install Firebase CLI
-        uses: nick-invision/retry@v1
+        uses: nick-invision/retry@v3
         with:
           timeout_minutes: 10
           retry_wait_seconds: 60
