@@ -28,9 +28,9 @@ import {
 import * as logs from './logs';
 import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
-import { stripe, apiVersion } from './config';
+import { stripe } from './config';
 import { createCustomerRecord } from './utils';
-import { handleCheckoutSessionCreation } from './handlers/checkout-session-create';
+import { handleCheckoutSessionCreation } from './handlers/checkout-session-creation';
 
 admin.initializeApp();
 
