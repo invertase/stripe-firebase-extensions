@@ -30,7 +30,7 @@ import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
 
 const apiVersion = '2022-11-15';
-// @ts-ignore
+
 const stripe = new Stripe(config.stripeSecretKey, {
   apiVersion,
   // Register extension as a Stripe plugin
@@ -152,8 +152,14 @@ exports.createCheckoutSession = functions
     } = snap.data();
     try {
       logs.creatingCheckoutSession(context.params.id);
-      // @ts-ignore
-      let customerRecord = (await snap.ref.parent.parent.get()).data();
+
+      const parentRef = snap.ref.parent?.parent;
+      if (!parentRef) {
+        throw new Error(
+          'Invalid document reference, no parent collection found'
+        );
+      }
+      let customerRecord = (await parentRef.get()).data();
       if (!customerRecord?.stripeId) {
         const { email, phoneNumber } = await admin
           .auth()
