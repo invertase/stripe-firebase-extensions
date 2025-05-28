@@ -14,7 +14,10 @@ module.exports = {
   },
   globalSetup: '<rootDir>/__tests__/jest.global-setup.ts',
   globalTeardown: '<rootDir>/__tests__/jest.global-teardown.ts',
-  testMatch: ['**/__tests__/tests/**/*.test.ts'],
+  testMatch:
+    process.env.INTEGRATION_TEST === 'true'
+      ? ['**/__tests__/tests/**/*.test.ts']
+      : ['**/__tests__/tests/unit/**/*.test.ts'],
   testTimeout: 120000,
   collectCoverage: true,
   collectCoverageFrom: [
