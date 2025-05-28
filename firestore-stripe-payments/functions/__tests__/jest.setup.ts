@@ -2,6 +2,11 @@ import { setupEnvironment } from './helpers/setupEnvironment';
 
 (async function () {
   try {
+    // Skip environment checks for non-integration tests
+    if (process.env.INTEGRATION_TEST !== 'true') {
+      return;
+    }
+
     // Verify critical environment variables are set
     if (!process.env.CUSTOMERS_COLLECTION) {
       throw new Error('CUSTOMERS_COLLECTION environment variable is not set');
