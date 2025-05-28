@@ -2,6 +2,10 @@
 
 [chore] - improve tests and CI
 
+[refactor] - internal refactoring for maintainability
+
+[fix] - bump dependencies to fix vulnerabilities (including latest firebase-admin and firebase-functions)
+
 ## Version 0.3.10 - 2025-03-24
 
 [fix] - upgrade resources to node 20
