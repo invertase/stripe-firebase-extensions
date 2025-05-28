@@ -1,18 +1,13 @@
 {
   "compilerOptions": {
-    "module": "ES6",
+    "target": "ES2018",
+    "module": "ESNext",
     "moduleResolution": "node",
     "strict": true,
-    "preserveConstEnums": true,
-    "sourceMap": true,
-    "inlineSources": true,
     "declaration": true,
-    "declarationMap": true,
+    "sourceMap": true,
     "skipLibCheck": true,
-    "target": "ES6",
-    "outDir": "lib",
-    "forceConsistentCasingInFileNames": true,
-    "stripInternal": true
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src/*.ts", "test/*.ts"],
   "exclude": ["node_modules"]
