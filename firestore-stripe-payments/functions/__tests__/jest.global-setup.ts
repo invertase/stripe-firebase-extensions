@@ -11,6 +11,11 @@ declare global {
 }
 
 export default async function globalSetup() {
+  // Skip Stripe setup for non-integration tests
+  if (process.env.INTEGRATION_TEST !== 'true') {
+    console.log('Skipping Stripe setup for unit tests');
+    return;
+  }
   // Load all environment variables
   setupEnvironment();
 
