@@ -1,12 +1,14 @@
-import * as puppeteer from 'puppeteer';
+import { chromium } from 'playwright';
 
 export default async (url: string): Promise<void> => {
   console.info('Running checkout form in headless mode...');
-  const browser = await puppeteer.launch();
+  const browser = await chromium.launch();
   try {
-    const page = await browser.newPage();
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
     await page.goto(url, {
-      waitUntil: 'networkidle0',
+      waitUntil: 'networkidle',
       timeout: 120000,
     });
 
@@ -34,9 +36,10 @@ export default async (url: string): Promise<void> => {
     await page.keyboard.type('CA 94043');
     await page.keyboard.press('Enter');
 
-    await page.waitForNetworkIdle();
+    await page.waitForLoadState('networkidle');
     await browser.close();
   } catch (exception) {
+    console.error('Error during checkout automation:', exception);
   } finally {
     await browser.close();
   }

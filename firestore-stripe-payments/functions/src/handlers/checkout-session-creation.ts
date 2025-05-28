@@ -15,7 +15,7 @@
  */
 
 import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import Stripe from 'stripe';
 import * as logs from '../logs';
 import config, { apiVersion, stripe } from '../config';

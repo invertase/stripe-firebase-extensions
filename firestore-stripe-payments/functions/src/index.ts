@@ -16,7 +16,7 @@
 
 import * as admin from 'firebase-admin';
 import { getEventarc } from 'firebase-admin/eventarc';
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import Stripe from 'stripe';
 import {
   Product,
@@ -455,7 +455,7 @@ const insertPaymentRecord = async (
 /**
  * A webhook handler function for the relevant Stripe events.
  */
-export const handleWebhookEvents = functions.handler.https.onRequest(
+export const handleWebhookEvents = functions.https.onRequest(
   async (req: functions.https.Request, resp) => {
     const relevantEvents = new Set([
       'product.created',
