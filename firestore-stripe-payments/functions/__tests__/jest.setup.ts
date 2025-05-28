@@ -1,6 +1,9 @@
-import { setupEnvironment } from './helpers/setupEnvironment';
-
 (async function () {
+  // Skip Stripe setup for non-integration tests
+  if (process.env.INTEGRATION_TEST !== 'true') {
+    console.log('Skipping Stripe setup for unit tests');
+    return;
+  }
   try {
     // Verify critical environment variables are set
     if (!process.env.CUSTOMERS_COLLECTION) {
