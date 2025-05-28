@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { getEventarc } from 'firebase-admin/eventarc';
 import Stripe from 'stripe';
 
 export interface ExtensionConfig {
@@ -50,5 +51,11 @@ export const stripe = new Stripe(config.stripeSecretKey, {
     version: '0.3.5',
   },
 });
+
+export const eventChannel =
+  process.env.EVENTARC_CHANNEL &&
+  getEventarc().channel(process.env.EVENTARC_CHANNEL, {
+    allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
+  });
 
 export default config;
