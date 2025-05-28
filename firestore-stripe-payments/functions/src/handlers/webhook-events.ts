@@ -31,7 +31,7 @@ import {
 
 export const handleWebhookEvents = async (
   req: functions.https.Request,
-  resp
+  resp: functions.Response
 ) => {
   const relevantEvents = new Set([
     'product.created',
@@ -177,7 +177,7 @@ export const handleWebhookEvents = async (
       logs.webhookHandlerSucceeded(event.id, event.type);
     } catch (error) {
       logs.webhookHandlerError(error, event.id, event.type);
-      resp.json({
+      resp.status(500).json({
         error: 'Webhook handler failed. View function logs in Firebase.',
       });
       return;

@@ -8,6 +8,8 @@
 
 [docs] - update references from @stripe to @invertase in docs
 
+[fix] - provide a 500 code to Stripe in the webhook handler response when appropriate
+
 ## Version 0.3.10 - 2025-03-24
 
 [fix] - upgrade resources to node 20
