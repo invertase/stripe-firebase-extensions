@@ -49,12 +49,16 @@
     "@microsoft/api-documenter": "^7.13.65",
     "@microsoft/api-extractor": "^7.18.17",
     "@vitest/coverage-v8": "^3.1.4",
-    "firebase": "^11.8.1",
+    "firebase-tools": "^14.4.0",
     "jsdom": "^26.1.0",
     "rimraf": "^6.0.1",
     "ts-node": "^10.2.1",
-    "tsup": "^8.5.0",
     "typescript": "^5.8.3",
     "vitest": "^3.1.4"
+  },
+  "dependencies": {
+    "@firebase/app": "^0.13.0",
+    "@firebase/auth": "^1.10.0",
+    "@firebase/firestore": "^4.7.16"
   }
 }
