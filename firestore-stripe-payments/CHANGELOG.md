@@ -6,8 +6,6 @@
 
 [fix] - bump dependencies to fix vulnerabilities (including latest firebase-admin and firebase-functions)
 
-[docs] - update references from @stripe to @invertase in docs
-
 ## Version 0.3.10 - 2025-03-24
 
 [fix] - upgrade resources to node 20
