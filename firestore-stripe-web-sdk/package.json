@@ -2,15 +2,15 @@
   "name": "@invertase/firestore-stripe-payments",
   "version": "0.0.8",
   "description": "Client SDK for the firestore-stripe-payments Firebase Extension",
-  "main": "./lib/index.js",
-  "typings": "./lib/index.d.ts",
-  "scripts": {
-    "api-documenter": "api-documenter markdown --input-folder temp --output-folder markdown",
-    "api-extractor": "api-extractor run --verbose",
-    "api-extractor:local": "npm run build && api-extractor run --local --verbose",
-    "build": "tsc -p tsconfig.build.json",
-    "postbuild": "node ./postbuild.js",
-    "test": "cd _emulator && firebase emulators:exec --project=demo-project \"cd .. && vitest run\""
+  "main": "./lib/index.cjs",
+  "module": "./lib/index.mjs",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.cjs"
+    }
   },
   "keywords": [
     "firebase",
@@ -29,19 +29,30 @@
     "NOTICE.txt",
     "README.md"
   ],
+  "scripts": {
+    "build": "tsup",
+    "prebuild": "rimraf lib",
+    "dev": "tsup --watch",
+    "clean": "rimraf lib",
+    "api-documenter": "api-documenter markdown --input-folder temp --output-folder markdown",
+    "api-extractor": "api-extractor run --verbose",
+    "api-extractor:local": "npm run build && api-extractor run --local --verbose",
+    "test": "cd _emulator && firebase emulators:exec --project=demo-project \"cd .. && vitest run\""
+  },
   "devDependencies": {
+    "@firebase/app": "^0.13.0",
     "@microsoft/api-documenter": "^7.13.65",
     "@microsoft/api-extractor": "^7.18.17",
-    "@vitest/coverage-v8": "^1.2.2",
-    "firebase-tools": "^9.18.0",
+    "@vitest/coverage-v8": "^3.1.4",
+    "firebase-tools": "^14.4.0",
     "jsdom": "^26.1.0",
-    "replace-in-file": "^6.2.0",
+    "rimraf": "^6.0.1",
     "ts-node": "^10.2.1",
-    "typescript": "^4.4.2",
-    "vitest": "^1.2.2"
+    "tsup": "^8.0.2",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
   },
   "dependencies": {
-    "@firebase/app": "^0.11.4",
     "@firebase/auth": "^1.10.0",
     "@firebase/firestore": "^4.7.10"
   }
