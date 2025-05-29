@@ -4,9 +4,9 @@ This example demonstrates how to use the Firestore Stripe Payments SDK with Comm
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and fill in your Firebase configuration:
+1. Copy `src/firebase-config.example.js` to `src/firebase-config.js` and fill in your Firebase configuration:
    ```bash
-   cp .env.example .env
+   cp src/firebase-config.example.js src/firebase-config.js
    ```
 
 2. Install dependencies:
@@ -20,26 +20,6 @@ This example demonstrates how to use the Firestore Stripe Payments SDK with Comm
    ```
 
 4. Open http://localhost:8080 in your browser
-
-## Important Notes
-
-### Development with npm link
-
-If you're developing the SDK locally and using `npm link`, the webpack aliases in `webpack.config.js` are required to prevent multiple Firebase instances:
-
-```javascript
-resolve: {
-  alias: {
-    "firebase/app": path.resolve(__dirname, "node_modules/firebase/app"),
-    "firebase/firestore": path.resolve(__dirname, "node_modules/firebase/firestore"),
-    "firebase/auth": path.resolve(__dirname, "node_modules/firebase/auth"),
-  },
-}
-```
-
-### Production Usage
-
-When installing the SDK from npm (not using npm link), these aliases are not necessary and can be removed from your webpack configuration.
 
 ## Building for Production
 

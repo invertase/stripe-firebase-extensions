@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from "@firebase/app";
-import { Auth, getAuth } from "@firebase/auth";
+import { FirebaseApp } from "firebase/app";
+import { Auth, getAuth } from "firebase/auth";
 import { StripePayments, StripePaymentsError } from "./init";
 
 /**

@@ -4,6 +4,7 @@
   "description": "CommonJS example for firestore-stripe-payments SDK",
   "main": "src/main.js",
   "scripts": {
+    "preinstall": "npm i ./invertase-firestore-stripe-payments-0.0.8.tgz",
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production"
   },
