@@ -15,7 +15,7 @@
   "scripts": {
     "build": "npm run clean && tsup",
     "build:watch": "tsup --watch",
-    "pack-for-examples": "npm run build && npm pack && cp invertase-firestore-stripe-payments-*.tgz examples/cjs/ && mv invertase-firestore-stripe-payments-*.tgz examples/esm/",
+    "pack-for-examples": "node pack-for-examples.js",
     "dev": "tsup --watch",
     "clean": "rimraf lib",
     "api-documenter": "api-documenter markdown --input-folder temp --output-folder markdown",

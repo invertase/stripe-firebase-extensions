@@ -4,12 +4,12 @@
   "description": "CommonJS example for firestore-stripe-payments SDK",
   "main": "src/main.js",
   "scripts": {
-    "preinstall": "npm i ./invertase-firestore-stripe-payments-0.0.8.tgz",
+    "preinstall": "npm i ./invertase-firestore-stripe-payments.tgz",
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production"
   },
   "dependencies": {
-    "@invertase/firestore-stripe-payments": "file:invertase-firestore-stripe-payments-0.0.8.tgz",
+    "@invertase/firestore-stripe-payments": "file:invertase-firestore-stripe-payments.tgz",
     "firebase": "^11.0.0"
   },
   "devDependencies": {
