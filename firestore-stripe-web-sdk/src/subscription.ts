@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from "@firebase/app";
+import { FirebaseApp } from "firebase/app";
 import {
   collection,
   CollectionReference,
@@ -36,7 +36,7 @@ import {
   QuerySnapshot,
   Timestamp,
   where,
-} from "@firebase/firestore";
+} from "firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
 import { getCurrentUser, getCurrentUserSync } from "./user";
 import { checkNonEmptyArray, checkNonEmptyString } from "./utils";

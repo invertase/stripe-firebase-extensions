@@ -1,0 +1,19 @@
+{
+  "name": "firestore-stripe-payments-esm-example",
+  "version": "1.0.0",
+  "description": "ESM example for firestore-stripe-payments SDK with Vite",
+  "type": "module",
+  "scripts": {
+    "preinstall": "npm i ./invertase-firestore-stripe-payments.tgz",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@invertase/firestore-stripe-payments": "file:invertase-firestore-stripe-payments.tgz",
+    "firebase": "^11.0.0"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
+}

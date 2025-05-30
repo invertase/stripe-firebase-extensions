@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from "@firebase/app";
+import { FirebaseApp } from "firebase/app";
 import {
   addDoc,
   collection,
@@ -30,7 +30,7 @@ import {
   QueryDocumentSnapshot,
   Timestamp,
   Unsubscribe,
-} from "@firebase/firestore";
+} from "firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
 import { getCurrentUser } from "./user";
 import {
