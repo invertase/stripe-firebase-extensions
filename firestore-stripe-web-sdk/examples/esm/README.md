@@ -2,15 +2,9 @@
 
 This example demonstrates how to use the Firestore Stripe Payments SDK with ES modules and Vite.
 
-## Features
-
-- ✅ ES Modules (ESM) syntax
-- ✅ Vite for fast development and optimized builds
-- ✅ Modern JavaScript without transpilation overhead
-- ✅ Hot Module Replacement (HMR) during development
-- ✅ Optimized production builds
-
 ## Setup
+
+0. Ensure the web SDK is packed, or install a published version >= v0.0.8
 
 1. Copy `src/firebase-config.example.js` to `src/firebase-config.js` and fill in your Firebase configuration:
    ```bash
@@ -27,7 +21,7 @@ This example demonstrates how to use the Firestore Stripe Payments SDK with ES m
    npm run dev
    ```
 
-4. Open http://localhost:8080 in your browser (Vite will automatically open it)
+4. Open http://localhost:3001 in your browser (Vite will automatically open it)
 
 ## Building for Production
 
@@ -66,27 +60,3 @@ If you encounter issues:
 2. Ensure the `.tgz` file is in the correct location before installing
 3. Check that your Firebase config is correctly set up
 4. Verify that Firebase products are properly configured in your Firebase project
-```
-
-## Key Changes from CommonJS to ESM:
-
-1. **Module System**: 
-   - Changed from `require()` to `import`
-   - Changed from `module.exports` to `export`
-   - Added `"type": "module"` in package.json
-
-2. **Build Tool**:
-   - Replaced Webpack with Vite for better ESM support and faster development
-   - Simpler configuration with Vite's defaults
-
-3. **File Extensions**:
-   - All imports include the `.js` extension (required for native ESM)
-
-4. **Script Loading**:
-   - Uses `<script type="module">` in HTML
-
-5. **Development Experience**:
-   - Faster startup and HMR with Vite
-   - No complex bundler configuration needed
-
-The example maintains the same functionality as the CommonJS version but leverages modern ESM syntax and Vite's development benefits.

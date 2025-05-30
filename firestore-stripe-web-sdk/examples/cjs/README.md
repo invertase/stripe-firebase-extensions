@@ -4,6 +4,8 @@ This example demonstrates how to use the Firestore Stripe Payments SDK with Comm
 
 ## Setup
 
+0. Ensure the web SDK is packed, or install a published version >= v0.0.8
+
 1. Copy `src/firebase-config.example.js` to `src/firebase-config.js` and fill in your Firebase configuration:
    ```bash
    cp src/firebase-config.example.js src/firebase-config.js
@@ -19,7 +21,7 @@ This example demonstrates how to use the Firestore Stripe Payments SDK with Comm
    npm run dev
    ```
 
-4. Open http://localhost:8080 in your browser
+4. Open http://localhost:3002 in your browser
 
 ## Building for Production
 
