@@ -8,5 +8,9 @@ const filename = execSync("npm pack").toString().trim();
 const targetName = "invertase-firestore-stripe-payments.tgz";
 fs.copyFileSync(filename, path.join("examples/cjs", targetName));
 fs.copyFileSync(filename, path.join("examples/esm", targetName));
+fs.copyFileSync(
+  filename,
+  path.join("examples/esm-with-subscriptions", targetName)
+);
 
 fs.unlinkSync(filename);
