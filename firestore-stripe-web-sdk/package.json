@@ -27,7 +27,9 @@
     "firebase",
     "payments",
     "subscriptions",
-    "stripe"
+    "stripe",
+    "typescript",
+    "sdk"
   ],
   "author": "Stripe (https://stripe.com/)",
   "contributors": [
