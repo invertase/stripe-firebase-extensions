@@ -7,13 +7,28 @@ other database interactions necessary to use the extension. Moreover, it provide
 definitions for all the common object types that are used by the extension when processing
 payments.
 
-# API Reference
+## Features
+
+- 🔐 **Authentication Integration**: Seamless integration with Firebase Authentication
+- 🛍️ **Product Management**: List and filter products with their prices
+- 💳 **Subscription Handling**: Create and manage subscriptions
+- 🔄 **Real-time Updates**: Listen for subscription and payment changes
+- 🎯 **Type Safety**: Full TypeScript support with comprehensive type definitions
+- 🔌 **Firebase Integration**: Works with Firebase v9, v10, and v11
+
+## API Reference
 
 [API reference](https://github.com/stripe/stripe-firebase-extensions/blob/next/firestore-stripe-web-sdk/markdown/index.md)
 
-# Example usage
+## Installation
 
-## Initialize the SDK
+```bash
+npm install @invertase/firestore-stripe-payments
+```
+
+## Example usage
+
+### Initialize the SDK
 
 Start by [initializing the Firebase web SDK](https://firebase.google.com/docs/web/setup)
 as usual.
@@ -33,7 +48,7 @@ const payments = getStripePayments(app, {
 });
 ```
 
-## List products and prices
+### List products and prices
 
 To fetch all the active products along with their prices, call the
 `getProducts()` function as follows:
@@ -72,7 +87,7 @@ for (const product of products) {
 }
 ```
 
-## Start a subscription checkout session
+### Start a subscription checkout session
 
 ```js
 import { createCheckoutSession } from "@invertase/firestore-stripe-payments";
@@ -112,7 +127,7 @@ const session = await createCheckoutSession(payments, {
 window.location.assign(session.url);
 ```
 
-## Listen for subscription updates
+### Listen for subscription updates
 
 Once a subscription checkout session has been created, you can listen to the
 Stripe subscription update events as follows:
@@ -132,20 +147,65 @@ onCurrentUserSubscriptionUpdate(
 );
 ```
 
-# Dependencies
+### Get current user's subscriptions
+
+To fetch all subscriptions for the currently signed-in user:
+
+```js
+import { getCurrentUserSubscriptions } from "@invertase/firestore-stripe-payments";
+
+const subscriptions = await getCurrentUserSubscriptions(payments, {
+  status: "active" // Optional: filter by status
+});
+```
+
+## Available Examples
+
+The SDK comes with three example implementations to help you get started:
+
+### 1. CommonJS Example (`/examples/cjs`)
+A basic implementation using CommonJS modules and webpack:
+- Simple product listing
+- Basic checkout functionality
+- Uses webpack for bundling
+- Demonstrates CommonJS module usage
+
+### 2. ESM Example (`/examples/esm`)
+A modern implementation using ES modules and Vite:
+- Product listing with prices
+- Checkout functionality
+- Uses Vite for fast development and building
+- Demonstrates ES module usage
+
+### 3. ESM with Subscriptions (`/examples/esm-with-subscriptions`)
+A complete implementation with subscription features:
+- User authentication
+- Product listing with prices
+- Subscription checkout
+- Real-time subscription monitoring
+- Active subscriptions display
+- Uses Vite for development
+- Demonstrates full subscription lifecycle
+
+To run any of these examples:
+1. Navigate to the example directory
+2. Run `npm install`
+3. Update the Firebase configuration in `src/firebase-config.js`
+4. Run `npm run dev` to start the development server
+
+## Dependencies
 
 * Cloud Firestore (`@firebase/firestore`)
 * Firebase Auth (`@firebase/auth`)
 * Firebase Core (`@firebase/app`)
 
-# Build, test, release
+## Build, test, release
 
-## Prerequisites
+### Prerequisites
 
-* Node.js 12 or higher
-* NPM 6 or higher
+* Node.js 20 or higher
 
-## Development workflows and commands
+### Development workflows and commands
 
 To install the dependencies, run `npm install` in the `firestore-stripe-web-sdk` directory.
 
@@ -153,3 +213,25 @@ Run `npm test` to run all unit and integration tests (usually takes about 15 sec
 
 To build a release artifact, run `npm run build` followed by `npm pack`. The resulting tarball
 can be published to NPM with `npm publish <tarball>`.
+
+### Available Scripts
+
+- `npm run build`: Build the library
+- `npm run build:watch`: Build the library in watch mode
+- `npm run dev`: Start development mode with watch
+- `npm run test`: Run tests using Firebase emulators
+- `npm run clean`: Clean build artifacts
+- `npm run api-extractor`: Generate API documentation
+- `npm run api-documenter`: Generate markdown documentation
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
