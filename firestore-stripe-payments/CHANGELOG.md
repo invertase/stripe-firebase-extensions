@@ -1,3 +1,9 @@
+## Version 0.3.12 - 2025-05-06
+
+[docs] - update firebase snippets to v9 syntax
+
+[docs] - update migration link to 3.12
+
 ## Version 0.3.11 - 2025-05-24
 
 [chore] - improve tests and CI
