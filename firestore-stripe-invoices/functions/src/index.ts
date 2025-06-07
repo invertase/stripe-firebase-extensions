@@ -264,7 +264,7 @@ export const updateInvoice = functions.handler.https.onRequest(
     if (invoicesInFirestore.size !== 1) {
       logs.unexpectedInvoiceAmount(invoicesInFirestore.size, invoice.id);
 
-      resp.status(500).send(`Invoice not found.`);
+      resp.status(404).send(`Invoice not found.`);
       return;
     }
 
