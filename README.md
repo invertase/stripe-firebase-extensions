@@ -4,7 +4,7 @@ It is now recommended to uninstall the `stripe/firestore-stripe-payments` extens
 
 Alternatively, you can also use the following link to convert your current installation to the Invertase version
 
-`https://console.firebase.google.com/project/_/extensions/install?instanceId=STRIPE_EXTENSION_INSTANCE_ID&ref=invertase%2Ffirestore-stripe-payments@0.3.5`
+`https://console.firebase.google.com/project/_/extensions/install?instanceId=STRIPE_EXTENSION_INSTANCE_ID&ref=invertase%2Ffirestore-stripe-payments@0.3.12`
 
 # Stripe Firebase Extensions
 

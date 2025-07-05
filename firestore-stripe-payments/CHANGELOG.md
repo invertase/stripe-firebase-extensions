@@ -1,3 +1,25 @@
+## Version 0.3.12 - 2025-05-06
+
+[docs] - update firebase snippets to v9 syntax
+
+[docs] - update migration link to 3.12
+
+## Version 0.3.11 - 2025-05-24
+
+[chore] - improve tests and CI
+
+[refactor] - internal refactoring for maintainability
+
+[fix] - bump dependencies to fix vulnerabilities (including latest firebase-admin and firebase-functions)
+
+[docs] - update references from @stripe to @invertase in docs
+
+[fix] - provide a 500 code to Stripe in the webhook handler response when appropriate
+
+## Version 0.3.10 - 2025-03-24
+
+[fix] - upgrade resources to node 20
+
 ### Version 0.3.9 - 2024-02-14
 
 [feat] - Allows to specify number of trial period days before initiating checkout flow. Does not depend on the now-legacy trial_from_plan parameter.

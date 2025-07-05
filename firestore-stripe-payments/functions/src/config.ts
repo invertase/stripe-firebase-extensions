@@ -14,14 +14,48 @@
  * limitations under the License.
  */
 
-export default {
-  stripeSecretKey: process.env.STRIPE_API_KEY,
+import { getEventarc } from 'firebase-admin/eventarc';
+import Stripe from 'stripe';
+
+export interface ExtensionConfig {
+  stripeSecretKey: string;
+  stripeWebhookSecret?: string;
+  productsCollectionPath: string;
+  customersCollectionPath: string;
+  stripeConfigCollectionPath?: string;
+  syncUsersOnCreate: boolean;
+  autoDeleteUsers: boolean;
+  minCheckoutInstances: number;
+}
+
+const config: ExtensionConfig = {
+  stripeSecretKey: process.env.STRIPE_API_KEY as string,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
-  productsCollectionPath: process.env.PRODUCTS_COLLECTION,
-  customersCollectionPath: process.env.CUSTOMERS_COLLECTION,
+  productsCollectionPath: process.env.PRODUCTS_COLLECTION as string,
+  customersCollectionPath: process.env.CUSTOMERS_COLLECTION as string,
   stripeConfigCollectionPath: process.env.STRIPE_CONFIG_COLLECTION,
   syncUsersOnCreate: process.env.SYNC_USERS_ON_CREATE === 'Sync',
   autoDeleteUsers: process.env.DELETE_STRIPE_CUSTOMERS === 'Auto delete',
   minCheckoutInstances:
     Number(process.env.CREATE_CHECKOUT_SESSION_MIN_INSTANCES) ?? 0,
 };
+
+export const apiVersion = '2022-11-15';
+
+export const stripe = new Stripe(config.stripeSecretKey, {
+  apiVersion,
+  // Register extension as a Stripe plugin
+  // https://stripe.com/docs/building-plugins#setappinfo
+  appInfo: {
+    name: 'Firebase Invertase firestore-stripe-payments',
+    version: '0.3.5',
+  },
+});
+
+export const eventChannel =
+  process.env.EVENTARC_CHANNEL &&
+  getEventarc().channel(process.env.EVENTARC_CHANNEL, {
+    allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
+  });
+
+export default config;

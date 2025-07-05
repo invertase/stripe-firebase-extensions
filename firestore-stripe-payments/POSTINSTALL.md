@@ -1,6 +1,6 @@
 ### Client SDK
 
-You can use the [`@stripe/firestore-stripe-payments`](https://github.com/stripe/stripe-firebase-extensions/blob/next/firestore-stripe-web-sdk/README.md)
+You can use the [`@invertase/firestore-stripe-payments`](https://github.com/invertase/stripe-firebase-extensions/blob/next/firestore-stripe-web-sdk/README.md)
 JavaScript package to easily access this extension from web clients. This client SDK provides
 TypeScript type definitions and high-level convenience APIs for most common operations client
 applications would want to implement using the extension.
@@ -91,7 +91,7 @@ Here's how to set up the webhook and configure your extension to use it:
    - `invoice.marked_uncollectible` (optional, will sync invoices to Cloud Firestore)
    - `invoice.payment_action_required` (optional, will sync invoices to Cloud Firestore)
 
-2. Using the Firebase console or Firebase CLI, [reconfigure](https://console.firebase.google.com/project/${param:PROJECT_ID}/extensions/instances/${param:EXT_INSTANCE_ID}?tab=config) your extension with your webhook’s signing secret (such as, `whsec_12345678`). Enter the value in the parameter called `Stripe webhook secret`. Make sure you scroll back to the top of the Extension configuration page and click 'Save' otherwise your Stripe webhook secret will not be saved.
+2. Using the Firebase console or Firebase CLI, [reconfigure](https://console.firebase.google.com/project/${param:PROJECT_ID}/extensions/instances/${param:EXT_INSTANCE_ID}?tab=config) your extension with your webhook's signing secret (such as, `whsec_12345678`). Enter the value in the parameter called `Stripe webhook secret`. Make sure you scroll back to the top of the Extension configuration page and click 'Save' otherwise your Stripe webhook secret will not be saved.
 
 #### Create product and pricing information (only required when building on the web platform)
 
@@ -145,10 +145,13 @@ service cloud.firestore {
 Alternatively you can validate their role client-side with the JavaScript SDK. When doing so you need to make sure to force-refresh the user token:
 
 ```js
+import { getAuth } from 'firebase/auth';
+
 async function getCustomClaimRole() {
-  await firebase.auth().currentUser.getIdToken(true);
-  const decodedToken = await firebase.auth().currentUser.getIdTokenResult();
-  return decodedToken.claims.stripeRole;
+  const auth = getAuth();
+  await auth.currentUser?.getIdToken(true);
+  const decodedToken = await auth.currentUser?.getIdTokenResult();
+  return decodedToken?.claims.stripeRole;
 }
 ```
 
@@ -175,37 +178,52 @@ The quickest way to sign-up new users is by using the [FirebaseUI library](https
 Products and pricing information are normal collections and docs in your Cloud Firestore and can be queried as such:
 
 ```js
-db.collection("${param:PRODUCTS_COLLECTION}")
-  .where("active", "==", true)
-  .get()
-  .then(function (querySnapshot) {
-    querySnapshot.forEach(async function (doc) {
-      console.log(doc.id, " => ", doc.data());
-      const priceSnap = await doc.ref.collection("prices").get();
-      priceSnap.docs.forEach((doc) => {
-        console.log(doc.id, " => ", doc.data());
-      });
-    });
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const productsQuery = query(
+  collection(db, "${param:PRODUCTS_COLLECTION}"),
+  where("active", "==", true)
+);
+
+const querySnapshot = await getDocs(productsQuery);
+querySnapshot.forEach(async (doc) => {
+  console.log(doc.id, " => ", doc.data());
+  const priceSnap = await getDocs(collection(doc.ref, "prices"));
+  priceSnap.forEach((priceDoc) => {
+    console.log(priceDoc.id, " => ", priceDoc.data());
   });
+});
 ```
 
 ### One-time payments on the web
 
 You can create Checkout Sessions for one-time payments when referencing a one-time price ID. One-time payments will be synced to Cloud Firestore into a payments collection for the relevant customer doc if you update your webhook handler in the Stripe dashboard to include the following events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `payment_intent.processing`.
 
-To create a Checkout Session ID for a one-time payment, pass `mode: 'payment` to the Checkout Session doc creation:
+To create a Checkout Session ID for a one-time payment, pass `mode: 'payment'` to the Checkout Session doc creation:
 
 ```js
-const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
-  .doc(currentUser.uid)
-  .collection("checkout_sessions")
-  .add({
+import { collection, doc, addDoc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const docRef = await addDoc(
+  collection(
+    db,
+    "${param:CUSTOMERS_COLLECTION}",
+    currentUser.uid,
+    "checkout_sessions"
+  ),
+  {
     mode: "payment",
     price: "price_1GqIC8HYgolSBA35zoTTN2Zl", // One-time price created in Stripe
     success_url: window.location.origin,
     cancel_url: window.location.origin,
-  });
+  }
+);
 ```
 
 ### Mobile payments (with the mobile payment sheet on iOS and Android)
@@ -219,7 +237,7 @@ To create a one time payment in your mobile application, create a new doc in you
 - amount: [{payment amount}](https://stripe.com/docs/api/payment_intents/object#payment_intent_object-amount)
 - currency: [{currency code}](https://stripe.com/docs/api/payment_intents/object#payment_intent_object-currency)
 
-Then listen for the extension to append `paymentIntentClientSecret`, `ephemeralKeySecret`, and `customer` to the doc and use these to [integrate the mobile payment sheet](https://stripe.com/docs/payments/accept-a-payment?platform=ios&ui=payment-sheet#integrate-payment-sheet).
+Then listen for the extension to append `paymentIntentClientSecret`, `ephemeralKeySecret`, and `customer` to the doc and use these to [integrate the mobile payment sheet](https://stripe.com/docs/payments/accept-a-payment?platform=ios&ui=payment-sheet).
 
 #### Set up a payment method for future usage
 
@@ -228,7 +246,7 @@ You can collect a payment method from your customer to charge it at a later poin
 - client: 'mobile'
 - mode: 'setup'
 
-Then listen for the extension to append `setupIntentClientSecret`, `ephemeralKeySecret`, and `customer` to the doc and use these to [integrate the mobile payment sheet](https://stripe.com/docs/payments/accept-a-payment?platform=ios&ui=payment-sheet#integrate-payment-sheet).
+Then listen for the extension to append `setupIntentClientSecret`, `ephemeralKeySecret`, and `customer` to the doc and use these to [integrate the mobile payment sheet](https://stripe.com/docs/payments/accept-a-payment?platform=ios&ui=payment-sheet).
 
 ### Subscription payments (web only)
 
@@ -237,17 +255,27 @@ Then listen for the extension to append `setupIntentClientSecret`, `ephemeralKey
 To subscribe the user to a specific pricing plan, create a new doc in the `checkout_sessions` collection for the user. The extension will update the doc with a Stripe Checkout session ID which you then use to redirect the user to the checkout page.
 
 ```js
-const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
-  .doc(currentUser.uid)
-  .collection("checkout_sessions")
-  .add({
+import { collection, doc, addDoc, onSnapshot } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const docRef = await addDoc(
+  collection(
+    db,
+    "${param:CUSTOMERS_COLLECTION}",
+    currentUser.uid,
+    "checkout_sessions"
+  ),
+  {
     price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
     success_url: window.location.origin,
     cancel_url: window.location.origin,
-  });
+  }
+);
+
 // Wait for the CheckoutSession to get attached by the extension
-docRef.onSnapshot((snap) => {
+onSnapshot(docRef, (snap) => {
   const { error, url } = snap.data();
   if (error) {
     // Show an error to your customer and
@@ -266,16 +294,25 @@ docRef.onSnapshot((snap) => {
 You can specify subscription trial period when creating the checkout session by using the `trial_period_days` parameter. Refer to the [docs](https://stripe.com/docs/payments/checkout/free-trials) for a detailed guide on free trials and how to set them up.
 
 ```js
-const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
-  .doc(currentUser)
-  .collection("checkout_sessions")
-  .add({
+import { collection, doc, addDoc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const docRef = await addDoc(
+  collection(
+    db,
+    "${param:CUSTOMERS_COLLECTION}",
+    currentUser.uid,
+    "checkout_sessions"
+  ),
+  {
     price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
     trial_period_days: 7,
     success_url: window.location.origin,
     cancel_url: window.location.origin,
-  });
+  }
+);
 ```
 
 #### Applying discount, coupon, promotion codes
@@ -285,16 +322,25 @@ You can create customer-facing promotion codes in the [Stripe Dashboard](https:/
 In order for the promotion code redemption box to show up on the checkout page, set `allow_promotion_codes: true` when creating the `checkout_sessions` document:
 
 ```js
-const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
-  .doc(currentUser)
-  .collection("checkout_sessions")
-  .add({
+import { collection, doc, addDoc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const docRef = await addDoc(
+  collection(
+    db,
+    "${param:CUSTOMERS_COLLECTION}",
+    currentUser.uid,
+    "checkout_sessions"
+  ),
+  {
     price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
     allow_promotion_codes: true,
     success_url: window.location.origin,
     cancel_url: window.location.origin,
-  });
+  }
+);
 ```
 
 #### Applying promotion codes programmatically
@@ -304,16 +350,25 @@ You can set a [promotion code](https://stripe.com/docs/billing/subscriptions/dis
 **_NOTE_**: anyone with access to a promotion code ID would be able to apply it to their checkout session. Therefore make sure to limit your promotion codes and archive any codes you don't want to offer anymore.
 
 ```js
-const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
-  .doc(currentUser.uid)
-  .collection("checkout_sessions")
-  .add({
+import { collection, doc, addDoc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const docRef = await addDoc(
+  collection(
+    db,
+    "${param:CUSTOMERS_COLLECTION}",
+    currentUser.uid,
+    "checkout_sessions"
+  ),
+  {
     promotion_code: "promo_1HCrfVHYgolSBA35b1q98MNk",
     price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
     success_url: window.location.origin,
     cancel_url: window.location.origin,
-  });
+  }
+);
 ```
 
 #### Automatic tax calculation with [Stripe Tax](https://stripe.com/tax)
@@ -325,29 +380,46 @@ Stripe Tax lets you calculate and collect sales tax, VAT, and GST. Know where to
 3. Enable automatic tax calculation when creating your `checkout_sessions` docs:
 
 ```js
-const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
-  .doc(currentUser.uid)
-  .collection("checkout_sessions")
-  .add({
+import { collection, doc, addDoc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const docRef = await addDoc(
+  collection(
+    db,
+    "${param:CUSTOMERS_COLLECTION}",
+    currentUser.uid,
+    "checkout_sessions"
+  ),
+  {
     automatic_tax: true, // Automatically calculate tax based on the customer's address
     tax_id_collection: true, // Collect the customer's tax ID (important for B2B transactions)
     price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
     success_url: window.location.origin,
     cancel_url: window.location.origin,
-  });
+  }
+);
 ```
 
 #### Applying tax rates dynamically
 
-Stripe Checkout supports applying the correct tax rate for customers in US, GB, AU, and all countries in the EU. With [dynamic tax rates](https://stripe.com/docs/billing/subscriptions/taxes#adding-tax-rates-to-checkout), you create tax rates for different regions (e.g., a 20% VAT tax rate for customers in the UK and a 7.25% sales tax rate for customers in California, US) and Stripe attempts to match your customer’s location to one of those tax rates.
+Stripe Checkout supports applying the correct tax rate for customers in US, GB, AU, and all countries in the EU. With [dynamic tax rates](https://stripe.com/docs/billing/subscriptions/taxes#adding-tax-rates-to-checkout), you create tax rates for different regions (e.g., a 20% VAT tax rate for customers in the UK and a 7.25% sales tax rate for customers in California, US) and Stripe attempts to match your customer's location to one of those tax rates.
 
 ```js
-const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
-  .doc(currentUser)
-  .collection("checkout_sessions")
-  .add({
+import { collection, doc, addDoc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const docRef = await addDoc(
+  collection(
+    db,
+    "${param:CUSTOMERS_COLLECTION}",
+    currentUser.uid,
+    "checkout_sessions"
+  ),
+  {
     line_items: [
       {
         price: "price_1HCUD4HYgolSBA35icTHEXd5",
@@ -361,7 +433,8 @@ const docRef = await db
     ],
     success_url: window.location.origin,
     cancel_url: window.location.origin,
-  });
+  }
+);
 ```
 
 #### Applying static tax rates
@@ -369,16 +442,25 @@ const docRef = await db
 You can collect and report taxes with [Tax Rates](https://stripe.com/docs/billing/taxes/tax-rates). To apply tax rates to the subscription, you first need to create your tax rates in the [Stripe Dashboard](https://dashboard.stripe.com/tax-rates). When creating a new `checkout_sessions` document, specify the optional `tax_rates` list with [up to five](https://stripe.com/docs/billing/taxes/tax-rates#using-multiple-tax-rates) tax rate IDs:
 
 ```js
-const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
-  .doc(currentUser)
-  .collection("checkout_sessions")
-  .add({
+import { collection, doc, addDoc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const docRef = await addDoc(
+  collection(
+    db,
+    "${param:CUSTOMERS_COLLECTION}",
+    currentUser.uid,
+    "checkout_sessions"
+  ),
+  {
     price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
     tax_rates: ["txr_1HCjzTHYgolSBA35m0e1tJN5"],
     success_url: window.location.origin,
     cancel_url: window.location.origin,
-  });
+  }
+);
 ```
 
 #### Collecting a shipping address during checkout
@@ -388,16 +470,25 @@ To collect a shipping address from your customer during checkout, you need to cr
 Secondly, you need to add `collect_shipping_address: true` to the Checkout Session doc creation:
 
 ```js
-const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
-  .doc(currentUser.uid)
-  .collection("checkout_sessions")
-  .add({
+import { collection, doc, addDoc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const docRef = await addDoc(
+  collection(
+    db,
+    "${param:CUSTOMERS_COLLECTION}",
+    currentUser.uid,
+    "checkout_sessions"
+  ),
+  {
     collect_shipping_address: true,
     price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
     success_url: window.location.origin,
     cancel_url: window.location.origin,
-  });
+  }
+);
 ```
 
 #### Setting metadata on the subscription
@@ -405,18 +496,27 @@ const docRef = await db
 You can optionally set a metadata object with key-value pairs when creating the checkout session. This can be useful for storing additional information about the customer's subscription. This metadata will be synced to both the Stripe subscription object (making it searchable in the Stripe Dashboard) and the subscription document in the Cloud Firestore.
 
 ```js
-const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
-  .doc(currentUser)
-  .collection("checkout_sessions")
-  .add({
+import { collection, doc, addDoc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const docRef = await addDoc(
+  collection(
+    db,
+    "${param:CUSTOMERS_COLLECTION}",
+    currentUser.uid,
+    "checkout_sessions"
+  ),
+  {
     price: "price_1GqIC8HYgolSBA35zoTTN2Zl",
     success_url: window.location.origin,
     cancel_url: window.location.origin,
     metadata: {
       item: "item001",
     },
-  });
+  }
+);
 ```
 
 #### Adding multiple prices, including one-time setup fees
@@ -424,11 +524,19 @@ const docRef = await db
 In addition to recurring prices, you can add one-time prices. These will only be on the initial invoice. This is useful for adding setup fees or other one-time fees associated with a subscription. To do so you will need to pass a `line_items` array instead:
 
 ```js
-const docRef = await db
-  .collection("${param:CUSTOMERS_COLLECTION}")
-  .doc(currentUser)
-  .collection("checkout_sessions")
-  .add({
+import { collection, doc, addDoc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const docRef = await addDoc(
+  collection(
+    db,
+    "${param:CUSTOMERS_COLLECTION}",
+    currentUser.uid,
+    "checkout_sessions"
+  ),
+  {
     line_items: [
       {
         price: "price_1HCUD4HYgolSBA35icTHEXd5", // RECURRING_PRICE_ID
@@ -443,7 +551,8 @@ const docRef = await db
     ],
     success_url: window.location.origin,
     cancel_url: window.location.origin,
-  });
+  }
+);
 ```
 
 **_NOTE_**: If you specify more than one recurring price in the `line_items` array, the subscription object in Cloud Firestore will list all recurring prices in the `prices` array. The `price` attribute on the subscription in Cloud Firestore will be equal to the first item in the `prices` array: `price === prices[0]`.
@@ -461,15 +570,21 @@ In order for this to work, Firebase Authentication users need to be synced with 
 Subscription details are synced to the `subscriptions` sub-collection in the user's corresponding customer doc.
 
 ```js
-db.collection("${param:CUSTOMERS_COLLECTION}")
-  .doc(currentUser.uid)
-  .collection("subscriptions")
-  .where("status", "in", ["trialing", "active"])
-  .onSnapshot(async (snapshot) => {
-    // In this implementation we only expect one active or trialing subscription to exist.
-    const doc = snapshot.docs[0];
-    console.log(doc.id, " => ", doc.data());
-  });
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+const db = getFirestore();
+
+const subscriptionsQuery = query(
+  collection(db, "${param:CUSTOMERS_COLLECTION}", currentUser.uid, "subscriptions"),
+  where("status", "in", ["trialing", "active"])
+);
+
+onSnapshot(subscriptionsQuery, (snapshot) => {
+  // In this implementation we only expect one active or trialing subscription to exist.
+  const doc = snapshot.docs[0];
+  console.log(doc.id, " => ", doc.data());
+});
 ```
 
 #### Redirect to the customer portal
@@ -477,11 +592,12 @@ db.collection("${param:CUSTOMERS_COLLECTION}")
 Once a customer is subscribed you should show them a button to access the customer portal to view their invoices and manage their payment & subscription details. When the user clicks that button, call the `createPortalLink` function to get a portal link for them, then redirect them.
 
 ```js
-const functionRef = firebase
-  .app()
-  .functions("${param:LOCATION}")
-  .httpsCallable("${function:createPortalLink.name}");
-const { data } = await functionRef({
+import { getFunctions, httpsCallable } from 'firebase/functions';
+
+const functions = getFunctions();
+const createPortalLink = httpsCallable(functions, 'ext-${param:EXT_INSTANCE_ID}-createPortalLink');
+
+const { data } = await createPortalLink({
   returnUrl: window.location.origin,
   locale: "auto", // Optional, defaults to "auto"
   configuration: "bpc_1JSEAKHYgolSBA358VNoc2Hs", // Optional ID of a portal configuration: https://stripe.com/docs/api/customer_portal/configuration
