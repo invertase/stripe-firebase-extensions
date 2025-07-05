@@ -43,7 +43,7 @@ the Firebase Web SDK.
 
 ### Events
 
-This extension emits events, which allows you to listen to and run custom logic at different trigger points during the functioning of the extension. For example you can listen to events when a product has been added via the `product.created` event, or whenever a payment has succeeded through the `invoice.payment_succeeded` event.
+This extension emits events, which allows you to listen to and run custom logic at different trigger points during the functioning of the extension. For example, you can listen to events when a product has been added via the `product.created` event, or whenever a payment has succeeded through the `invoice.payment_succeeded` event.
 
 #### Additional setup
 
@@ -99,7 +99,7 @@ Starting August 17 2020, you will be billed a small amount (typically less than 
 
 - Stripe webhook secret: This is your signing secret for a Stripe-registered webhook. This webhook can only be registered after installation. Leave this value untouched during installation, then follow the postinstall instructions for registering your webhook and configuring this value.
 
-- Minimum instances for createCheckoutSession function: Set the minimum number of function instances that should be always be available to create Checkout Sessions. This number can be adjusted to reduce cold starts and increase the responsiveness of Checkout Session creation requests. Suggested values are 0 or 1. Please note this setting will likely incur billing costss, see the [Firebase documentation](https://firebase.google.com/docs/functions/manage-functions#reduce_the_number_of_cold_starts) for more information.
+- Minimum instances for createCheckoutSession function: Set the minimum number of function instances that should be always be available to create Checkout Sessions. This number can be adjusted to reduce cold starts and increase the responsiveness of Checkout Session creation requests. Suggested values are 0 or 1. Please note this setting will likely incur billing costs, see the [Firebase documentation](https://firebase.google.com/docs/functions/manage-functions#reduce_the_number_of_cold_starts) for more information.
 
 **Cloud Functions:**
 
