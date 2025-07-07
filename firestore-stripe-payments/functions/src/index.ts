@@ -20,7 +20,7 @@ import Stripe from 'stripe';
 import * as logs from './logs';
 import config from './config';
 import { Timestamp } from 'firebase-admin/firestore';
-import { stripe, eventChannel } from './config';
+import { stripe, getEventChannel } from './config';
 import {
   createCustomerRecord,
   createProductRecord,
@@ -34,6 +34,8 @@ import {
 import { handleCheckoutSessionCreation } from './handlers/checkout-session-creation';
 
 admin.initializeApp();
+
+const eventChannel = getEventChannel();
 
 exports.createCustomer = functions.auth
   .user()

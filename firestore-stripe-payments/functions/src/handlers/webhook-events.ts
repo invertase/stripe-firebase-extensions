@@ -18,7 +18,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions/v1';
 import Stripe from 'stripe';
 import * as logs from '../logs';
-import config, { eventChannel, stripe } from '../config';
+import config, { getEventChannel, stripe } from '../config';
 import {
   createProductRecord,
   deleteProductOrPrice,
@@ -33,6 +33,9 @@ export const handleWebhookEvents = async (
   req: functions.https.Request,
   resp: functions.Response
 ) => {
+  // Initialize event channel after Firebase Admin is ready
+  const eventChannel = getEventChannel();
+  
   const relevantEvents = new Set([
     'product.created',
     'product.updated',
