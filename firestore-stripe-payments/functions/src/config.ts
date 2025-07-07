@@ -53,10 +53,12 @@ export const stripe = new Stripe(config.stripeSecretKey, {
 });
 
 export const getEventChannel = () => {
-  return process.env.EVENTARC_CHANNEL &&
+  return (
+    process.env.EVENTARC_CHANNEL &&
     getEventarc().channel(process.env.EVENTARC_CHANNEL, {
       allowedEventTypes: process.env.EXT_SELECTED_EVENTS,
-    });
+    })
+  );
 };
 
 export default config;

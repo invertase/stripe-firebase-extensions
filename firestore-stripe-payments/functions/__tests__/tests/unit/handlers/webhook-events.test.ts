@@ -67,7 +67,7 @@ describe('Webhook Events Handler', () => {
     expect(logs.webhookHandlerError).toHaveBeenCalledWith(
       expect.any(Error),
       'evt_123',
-      'product.created'
+      'product.created',
     );
 
     expect(mockResponse.statusCode).toBe(500);

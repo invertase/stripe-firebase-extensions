@@ -41,7 +41,7 @@ export const prefixMetadata = (metadata: object) =>
  * Create a Product record in Firestore based on a Stripe Product object.
  */
 export const createProductRecord = async (
-  product: Stripe.Product
+  product: Stripe.Product,
 ): Promise<void> => {
   const { firebaseRole, ...rawMetadata } = product.metadata;
 
@@ -112,7 +112,7 @@ export const createCustomerRecord = async ({
  * Copies the billing details from the payment method to the customer object.
  */
 const copyBillingDetailsToCustomer = async (
-  payment_method: Stripe.PaymentMethod
+  payment_method: Stripe.PaymentMethod,
 ): Promise<void> => {
   const customer = payment_method.customer as string;
   const { name, phone, address } = payment_method.billing_details;
@@ -126,7 +126,7 @@ const copyBillingDetailsToCustomer = async (
 export const manageSubscriptionStatusChange = async (
   subscriptionId: string,
   customerId: string,
-  createAction: boolean
+  createAction: boolean,
 ): Promise<void> => {
   // Get customer's UID from Firestore
   const customersSnap = await admin
@@ -152,7 +152,7 @@ export const manageSubscriptionStatusChange = async (
         .collection(config.productsCollectionPath)
         .doc((item.price.product as Stripe.Product).id)
         .collection('prices')
-        .doc(item.price.id)
+        .doc(item.price.id),
     );
   }
   const product: Stripe.Product = price.product as Stripe.Product;
@@ -191,10 +191,10 @@ export const manageSubscriptionStatusChange = async (
       ? Timestamp.fromMillis(subscription.canceled_at * 1000)
       : null,
     current_period_start: Timestamp.fromMillis(
-      subscription.current_period_start * 1000
+      subscription.current_period_start * 1000,
     ),
     current_period_end: Timestamp.fromMillis(
-      subscription.current_period_end * 1000
+      subscription.current_period_end * 1000,
     ),
     created: Timestamp.fromMillis(subscription.created * 1000),
     ended_at: subscription.ended_at
@@ -238,7 +238,7 @@ export const manageSubscriptionStatusChange = async (
   // Copy the billing deatils to the customer object.
   if (createAction && subscription.default_payment_method) {
     await copyBillingDetailsToCustomer(
-      subscription.default_payment_method as Stripe.PaymentMethod
+      subscription.default_payment_method as Stripe.PaymentMethod,
     );
   }
 
@@ -286,7 +286,7 @@ export const insertPriceRecord = async (price: Stripe.Price): Promise<void> => {
  * Insert tax rates into the products collection in Cloud Firestore.
  */
 export const insertTaxRateRecord = async (
-  taxRate: Stripe.TaxRate
+  taxRate: Stripe.TaxRate,
 ): Promise<void> => {
   const taxRateData: TaxRate = {
     ...taxRate,
@@ -337,7 +337,7 @@ export const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
         .doc(item.price.product as string)
         .collection('prices')
         // @ts-ignore
-        .doc(item.price.id)
+        .doc(item.price.id),
     );
   }
 
@@ -357,7 +357,7 @@ export const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
  */
 export const insertPaymentRecord = async (
   payment: Stripe.PaymentIntent,
-  checkoutSession?: Stripe.Checkout.Session
+  checkoutSession?: Stripe.Checkout.Session,
 ) => {
   // Get customer's UID from Firestore
   const customersSnap = await admin
@@ -370,7 +370,7 @@ export const insertPaymentRecord = async (
   }
   if (checkoutSession) {
     const lineItems = await stripe.checkout.sessions.listLineItems(
-      checkoutSession.id
+      checkoutSession.id,
     );
     const prices = [];
     for (const item of lineItems.data) {
@@ -383,7 +383,7 @@ export const insertPaymentRecord = async (
           .doc(item.price.product as string)
           .collection('prices')
           // @ts-ignore
-          .doc(item.price.id)
+          .doc(item.price.id),
       );
     }
     payment['prices'] = prices;
@@ -401,7 +401,7 @@ export const insertPaymentRecord = async (
  * Delete a product or price from Firestore.
  */
 export const deleteProductOrPrice = async (
-  pr: Stripe.Product | Stripe.Price
+  pr: Stripe.Product | Stripe.Price,
 ) => {
   if (pr.object === 'product') {
     await admin

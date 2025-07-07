@@ -57,7 +57,7 @@ exports.createCheckoutSession = functions
     minInstances: config.minCheckoutInstances,
   })
   .firestore.document(
-    `/${config.customersCollectionPath}/{uid}/checkout_sessions/{id}`
+    `/${config.customersCollectionPath}/{uid}/checkout_sessions/{id}`,
   )
   .onCreate(handleCheckoutSessionCreation);
 
@@ -72,7 +72,7 @@ export const createPortalLink = functions.https.onCall(
       // Throwing an HttpsError so that the client gets the error details.
       throw new functions.https.HttpsError(
         'unauthenticated',
-        'The function must be called while authenticated!'
+        'The function must be called while authenticated!',
       );
     }
     try {
@@ -126,7 +126,7 @@ export const createPortalLink = functions.https.onCall(
       logs.billingPortalLinkCreationError(uid, error);
       throw new functions.https.HttpsError('internal', error.message);
     }
-  }
+  },
 );
 
 /**
@@ -171,7 +171,7 @@ export const handleWebhookEvents = functions.https.onRequest(
         req.rawBody,
         // @ts-ignore
         req.headers['stripe-signature'],
-        config.stripeWebhookSecret
+        config.stripeWebhookSecret,
       );
     } catch (error) {
       logs.badWebhookSecret(error);
@@ -208,7 +208,7 @@ export const handleWebhookEvents = functions.https.onRequest(
             await manageSubscriptionStatusChange(
               subscription.id,
               subscription.customer as string,
-              event.type === 'customer.subscription.created'
+              event.type === 'customer.subscription.created',
             );
             break;
           case 'checkout.session.completed':
@@ -221,13 +221,12 @@ export const handleWebhookEvents = functions.https.onRequest(
               await manageSubscriptionStatusChange(
                 subscriptionId,
                 checkoutSession.customer as string,
-                true
+                true,
               );
             } else {
               const paymentIntentId = checkoutSession.payment_intent as string;
-              const paymentIntent = await stripe.paymentIntents.retrieve(
-                paymentIntentId
-              );
+              const paymentIntent =
+                await stripe.paymentIntents.retrieve(paymentIntentId);
               await insertPaymentRecord(paymentIntent, checkoutSession);
             }
             if (checkoutSession.tax_id_collection?.enabled) {
@@ -240,7 +239,7 @@ export const handleWebhookEvents = functions.https.onRequest(
                 customersSnap.docs[0].ref.set(
                   // @ts-ignore
                   checkoutSession.customer_details,
-                  { merge: true }
+                  { merge: true },
                 );
               }
             }
@@ -265,7 +264,7 @@ export const handleWebhookEvents = functions.https.onRequest(
             logs.webhookHandlerError(
               new Error('Unhandled relevant event!'),
               event.id,
-              event.type
+              event.type,
             );
         }
 
@@ -288,7 +287,7 @@ export const handleWebhookEvents = functions.https.onRequest(
 
     // Return a response to Stripe to acknowledge receipt of the event.
     resp.json({ received: true });
-  }
+  },
 );
 
 const deleteStripeCustomer = async ({

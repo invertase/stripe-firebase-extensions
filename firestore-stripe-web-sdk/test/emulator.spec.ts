@@ -599,9 +599,8 @@ describe("Emulator tests", () => {
       });
 
       it("should return all subscriptions when called without options", async () => {
-        const subs: Subscription[] = await getCurrentUserSubscriptions(
-          payments
-        );
+        const subs: Subscription[] =
+          await getCurrentUserSubscriptions(payments);
 
         const expected: Subscription[] = [
           { ...subscription1, uid: currentUser },

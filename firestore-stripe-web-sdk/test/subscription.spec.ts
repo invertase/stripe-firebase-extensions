@@ -139,9 +139,8 @@ describe("getCurrentUserSubscriptions()", () => {
     const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
-    const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
-      payments
-    );
+    const subscriptions: Subscription[] =
+      await getCurrentUserSubscriptions(payments);
 
     expect(subscriptions).toEqual([subscription1, subscription2]);
     expect(fake).toHaveBeenCalledTimes(1);
@@ -156,9 +155,8 @@ describe("getCurrentUserSubscriptions()", () => {
     const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
-    const subscriptions: Subscription[] = await getCurrentUserSubscriptions(
-      payments
-    );
+    const subscriptions: Subscription[] =
+      await getCurrentUserSubscriptions(payments);
 
     expect(subscriptions).toEqual([]);
     expect(fake).toHaveBeenCalledTimes(1);

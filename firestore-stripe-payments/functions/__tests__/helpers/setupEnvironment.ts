@@ -3,12 +3,12 @@ import dotenv from 'dotenv';
 
 export const pathToEnvFile = path.resolve(
   __dirname,
-  '../../../_emulator/extensions/firestore-stripe-payments.env.local'
+  '../../../_emulator/extensions/firestore-stripe-payments.env.local',
 );
 
 export const pathToSecretsFile = path.resolve(
   __dirname,
-  '../../../_emulator/extensions/firestore-stripe-payments.secret.local'
+  '../../../_emulator/extensions/firestore-stripe-payments.secret.local',
 );
 
 export const setupEnvironment = () => {
