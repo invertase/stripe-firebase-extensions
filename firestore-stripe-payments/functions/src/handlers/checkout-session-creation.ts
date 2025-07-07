@@ -91,7 +91,7 @@ export const handleCheckoutSessionCreation = async (
       // Get shipping countries
       const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] =
         collect_shipping_address
-          ? (
+          ? ((
               await admin
                 .firestore()
                 .collection(
@@ -100,7 +100,7 @@ export const handleCheckoutSessionCreation = async (
                 )
                 .doc('shipping_countries')
                 .get()
-            ).data()?.['allowed_countries'] ?? []
+            ).data()?.['allowed_countries'] ?? [])
           : [];
       const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
         billing_address_collection,
