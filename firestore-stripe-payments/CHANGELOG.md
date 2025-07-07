@@ -4,6 +4,8 @@
 
 [docs] - update migration link to 3.12
 
+[fix] - move intializeApp call before initializing eventArc
+
 ## Version 0.3.11 - 2025-05-24
 
 [chore] - improve tests and CI
