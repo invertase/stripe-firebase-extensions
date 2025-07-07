@@ -34,7 +34,7 @@ describe('webhook events', () => {
       const productDoc: DocumentData = await waitForDocumentToExistInCollection(
         collection,
         'name',
-        product.name
+        product.name,
       );
 
       expect(productDoc.doc.data().name).toBe(product.name);
@@ -50,7 +50,7 @@ describe('webhook events', () => {
       const updated = await waitForDocumentUpdate(
         doc,
         'name',
-        `updated_${product.name}`
+        `updated_${product.name}`,
       );
 
       expect(updated.data().name).toBe(updatedProduct.name);

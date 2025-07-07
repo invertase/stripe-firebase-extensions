@@ -18,7 +18,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions/v1';
 import Stripe from 'stripe';
 import * as logs from '../logs';
-import config, { eventChannel, stripe } from '../config';
+import config, { getEventChannel, stripe } from '../config';
 import {
   createProductRecord,
   deleteProductOrPrice,
@@ -31,8 +31,11 @@ import {
 
 export const handleWebhookEvents = async (
   req: functions.https.Request,
-  resp: functions.Response
+  resp: functions.Response,
 ) => {
+  // Initialize event channel after Firebase Admin is ready
+  const eventChannel = getEventChannel();
+
   const relevantEvents = new Set([
     'product.created',
     'product.updated',
@@ -70,7 +73,7 @@ export const handleWebhookEvents = async (
       req.rawBody,
       // @ts-ignore
       req.headers['stripe-signature'],
-      config.stripeWebhookSecret
+      config.stripeWebhookSecret,
     );
   } catch (error) {
     logs.badWebhookSecret(error);
@@ -107,7 +110,7 @@ export const handleWebhookEvents = async (
           await manageSubscriptionStatusChange(
             subscription.id,
             subscription.customer as string,
-            event.type === 'customer.subscription.created'
+            event.type === 'customer.subscription.created',
           );
           break;
         case 'checkout.session.completed':
@@ -119,13 +122,12 @@ export const handleWebhookEvents = async (
             await manageSubscriptionStatusChange(
               subscriptionId,
               checkoutSession.customer as string,
-              true
+              true,
             );
           } else {
             const paymentIntentId = checkoutSession.payment_intent as string;
-            const paymentIntent = await stripe.paymentIntents.retrieve(
-              paymentIntentId
-            );
+            const paymentIntent =
+              await stripe.paymentIntents.retrieve(paymentIntentId);
             await insertPaymentRecord(paymentIntent, checkoutSession);
           }
           if (checkoutSession.tax_id_collection?.enabled) {
@@ -138,7 +140,7 @@ export const handleWebhookEvents = async (
               customersSnap.docs[0].ref.set(
                 // @ts-ignore
                 checkoutSession.customer_details,
-                { merge: true }
+                { merge: true },
               );
             }
           }
@@ -163,7 +165,7 @@ export const handleWebhookEvents = async (
           logs.webhookHandlerError(
             new Error('Unhandled relevant event!'),
             event.id,
-            event.type
+            event.type,
           );
       }
 

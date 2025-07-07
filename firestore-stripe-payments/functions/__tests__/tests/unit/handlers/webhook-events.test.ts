@@ -1,6 +1,7 @@
 import * as logs from '../../../../src/logs';
 import { handleWebhookEvents } from '../../../../src/handlers/webhook-events';
 import * as httpMocks from 'node-mocks-http';
+import { getEventChannel } from '../../../../src/config';
 
 // Firebase functions will add rawBody to the request object before it reaches the handler
 declare module 'express' {
@@ -27,7 +28,7 @@ jest.mock('../../../../src/config', () => ({
       retrieve: jest.fn(),
     },
   },
-  eventChannel: null,
+  getEventChannel: () => null,
 }));
 
 jest.mock('firebase-admin', () => ({
@@ -66,7 +67,7 @@ describe('Webhook Events Handler', () => {
     expect(logs.webhookHandlerError).toHaveBeenCalledWith(
       expect.any(Error),
       'evt_123',
-      'product.created'
+      'product.created',
     );
 
     expect(mockResponse.statusCode).toBe(500);
