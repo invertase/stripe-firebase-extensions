@@ -1,15 +1,10 @@
-api-extractor.json
-package.json
-extension.yaml
-package-lock.json
 
-**/node_modules/**
 
-# generated files
-README.md
-**/etc/**
-**/functions/lib/**
-**/lib/**
-**/dist/**
+
+
+
+
+
+
 intel pcm
 
