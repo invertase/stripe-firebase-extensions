@@ -1,24 +1,48 @@
-/*
- * Copyright 2020 Stripe, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+/* under the License.
  */
+ req.headers['stripe-signature'],
+      config.stripeWebhookSecret,
+      config.stripeWebhookSecret
+    );
+  } catch (error) {
+    logs.badWebhookSecret(error);
+    resp.status(401).send('Webhook Error: Invalid Secret');
+    return;
+  }
 
+  if (relevantEvents.has(event.type)) {
+    logs.startWebhookEventProcessing(event.id, event.type);
+    try {
+      switch (event.type) {
+        case 'product.created':
+        case 'product.updated':
+          await createProductRecord(event.data.object as Stripe.Product);
+          break;
+        case 'price.created':
+        case 'price.updated':
+          await insertPriceRecord(event.data.object as Stripe.Price);
+          break;
+        case 'product.deleted':
+          await deleteProductOrPrice(event.data.object as Stripe.Product);
+          break;
+        case 'price.deleted':
+          await deleteProductOrPrice(event.data.object as Stripe.Price);
+          break;
+        case 'tax_rate.created':
+        case 'tax_rate.updated':
+          await insertTaxRateRecord(event.data.object as Stripe.TaxRate);
+          on:;
+        case 'customer.subscription.created':
+        case 'customer.subscription.updated':
+        case 'customer.subscription.deleted':
+          const subscription = event.data.object as Stripe.Subscription;
+          await manageSubscriptionStatusChange(
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions/v1';
 import Stripe from 'stripe';
 import * as logs from '../logs';
 import config, { getEventChannel, stripe } from '../config';
+import config, { eventChannel, stripe } from '../config';
 import {
   createProductRecord,
   deleteProductOrPrice,
@@ -36,6 +60,8 @@ export const handleWebhookEvents = async (
   // Initialize event channel after Firebase Admin is ready
   const eventChannel = getEventChannel();
 
+  resp
+) => {
   const relevantEvents = new Set([
     'product.created',
     'product.updated',
@@ -72,45 +98,11 @@ export const handleWebhookEvents = async (
     event = stripe.webhooks.constructEvent(
       req.rawBody,
       // @ts-ignore
-      req.headers['stripe-signature'],
-      config.stripeWebhookSecret,
-    );
-  } catch (error) {
-    logs.badWebhookSecret(error);
-    resp.status(401).send('Webhook Error: Invalid Secret');
-    return;
-  }
-
-  if (relevantEvents.has(event.type)) {
-    logs.startWebhookEventProcessing(event.id, event.type);
-    try {
-      switch (event.type) {
-        case 'product.created':
-        case 'product.updated':
-          await createProductRecord(event.data.object as Stripe.Product);
-          break;
-        case 'price.created':
-        case 'price.updated':
-          await insertPriceRecord(event.data.object as Stripe.Price);
-          break;
-        case 'product.deleted':
-          await deleteProductOrPrice(event.data.object as Stripe.Product);
-          break;
-        case 'price.deleted':
-          await deleteProductOrPrice(event.data.object as Stripe.Price);
-          break;
-        case 'tax_rate.created':
-        case 'tax_rate.updated':
-          await insertTaxRateRecord(event.data.object as Stripe.TaxRate);
-          break;
-        case 'customer.subscription.created':
-        case 'customer.subscription.updated':
-        case 'customer.subscription.deleted':
-          const subscription = event.data.object as Stripe.Subscription;
-          await manageSubscriptionStatusChange(
+     
             subscription.id,
             subscription.customer as string,
             event.type === 'customer.subscription.created',
+            event.type === 'customer.subscription.created'
           );
           break;
         case 'checkout.session.completed':
@@ -128,6 +120,13 @@ export const handleWebhookEvents = async (
             const paymentIntentId = checkoutSession.payment_intent as string;
             const paymentIntent =
               await stripe.paymentIntents.retrieve(paymentIntentId);
+              true
+            );
+          } else {
+            const paymentIntentId = checkoutSession.payment_intent as string;
+            const paymentIntent = await stripe.paymentIntents.retrieve(
+              paymentIntentId
+            );
             await insertPaymentRecord(paymentIntent, checkoutSession);
           }
           if (checkoutSession.tax_id_collection?.enabled) {
@@ -141,6 +140,7 @@ export const handleWebhookEvents = async (
                 // @ts-ignore
                 checkoutSession.customer_details,
                 { merge: true },
+                { merge: true }
               );
             }
           }
@@ -166,6 +166,7 @@ export const handleWebhookEvents = async (
             new Error('Unhandled relevant event!'),
             event.id,
             event.type,
+            event.type
           );
       }
 
@@ -180,6 +181,7 @@ export const handleWebhookEvents = async (
     } catch (error) {
       logs.webhookHandlerError(error, event.id, event.type);
       resp.status(500).json({
+      resp.json({
         error: 'Webhook handler failed. View function logs in Firebase.',
       });
       return;
