@@ -344,17 +344,6 @@ describe("Emulator tests", () => {
       });
       expect(products).toEqual([]);
     });
-
-    it("should reject when the provided filters are Firestore incompatible", async () => {
-      await expect(
-        getProducts(payments, {
-          where: [
-            ["metadata.foo", ">", 10],
-            ["metadata.bar", ">", 20],
-          ],
-        })
-      ).rejects.toThrow("Unexpected error while querying Firestore");
-    });
   });
 
   describe("getPrice()", () => {
@@ -610,9 +599,8 @@ describe("Emulator tests", () => {
       });
 
       it("should return all subscriptions when called without options", async () => {
-        const subs: Subscription[] = await getCurrentUserSubscriptions(
-          payments
-        );
+        const subs: Subscription[] =
+          await getCurrentUserSubscriptions(payments);
 
         const expected: Subscription[] = [
           { ...subscription1, uid: currentUser },

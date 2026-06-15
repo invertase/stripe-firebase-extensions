@@ -47,8 +47,9 @@ jobs:
 
       - name: Install Stripe CLI
         run: |
-          wget -q https://github.com/stripe/stripe-cli/releases/latest/download/stripe_1.27.0_linux_x86_64.tar.gz
-          tar -xzf stripe_1.27.0_linux_x86_64.tar.gz
+          STRIPE_VERSION=$(curl -s https://api.github.com/repos/stripe/stripe-cli/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+          curl -L -o stripe_linux_x86_64.tar.gz https://github.com/stripe/stripe-cli/releases/download/${STRIPE_VERSION}/stripe_${STRIPE_VERSION#v}_linux_x86_64.tar.gz
+          tar -xzf stripe_linux_x86_64.tar.gz
           sudo mv stripe /usr/local/bin/
 
       - name: Run Tests

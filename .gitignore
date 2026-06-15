@@ -1,16 +1,1 @@
-.vscode
-node_modules/
-*.env
-firebase-debug.log
-.DS_Store
-mods-test-data/key.json
-.gradle
-.idea
-build
-*.iml
-local.properties
-coverage
-package-lock.json
-yarn.lock
-firestore-stripe-payments/_emulator/extensions/firestore-stripe-payments.secret.local
-*.secret.local
+

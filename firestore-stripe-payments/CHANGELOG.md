@@ -1,3 +1,11 @@
+## Version 0.3.12 - 2025-05-06
+
+[docs] - update firebase snippets to v9 syntax
+
+[docs] - update migration link to 3.12
+
+[fix] - move intializeApp call before initializing eventArc
+
 ## Version 0.3.11 - 2025-05-24
 
 [chore] - improve tests and CI
@@ -7,6 +15,8 @@
 [fix] - bump dependencies to fix vulnerabilities (including latest firebase-admin and firebase-functions)
 
 [docs] - update references from @stripe to @invertase in docs
+
+[fix] - provide a 500 code to Stripe in the webhook handler response when appropriate
 
 ## Version 0.3.10 - 2025-03-24
 
@@ -71,46 +81,6 @@ This extension has been formally transferred to Invertase. See the updated READM
 ## Version 0.3.3 - 2023-03-20
 
 [fix] Address issue where `insertInvoiceRecord` function fails. [#511]
-
-## Version 0.3.2 - 2022-11-30
-
-[chore] Added support for `us-west1` as a deployable region for Firebase functions. [#464]
-
-## Version 0.3.1 - 2022-08-24
-
-[chore] Added `package-lock.json` to version control to prevent installation issues. [#426]
-
-## Version 0.3.0 - 2022-08-23
-
-[feat] Allow configurable minimum instances for `createCheckoutSession` function. [#375]
-
-[feat] Throw an `unauthenticated` Firebase error from `creatPortalLink` function. [#420]
-
-[feat] Add Price object IDs from invoice line items for subscription payments to payments Firestore collection. [#393]
-
-## Version 0.2.7 - 2022-05-10
-
-[chore] Updated package-lock.json that was causing install errors.
-
-## Version 0.2.6 - 2022-05-10
-
-[feat] Added Stripe extension events. This extension emits events, which allows you to listen to and run custom logic at different trigger points during the functioning of the extension. For example you can listen to events when a product has been added via the `product.created` event, or whenever a payment has succeeded through the `invoice.payment_succeeded` event. (#386)
-
-## Version 0.2.5 - 2022-04-20
-
-[feat] Add parameter to enable phone number collection. (#371)
-
-[feat] Add parameters to enable expired Checkout Session recovery. (#350)
-
-[feat] Add `setup_future_usage` parameter for one-time payment flows. (#347)
-
-[feat] Use dynamic parameter reference in README. (#336)
-
-## Version 0.2.4 - 2021-12-22
-
-[feat] Add support to bring phone numbers saved on Firebase users into Stripe when creating a checkout session for a subscription. (#251)
-
-## Version 0.2.3 - 2021-11-29
 
 [feat] Manage payment methods in the Dashboard: setting `payment_method_types` is now optional. By default, all payment methods enabled in your Stripe Dashboard will be presented on the Stripe Checkout page. (#246)
 

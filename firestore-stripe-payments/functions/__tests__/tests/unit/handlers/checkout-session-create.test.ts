@@ -132,7 +132,7 @@ describe('Customer Record Creation Logic', () => {
           message: 'Invalid document reference, no parent collection found',
         },
       },
-      { merge: true }
+      { merge: true },
     );
   });
 });

@@ -25,7 +25,7 @@ function request(uid: string, returnUrl: string) {
         uid,
         token: 'test',
       },
-    }
+    },
   );
 }
 
@@ -45,7 +45,7 @@ describe('createPortalLink', () => {
     const customer: DocumentData = await waitForDocumentToExistInCollection(
       collection,
       'email',
-      user.email
+      user.email,
     );
 
     const doc = collection.doc(customer.doc.id);

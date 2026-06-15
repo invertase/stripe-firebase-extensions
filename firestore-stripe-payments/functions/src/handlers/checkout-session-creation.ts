@@ -24,7 +24,7 @@ import { createCustomerRecord } from '../utils';
 
 export const handleCheckoutSessionCreation = async (
   snap: functions.firestore.QueryDocumentSnapshot,
-  context: functions.EventContext
+  context: functions.EventContext,
 ) => {
   const {
     client = 'web',
@@ -91,16 +91,16 @@ export const handleCheckoutSessionCreation = async (
       // Get shipping countries
       const shippingCountries: Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] =
         collect_shipping_address
-          ? (
+          ? ((
               await admin
                 .firestore()
                 .collection(
                   config.stripeConfigCollectionPath ||
-                    config.productsCollectionPath
+                    config.productsCollectionPath,
                 )
                 .doc('shipping_countries')
                 .get()
-            ).data()?.['allowed_countries'] ?? []
+            ).data()?.['allowed_countries'] ?? [])
           : [];
       const sessionCreateParams: Stripe.Checkout.SessionCreateParams = {
         billing_address_collection,
@@ -182,7 +182,7 @@ export const handleCheckoutSessionCreation = async (
         sessionCreateParams.client_reference_id = client_reference_id;
       const session = await stripe.checkout.sessions.create(
         sessionCreateParams,
-        { idempotencyKey: context.params.id }
+        { idempotencyKey: context.params.id },
       );
       await snap.ref.set(
         {
@@ -192,7 +192,7 @@ export const handleCheckoutSessionCreation = async (
           url: session.url,
           created: Timestamp.now(),
         },
-        { merge: true }
+        { merge: true },
       );
     } else if (client === 'mobile') {
       let paymentIntentClientSecret = null;
@@ -200,7 +200,7 @@ export const handleCheckoutSessionCreation = async (
       if (mode === 'payment') {
         if (!amount || !currency) {
           throw new Error(
-            `When using 'client:mobile' and 'mode:payment' you must specify amount and currency!`
+            `When using 'client:mobile' and 'mode:payment' you must specify amount and currency!`,
           );
         }
         const paymentIntentCreateParams: Stripe.PaymentIntentCreateParams = {
@@ -217,7 +217,7 @@ export const handleCheckoutSessionCreation = async (
             automatic_payment_methods;
         }
         const paymentIntent = await stripe.paymentIntents.create(
-          paymentIntentCreateParams
+          paymentIntentCreateParams,
         );
         // @ts-ignore
         paymentIntentClientSecret = paymentIntent.client_secret;
@@ -249,7 +249,7 @@ export const handleCheckoutSessionCreation = async (
       }
       const ephemeralKey = await stripe.ephemeralKeys.create(
         { customer },
-        { apiVersion: apiVersion }
+        { apiVersion: apiVersion },
       );
       await snap.ref.set(
         {
@@ -261,11 +261,11 @@ export const handleCheckoutSessionCreation = async (
           paymentIntentClientSecret,
           setupIntentClientSecret,
         },
-        { merge: true }
+        { merge: true },
       );
     } else {
       throw new Error(
-        `Client ${client} is not supported. Only 'web' or ' mobile' is supported!`
+        `Client ${client} is not supported. Only 'web' or ' mobile' is supported!`,
       );
     }
     logs.checkoutSessionCreated(context.params.id);

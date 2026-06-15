@@ -44,7 +44,7 @@ export default async function globalSetup() {
       ],
       {
         stdio: ['ignore', 'pipe', 'pipe'],
-      }
+      },
     );
 
     let webhookSecret = '';
@@ -57,7 +57,7 @@ export default async function globalSetup() {
 
       // Look for the webhook signing secret
       const secretMatch = output.match(
-        /Ready! Your webhook signing secret is (whsec_\w+)/
+        /Ready! Your webhook signing secret is (whsec_\w+)/,
       );
       if (secretMatch) {
         webhookSecret = secretMatch[1];
@@ -78,7 +78,7 @@ export default async function globalSetup() {
     setTimeout(() => {
       if (!webhookSecret) {
         console.error(
-          'Warning: Timeout waiting for stripe listen webhook secret'
+          'Warning: Timeout waiting for stripe listen webhook secret',
         );
         console.error('Stripe output:', outputBuffer);
         // Still resolve with a dummy value so tests can proceed
