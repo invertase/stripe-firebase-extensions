@@ -1,16 +1,22 @@
-.vscode
-node_modules/
-*.env
-firebase-debug.log
-.DS_Store
-mods-test-data/key.json
-.gradle
-.idea
-build
-*.iml
-local.properties
-coverage
+api-extractor.json
+package.json
+extension.yaml
 package-lock.json
-yarn.lock
-firestore-stripe-payments/_emulator/extensions/firestore-stripe-payments.secret.local
-*.secret.local# Trigger CI
+
+**/node_modules/**
+
+# generated files
+README.md
+**/etc/**
+**/functions/lib/**
+**/lib/**
+**/dist/**
+**/markdown/**
+coverage
+
+# extension install md files
+#   - excluded as prettier escapes variables e.g. `${PROJECT_ID}` becomes `\${PROJECT_ID}`
+CHANGELOG.md
+POSTINSTALL.md
+PREINSTALL.md
+
