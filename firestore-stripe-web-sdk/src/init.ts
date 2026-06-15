@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, registerVersion } from "@firebase/app";
+import { FirebaseApp, registerVersion } from "firebase/app";
 
 registerVersion("firestore-stripe-payments", "__VERSION__");
 

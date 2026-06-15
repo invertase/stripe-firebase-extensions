@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from "chai";
-import { fake as sinonFake, SinonSpy } from "sinon";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { FirebaseApp } from "@firebase/app";
 import {
   getCurrentUserPayment,
@@ -30,8 +29,25 @@ import { payment1, payment2 } from "./testdata";
 import { setUserDAO, UserDAO } from "../src/user";
 import { PaymentDAO, PaymentSnapshot, setPaymentDAO } from "../src/payment";
 
-use(require("chai-as-promised"));
-use(require("sinon-chai"));
+// Add custom matcher for toHaveBeenCalledBefore
+expect.extend({
+  toHaveBeenCalledBefore(received: any, expected: any) {
+    const receivedCalls = received.mock.invocationCallOrder;
+    const expectedCalls = expected.mock.invocationCallOrder;
+    const pass = receivedCalls[0] < expectedCalls[0];
+    return {
+      message: () =>
+        `expected ${received.getMockName()} to have been called before ${expected.getMockName()}`,
+      pass,
+    };
+  },
+});
+
+declare module "vitest" {
+  interface Assertion<T = any> {
+    toHaveBeenCalledBefore(expected: any): T;
+  }
+}
 
 const app: FirebaseApp = {
   name: "mock",
@@ -49,7 +65,7 @@ describe("getCurrentUserPayment()", () => {
     it(`should throw when called with invalid paymentId: ${JSON.stringify(
       paymentId
     )}`, () => {
-      expect(() => getCurrentUserPayment(payments, paymentId)).to.throw(
+      expect(() => getCurrentUserPayment(payments, paymentId)).toThrow(
         "paymentId must be a non-empty string."
       );
     });
@@ -57,16 +73,17 @@ describe("getCurrentUserPayment()", () => {
 
   it("should return a payment when called with a valid paymentId", async () => {
     const expected: Payment = { ...payment1, uid: "alice" };
-    const fake: SinonSpy = sinonFake.resolves(expected);
+    const fake = vi.fn().mockResolvedValue(expected);
     setPaymentDAO(payments, testPaymentDAO("getPayment", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const payment: Payment = await getCurrentUserPayment(payments, "pay1");
 
-    expect(payment).to.eql(expected);
-    expect(fake).to.have.been.calledOnceWithExactly("alice", "pay1");
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(payment).toEqual(expected);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", "pay1");
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 
   it("should reject when the payment data access object throws", async () => {
@@ -74,17 +91,18 @@ describe("getCurrentUserPayment()", () => {
       "not-found",
       "no such payment"
     );
-    const fake: SinonSpy = sinonFake.rejects(error);
+    const fake = vi.fn().mockRejectedValue(error);
     setPaymentDAO(payments, testPaymentDAO("getPayment", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
-    await expect(getCurrentUserPayment(payments, "pay1")).to.be.rejectedWith(
+    await expect(getCurrentUserPayment(payments, "pay1")).rejects.toThrow(
       error
     );
 
-    expect(fake).to.have.been.calledOnceWithExactly("alice", "pay1");
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", "pay1");
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 
   it("should reject when the user data access object throws", async () => {
@@ -92,73 +110,81 @@ describe("getCurrentUserPayment()", () => {
       "unauthenticated",
       "user not signed in"
     );
-    const userFake: SinonSpy = sinonFake.throws(error);
+    const userFake = vi.fn().mockImplementation(() => {
+      throw error;
+    });
     setUserDAO(payments, testUserDAO(userFake));
 
-    await expect(getCurrentUserPayment(payments, "pay1")).to.be.rejectedWith(
+    await expect(getCurrentUserPayment(payments, "pay1")).rejects.toThrow(
       error
     );
 
-    expect(userFake).to.have.been.calledOnce;
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("getCurrentUserPayments()", () => {
   it("should return all payments when called without options", async () => {
-    const fake: SinonSpy = sinonFake.resolves([payment1, payment2]);
+    const fake = vi.fn().mockResolvedValue([payment1, payment2]);
     setPaymentDAO(payments, testPaymentDAO("getPayments", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const paymentData: Payment[] = await getCurrentUserPayments(payments);
 
-    expect(paymentData).to.eql([payment1, payment2]);
-    expect(fake).to.have.been.calledOnceWithExactly("alice", {});
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(paymentData).toEqual([payment1, payment2]);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", {});
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 
   it("should return empty array if no payments are available", async () => {
-    const fake: SinonSpy = sinonFake.resolves([]);
+    const fake = vi.fn().mockResolvedValue([]);
     setPaymentDAO(payments, testPaymentDAO("getPayments", fake));
+    const userFake = vi.fn().mockReturnValue("alice");
+    setUserDAO(payments, testUserDAO(userFake));
 
     const paymentData: Payment[] = await getCurrentUserPayments(payments);
 
-    expect(paymentData).to.be.an("array").and.be.empty;
-    expect(fake).to.have.been.calledOnceWithExactly("alice", {});
+    expect(paymentData).toEqual([]);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", {});
   });
 
   it("should only return payments with the given status", async () => {
-    const fake: SinonSpy = sinonFake.resolves([payment1]);
+    const fake = vi.fn().mockResolvedValue([payment1]);
     setPaymentDAO(payments, testPaymentDAO("getPayments", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const paymentData: Payment[] = await getCurrentUserPayments(payments, {
       status: "succeeded",
     });
 
-    expect(paymentData).to.eql([payment1]);
-    expect(fake).to.have.been.calledOnceWithExactly("alice", {
+    expect(paymentData).toEqual([payment1]);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", {
       status: ["succeeded"],
     });
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 
   it("should only return payments with the given statuses", async () => {
-    const fake: SinonSpy = sinonFake.resolves([payment1, payment2]);
+    const fake = vi.fn().mockResolvedValue([payment1, payment2]);
     setPaymentDAO(payments, testPaymentDAO("getPayments", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
     const paymentData: Payment[] = await getCurrentUserPayments(payments, {
       status: ["succeeded", "requires_action"],
     });
 
-    expect(paymentData).to.eql([payment1, payment2]);
-    expect(fake).to.have.been.calledOnceWithExactly("alice", {
+    expect(paymentData).toEqual([payment1, payment2]);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", {
       status: ["succeeded", "requires_action"],
     });
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 
   [null, [], {}, true, 1, 0, NaN].forEach((status: any) => {
@@ -169,7 +195,7 @@ describe("getCurrentUserPayments()", () => {
         getCurrentUserPayments(payments, {
           status,
         })
-      ).to.throw("status must be a non-empty array.");
+      ).toThrow("status must be a non-empty array.");
     });
   });
 
@@ -178,15 +204,16 @@ describe("getCurrentUserPayments()", () => {
       "not-found",
       "no such payment"
     );
-    const fake: SinonSpy = sinonFake.rejects(error);
+    const fake = vi.fn().mockRejectedValue(error);
     setPaymentDAO(payments, testPaymentDAO("getPayments", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
 
-    await expect(getCurrentUserPayments(payments)).to.be.rejectedWith(error);
+    await expect(getCurrentUserPayments(payments)).rejects.toThrow(error);
 
-    expect(fake).to.have.been.calledOnceWithExactly("alice", {});
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", {});
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 
   it("should reject when the user data access object throws", async () => {
@@ -194,45 +221,44 @@ describe("getCurrentUserPayments()", () => {
       "unauthenticated",
       "user not signed in"
     );
-    const userFake: SinonSpy = sinonFake.throws(error);
+    const userFake = vi.fn().mockImplementation(() => {
+      throw error;
+    });
     setUserDAO(payments, testUserDAO(userFake));
 
-    await expect(getCurrentUserPayments(payments)).to.be.rejectedWith(error);
+    await expect(getCurrentUserPayments(payments)).rejects.toThrow(error);
 
-    expect(userFake).to.have.been.calledOnce;
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("onCurrentUserPaymentUpdate()", () => {
   it("should register a callback to receive payment updates", () => {
     let canceled: boolean = false;
-    const fake: SinonSpy = sinonFake.returns(() => {
+    const fake = vi.fn().mockReturnValue(() => {
       canceled = true;
     });
     setPaymentDAO(payments, testPaymentDAO("onPaymentUpdate", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
     const onUpdate: (snap: PaymentSnapshot) => void = () => {};
 
     const cancel = onCurrentUserPaymentUpdate(payments, onUpdate);
     cancel();
 
-    expect(canceled).to.be.true;
-    expect(fake).to.have.been.calledOnceWithExactly(
-      "alice",
-      onUpdate,
-      undefined
-    );
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(canceled).toBe(true);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", onUpdate, undefined);
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 
   it("should register a callback to receive errors when specified", () => {
     let canceled: boolean = false;
-    const fake: SinonSpy = sinonFake.returns(() => {
+    const fake = vi.fn().mockReturnValue(() => {
       canceled = true;
     });
     setPaymentDAO(payments, testPaymentDAO("onPaymentUpdate", fake));
-    const userFake: SinonSpy = sinonFake.returns("alice");
+    const userFake = vi.fn().mockReturnValue("alice");
     setUserDAO(payments, testUserDAO(userFake));
     const onUpdate: (snap: PaymentSnapshot) => void = () => {};
     const onError: (err: StripePaymentsError) => void = () => {};
@@ -240,9 +266,10 @@ describe("onCurrentUserPaymentUpdate()", () => {
     const cancel = onCurrentUserPaymentUpdate(payments, onUpdate, onError);
     cancel();
 
-    expect(canceled).to.be.true;
-    expect(fake).to.have.been.calledOnceWithExactly("alice", onUpdate, onError);
-    expect(userFake).to.have.been.calledOnce.and.calledBefore(fake);
+    expect(canceled).toBe(true);
+    expect(fake).toHaveBeenCalledTimes(1);
+    expect(fake).toHaveBeenCalledWith("alice", onUpdate, onError);
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 
   it("should throw when the user data access object throws", () => {
@@ -250,24 +277,27 @@ describe("onCurrentUserPaymentUpdate()", () => {
       "unauthenticated",
       "user not signed in"
     );
-    const userFake: SinonSpy = sinonFake.throws(error);
+    const userFake = vi.fn().mockImplementation(() => {
+      throw error;
+    });
     setUserDAO(payments, testUserDAO(userFake));
 
-    expect(() => onCurrentUserPaymentUpdate(payments, () => {})).to.throw(
-      error
-    );
+    expect(() => onCurrentUserPaymentUpdate(payments, () => {})).toThrow(error);
 
-    expect(userFake).to.have.been.calledOnce;
+    expect(userFake).toHaveBeenCalledTimes(1);
   });
 });
 
-function testPaymentDAO(name: string, fake: SinonSpy): PaymentDAO {
+function testPaymentDAO(
+  name: string,
+  fake: ReturnType<typeof vi.fn>
+): PaymentDAO {
   return {
     [name]: fake,
   } as unknown as PaymentDAO;
 }
 
-function testUserDAO(fake: SinonSpy): UserDAO {
+function testUserDAO(fake: ReturnType<typeof vi.fn>): UserDAO {
   return {
     getCurrentUser: fake,
   } as UserDAO;

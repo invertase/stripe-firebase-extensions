@@ -1,5 +1,8 @@
 {
   "name": "firestore-stripe-invoices",
+   "engines": {
+    "node": "20"
+  },
   "main": "lib/index.js",
   "scripts": {
     "prepare": "npm run build",
@@ -13,7 +16,7 @@
   "author": "Stripe (https://stripe.com/)",
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase-admin": "^9.9.0",
+    "firebase-admin": "^11.10.1",
     "firebase-functions": "^3.14.1",
     "rimraf": "^3.0.2",
     "stripe": "8.56.0",

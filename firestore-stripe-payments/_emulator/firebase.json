@@ -1,6 +1,6 @@
 {
   "extensions": {
-    "firestore-stripe-payments": "../"
+    "firestore-stripe-payments": ".."
   },
   "storage": {
     "rules": "storage.rules"
@@ -8,6 +8,9 @@
   "emulators": {
     "hub": {
       "port": 4000
+    },
+    "firestore": {
+      "port": 8080
     },
     "storage": {
       "port": 9199
@@ -25,5 +28,17 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
-  }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ]
+    }
+  ]
 }

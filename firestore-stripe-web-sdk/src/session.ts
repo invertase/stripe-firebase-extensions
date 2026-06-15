@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from "@firebase/app";
+import { FirebaseApp } from "firebase/app";
 import {
   addDoc,
   collection,
@@ -30,7 +30,7 @@ import {
   QueryDocumentSnapshot,
   Timestamp,
   Unsubscribe,
-} from "@firebase/firestore";
+} from "firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
 import { getCurrentUser } from "./user";
 import {
@@ -438,7 +438,10 @@ export interface SessionDAO {
 class FirestoreSessionDAO implements SessionDAO {
   private readonly firestore: Firestore;
 
-  constructor(app: FirebaseApp, private readonly customersCollection: string) {
+  constructor(
+    app: FirebaseApp,
+    private readonly customersCollection: string
+  ) {
     this.firestore = getFirestore(app);
   }
 

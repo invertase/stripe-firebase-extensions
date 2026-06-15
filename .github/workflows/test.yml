@@ -3,7 +3,8 @@ name: Testing
 on:
   push:
     branches:
-      - "**"
+      - next
+      - master
   pull_request:
     branches:
       - "**"
@@ -16,29 +17,42 @@ jobs:
       cancel-in-progress: false
     strategy:
       matrix:
-        node: ["14", "16"]
+        node: ["20"]
       max-parallel: 1
     name: node.js_${{ matrix.node }}_test
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - name: NPM install
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Install Dependencies
         run: npm install
-      - name: Install firebase CLI
-        uses: nick-invision/retry@v2
+
+      - name: Build emulator functions
+        run: |
+          cd firestore-stripe-payments/_emulator/functions && npm i && cd ../../..
+          cd firestore-stripe-web-sdk/_emulator/functions && npm i && cd ../../..
+
+      - name: Install Firebase CLI
+        uses: nick-invision/retry@v3
         with:
           timeout_minutes: 10
           retry_wait_seconds: 60
           max_attempts: 3
-          command: npm i -g firebase-tools
-      - name: Use extension commands
-        run: firebase --open-sesame extdev
-      - name: mask env paramaters
-        run: echo "::add-mask::$STRIPE_WEBHOOK_SECRET"
-      - name: Run tests with coverage
-        run: npm run test
+          command: npm i -g firebase-tools@14
+
+      - name: Install Stripe CLI
+        run: |
+          STRIPE_VERSION=$(curl -s https://api.github.com/repos/stripe/stripe-cli/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+          curl -L -o stripe_linux_x86_64.tar.gz https://github.com/stripe/stripe-cli/releases/download/${STRIPE_VERSION}/stripe_${STRIPE_VERSION#v}_linux_x86_64.tar.gz
+          tar -xzf stripe_linux_x86_64.tar.gz
+          sudo mv stripe /usr/local/bin/
+
+      - name: Run Tests
+        run: npm test
         env:
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}

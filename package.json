@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "lerna": "^3.4.3",
-    "prettier": "^2.4.1"
+    "prettier": "^3.2.5"
   },
   "dependencies": {
     "rimraf": "^3.0.2"

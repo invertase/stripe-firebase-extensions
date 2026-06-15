@@ -27,8 +27,8 @@ const stripe = new Stripe(config.stripeSecretKey, {
   // Register extension as a Stripe plugin
   // https://stripe.com/docs/building-plugins#setappinfo
   appInfo: {
-    name: 'Firebase firestore-stripe-invoices',
-    version: '0.2.1',
+    name: 'Firebase Invertase firestore-stripe-invoices',
+    version: '0.2.3',
   },
 });
 
@@ -68,13 +68,13 @@ const createInvoice = async function ({
             description: item.description,
             tax_rates: item.tax_rates ?? [],
           },
-          { idempotencyKey: `invoiceItems-create-${idempotencyKey}-${index}` }
+          { idempotencyKey: `invoiceItems-create-${idempotencyKey}-${index}` },
         );
-      }
+      },
     );
 
     // Create the individual invoice items for this customer from the items in payload
-    const items: Array<Stripe.InvoiceItem> = await Promise.all(itemPromises);
+    await Promise.all(itemPromises);
 
     const invoiceCreateParams: Stripe.InvoiceCreateParams = {
       customer: customer.id,
@@ -87,7 +87,7 @@ const createInvoice = async function ({
     if (transfer_data) invoiceCreateParams.transfer_data = transfer_data;
     const invoice: Stripe.Invoice = await stripe.invoices.create(
       invoiceCreateParams,
-      { idempotencyKey: `invoices-create-${idempotencyKey}` }
+      { idempotencyKey: `invoices-create-${idempotencyKey}` },
     );
     logs.invoiceCreated(invoice.id, invoice.livemode);
     return invoice;
@@ -146,7 +146,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
       if (customers.data.length) {
         // Use the existing customer
         customer = customers.data.find(
-          (cus) => cus.currency === payload.items[0].currency
+          (cus) => cus.currency === payload.items[0].currency,
         );
         if (customer) logs.customerRetrieved(customer.id, customer.livemode);
       }
@@ -160,7 +160,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
                 'Created by the Firebase Extension: Send Invoices using Stripe', // optional metadata, adds a note
             },
           },
-          { idempotencyKey: `customers-create-${eventId}` }
+          { idempotencyKey: `customers-create-${eventId}` },
         );
 
         logs.customerCreated(customer.id, customer.livemode);
@@ -187,7 +187,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
           logs.invoiceSent(
             finalizedInvoice.id,
             email,
-            finalizedInvoice.hosted_invoice_url
+            finalizedInvoice.hosted_invoice_url,
           );
         } else {
           logs.invoiceCreatedError(finalizedInvoice);
@@ -209,7 +209,7 @@ export const sendInvoice = functions.handler.firestore.document.onCreate(
       logs.stripeError(e);
     }
     return;
-  }
+  },
 );
 
 /* A Stripe webhook that updates each invoice's status in Cloud Firestore */
@@ -225,7 +225,7 @@ export const updateInvoice = functions.handler.https.onRequest(
       event = stripe.webhooks.constructEvent(
         req.rawBody,
         req.headers['stripe-signature'],
-        config.stripeWebhookSecret
+        config.stripeWebhookSecret,
       );
     } catch (err) {
       logs.badSignature(err);
@@ -255,7 +255,7 @@ export const updateInvoice = functions.handler.https.onRequest(
 
     logs.startInvoiceUpdate(eventType);
 
-    let invoicesInFirestore = await admin
+    const invoicesInFirestore = await admin
       .firestore()
       .collection(config.invoicesCollectionPath)
       .where('stripeInvoiceId', '==', invoice.id)
@@ -285,5 +285,5 @@ export const updateInvoice = functions.handler.https.onRequest(
 
     // Return a response to Stripe to acknowledge receipt of the event
     resp.json({ received: true });
-  }
+  },
 );

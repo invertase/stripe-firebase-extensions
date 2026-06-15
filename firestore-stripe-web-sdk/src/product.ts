@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from "@firebase/app";
+import { FirebaseApp } from "firebase/app";
 import {
   collection,
   CollectionReference,
@@ -34,8 +34,8 @@ import {
   QueryDocumentSnapshot,
   QuerySnapshot,
   where,
-  WhereFilterOp,
-} from "@firebase/firestore";
+  type WhereFilterOp,
+} from "firebase/firestore";
 import { StripePayments, StripePaymentsError } from "./init";
 import { checkNonEmptyString } from "./utils";
 
@@ -216,7 +216,7 @@ export interface GetProductsOptions {
   limit?: number;
 }
 
-export { WhereFilterOp } from "@firebase/firestore";
+export type { WhereFilterOp } from "firebase/firestore";
 
 /**
  * A filter constraint that can be applied to database queries. Consists of a field name (in
@@ -346,7 +346,10 @@ const PRICE_CONVERTER: FirestoreDataConverter<Price> = {
 class FirestoreProductDAO implements ProductDAO {
   private readonly firestore: Firestore;
 
-  constructor(app: FirebaseApp, private readonly productsCollection: string) {
+  constructor(
+    app: FirebaseApp,
+    private readonly productsCollection: string
+  ) {
     this.firestore = getFirestore(app);
   }
 
@@ -361,9 +364,8 @@ class FirestoreProductDAO implements ProductDAO {
     where?: WhereFilter[];
     limit?: number;
   }): Promise<Product[]> {
-    const querySnap: QuerySnapshot<Product> = await this.getProductSnapshots(
-      options
-    );
+    const querySnap: QuerySnapshot<Product> =
+      await this.getProductSnapshots(options);
     const products: Product[] = [];
     querySnap.forEach((snap: QueryDocumentSnapshot<Product>) => {
       products.push(snap.data());
@@ -386,9 +388,8 @@ class FirestoreProductDAO implements ProductDAO {
       await this.getProductSnapshotIfExists(productId);
     }
 
-    const querySnap: QuerySnapshot<Price> = await this.getPriceSnapshots(
-      productId
-    );
+    const querySnap: QuerySnapshot<Price> =
+      await this.getPriceSnapshots(productId);
     const prices: Price[] = [];
     querySnap.forEach((snap: QueryDocumentSnapshot<Price>) => {
       prices.push(snap.data());
