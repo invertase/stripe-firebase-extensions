@@ -282,7 +282,7 @@ function startDataListeners() {
           .collection("prices")
           .orderBy("unit_amount")
           .get();
-        if (!"content" in document.createElement("template")) {
+        if ((!"content") in document.createElement("template")) {
           console.error("Your browser doesn't support HTML template elements.");
           return;
         }
@@ -402,14 +402,13 @@ function startDataListeners() {
       // In this implementation we only expect one Subscription to exist
       const subscription = snapshot.docs[0].data();
       const priceData = (await subscription.price.get()).data();
-      document.querySelector(
-        "#my-subscription p"
-      ).textContent = `You are paying ${new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: priceData.currency,
-      }).format((priceData.unit_amount / 100).toFixed(2))} per ${
-        priceData.interval
-      }`;
+      document.querySelector("#my-subscription p").textContent =
+        `You are paying ${new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: priceData.currency,
+        }).format((priceData.unit_amount / 100).toFixed(2))} per ${
+          priceData.interval
+        }`;
     });
 }
 ```

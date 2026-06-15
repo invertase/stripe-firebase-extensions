@@ -8,11 +8,12 @@
     "inlineSources": true,
     "declaration": true,
     "declarationMap": true,
+    "skipLibCheck": true,
     "target": "ES6",
     "outDir": "lib",
     "forceConsistentCasingInFileNames": true,
     "stripInternal": true
   },
-  "include": ["src/*.ts"],
+  "include": ["src/*.ts", "test/*.ts"],
   "exclude": ["node_modules"]
 }

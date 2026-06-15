@@ -24,7 +24,7 @@ echo
 if [[ ! "${REPLY}" =~ ^[Yy]$ ]]; then exit 1; fi
 
 # verify that we have updated the patch/release version
-public_sdk_version=$(npm view @stripe/firestore-stripe-payments version)
+public_sdk_version=$(npm view @invertase/firestore-stripe-payments version)
 local_sdk_version=$(npm version | sed -n '2'p | cut -d : -f 2 | cut -d , -f 1 | cut -d \' -f 2)
 if [[ "${public_sdk_version}" == "${local_sdk_version}" ]]; then
     echo "${RED}ERROR:${RESET} Your local web-sdk version matches the public web-sdk version. Please bump the version with ${BOLD}npm version patch${RESET} or a similar command"

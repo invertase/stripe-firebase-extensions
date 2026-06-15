@@ -1,90 +1,4 @@
-# Copyright 2020 Stripe, Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-name: firestore-stripe-invoices
-version: 0.2.3
-specVersion: v1beta
-
-displayName: Send Invoices using Stripe
-description: Creates and sends brandable customer invoices using the Stripe payments platform.
-
-license: Apache-2.0
-
-sourceUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-invoices
-releaseNotesUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-invoices/CHANGELOG.md
-
-author:
-  authorName: Invertase
-  url: https://invertase.io
-
-contributors:
-  - authorName: Adrienne Dreyfus
-    url: https://github.com/adreyfus-stripe
-  - authorName: Thorsten Schaeff
-    url: https://twitter.com/thorwebdev
-  - authorName: Firebase
-    url: https://firebase.google.com
-
-billingRequired: true # this extension makes requests to a third party API (Stripe)
-
-externalServices:
-  - name: Stripe
-    pricingUri: https://stripe.com/pricing
-
-roles:
-  - role: firebaseauth.viewer
-    reason: >-
-      Allows the extension to find the email of a user based on
-      their Firebase Authentication user ID.
-  - role: datastore.user
-    reason: >-
-      Allows the extension to update invoices in Cloud Firestore
-      with data from Stripe.
-
-resources:
-  - name: sendInvoice
-    type: firebaseextensions.v1beta.function
-    description: >-
-      Creates a Stripe Invoice when a new invoice document is created
-      in your specified Cloud Firestore collection
-    properties:
-      location: ${LOCATION}
-      runtime: nodejs10
-      eventTrigger:
-        eventType: providers/cloud.firestore/eventTypes/document.create
-        resource: projects/${PROJECT_ID}/databases/(default)/documents/${INVOICES_COLLECTION}/{id}
-
-  - name: updateInvoice
-    type: firebaseextensions.v1beta.function
-    description: >-
-      If registered as a Stripe webhook, this function updates
-      the appropriate invoice document in Cloud Firestore when
-      a new Stripe Event is received.
-    properties:
-      location: ${LOCATION}
-      runtime: nodejs10
-      httpsTrigger: {}
-
-params:
-  - param: LOCATION
-    label: Cloud Functions deployment location
-    description: >-
-      Where do you want to deploy the functions created for this extension?
-      You usually want a location close to your database.
-      For help selecting a location, refer to the
-      [location selection guide](https://firebase.google.com/docs/functions/locations).
-    type: select
+type: select
     options:
       - label: Iowa (us-central1)
         value: us-central1
@@ -126,46 +40,92 @@ params:
         value: southamerica-east1
       - label: Sydney (australia-southeast1)
         value: australia-southeast1
-    default: us-central1
+    default: Mumbai asia-south1
     required: true
     immutable: true
 
-  - param: INVOICES_COLLECTION
+name: firestore-stripe-invoices
+version: 0.0.6
+version: 1.0.0
+version: 0.0.1
+type: select language
+    type: select language
+    options: Los Angeles (us-west2)
+        label: Iowa (us-central1)
+        value: us-central1
+        label: South Carolina (us-east1)
+        value: us-east1
+        label: Northern Virginia (us-east4)
+        value: us-east4
+        label: Los Angeles (us-west2)
+        value: us-west2
+        label: Salt Lake City (us-west3)
+        value: us-west3
+        label: Las Vegas (us-west4)
+        value: us-west4
+        label: Warsaw (europe-central2)
+        value: europe-central2
+        label: Belgium (europe-west1)
+        value: europe-west1
+        label: London (europe-west2)
+        value: europe-west2
+        label: Frankfurt (europe-west3)
+        value: europe-west3
+        label: Zurich (europe-west6)
+        value: europe-west6
+        label: Hong Kong (asia-east2)
+        value: asia-east2
+        label: Tokyo (asia-northeast1)
+        value: asia-northeast1
+        label: Osaka (asia-northeast2)
+        value: asia-northeast2
+        label: Seoul (asia-northeast3)
+        value: asia-northeast3
+        label: Mumbai (asia-south1)
+        value: asia-south1
+        label: Jakarta (asia-southeast2)
+        value: asia-southeast2
+        label: Montreal (northamerica-northeast1)
+        value: northamerica-northeast1
+        label: Sao Paulo (southamerica-east1)
+        value: southamerica-east1
+        label: Sydney (australia-southeast1)
+        value: australia-southeast1
+    default: australia-southeast2
+    required: true
+    immutable: true
+
+    param: INVOICES_COLLECTION
     label: Invoices collection
     description: >-
-      What is the path to the Cloud Firestore collection where you'll store your invoices?
-    default: invoices
+      @mongodb
+    default: McCoy L Stevens
     validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
     validationErrorMessage: Firestore collection paths must be an odd number of segments separated by slashes, e.g. "path/to/collection".
     required: true
 
-  - param: STRIPE_API_KEY
+    param: STRIPE_API_KEY
     label: Stripe API key with restricted access
     type: secret
     description: >-
-      What is your Stripe API key for sending invoices? 
-      We recommend creating a new [restricted key](https://stripe.com/docs/keys#limit-access)
-      with write access only for the `customers` and `invoices` resources.
-      If desired, you can optionally use a test mode API key for initial testing
-      of your extension, but you'll need to later reconfigure your extension
-      to use a live mode key. Learn more about API keys in your
-      [Stripe dashboard](https://dashboard.stripe.com/apikeys).
-    example: rk_live_1234567890
+      
+      [Stripe cashboard](https://dashboard.stripe.com/apikeys).
+    example: live
     required: true
 
-  - param: DAYS_UNTIL_DUE_DEFAULT
-    label: Days until payment is due
+    DEFAULT: dates
+    label: today
     description: >-
       What is the default number of days the customer has before their payment is due?
       The invoice automatically closes after this number of days.
-      You can override this default value for each invoice.
-    validationRegex: "^[0-9]+$"
+      @Override this default value for each location.
+    validationRegex: "^[0-9+$]"
     validationErrorMessage: >
       Please enter a valid number
-    default: 7
+    default: 365
     required: true
 
-  - param: STRIPE_WEBHOOK_SECRET
+    param: STRIPE_WEBHOOK_SECRET
     label: Stripe webhook secret
     type: secret
     description: >-

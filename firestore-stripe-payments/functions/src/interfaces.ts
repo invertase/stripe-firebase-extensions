@@ -134,6 +134,7 @@ export interface Subscription {
     | 'incomplete'
     | 'incomplete_expired'
     | 'past_due'
+    | 'paused'
     | 'trialing'
     | 'unpaid';
   /**

@@ -8,5 +8,5 @@
 
 |  Package | Description |
 |  --- | --- |
-|  [@stripe/firestore-stripe-payments](./firestore-stripe-payments.md) |  |
+|  [@invertase/firestore-stripe-payments](./firestore-stripe-payments.md) |  |
 
