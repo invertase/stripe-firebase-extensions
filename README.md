@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **STATUS UPDATE (June 2026):** This repository is not actively maintained. The source code and extensions remain available in their current stable state for existing users, but no further updates, bug fixes, or support will be provided.
+
 # UPDATE 2023-10-08:
 This project has now being officially transferred to [Invertase](https://github.com/invertase), who will maintain this extension going forward. Please see [this issue](https://github.com/stripe/stripe-firebase-extensions/issues/524) for more details. 
 It is now recommended to uninstall the `stripe/firestore-stripe-payments` extension and install `invertase/firestore-stripe-payments` from the Firebase Extension Hub.
