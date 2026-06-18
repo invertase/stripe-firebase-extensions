@@ -318,12 +318,16 @@ export const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
   if (customersSnap.size !== 1) {
     throw new Error('User not found!');
   }
+
+  // For upcoming invoices, generate a unique document ID since they don't have an id
+  const invoiceDocId = invoice.id || `upcoming_${invoice.subscription}_${Date.now()}`;
+  
   // Write to invoice to a subcollection on the subscription doc.
   await customersSnap.docs[0].ref
     .collection('subscriptions')
     .doc(invoice.subscription as string)
     .collection('invoices')
-    .doc(invoice.id)
+    .doc(invoiceDocId)
     .set(invoice);
 
   const prices = [];
@@ -341,15 +345,18 @@ export const insertInvoiceRecord = async (invoice: Stripe.Invoice) => {
     );
   }
 
-  // An Invoice object does not always have an associated Payment Intent
+  // Only create payment records for invoices that have a payment_intent or id
+  // Upcoming invoices are previews and don't represent actual payments
   const recordId: string = (invoice.payment_intent as string) ?? invoice.id;
-
-  // Update subscription payment with price data
-  await customersSnap.docs[0].ref
-    .collection('payments')
-    .doc(recordId)
-    .set({ prices }, { merge: true });
-  logs.firestoreDocCreated('invoices', invoice.id);
+  if (recordId) {
+    // Update subscription payment with price data
+    await customersSnap.docs[0].ref
+      .collection('payments')
+      .doc(recordId)
+      .set({ prices }, { merge: true });
+  }
+  
+  logs.firestoreDocCreated('invoices', invoiceDocId);
 };
 
 /**
