@@ -40,7 +40,7 @@ const config: ExtensionConfig = {
     Number(process.env.CREATE_CHECKOUT_SESSION_MIN_INSTANCES) ?? 0,
 };
 
-export const apiVersion = '2022-11-15';
+export const apiVersion = '2023-08-16';
 
 export const stripe = new Stripe(config.stripeSecretKey, {
   apiVersion,
