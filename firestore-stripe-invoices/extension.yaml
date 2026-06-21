@@ -24,8 +24,8 @@ tags: [payments]
 
 license: Apache-2.0
 
-sourceUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-invoices
-releaseNotesUrl: https://github.com/stripe/stripe-firebase-extensions/tree/master/firestore-stripe-invoices/CHANGELOG.md
+sourceUrl: https://github.com/invertase/stripe-firebase-extensions/tree/master/firestore-stripe-invoices
+releaseNotesUrl: https://github.com/invertase/stripe-firebase-extensions/tree/master/firestore-stripe-invoices/CHANGELOG.md
 
 author:
   authorName: Stripe
