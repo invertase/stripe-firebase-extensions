@@ -39,15 +39,19 @@ service cloud.firestore {
       }
     }
 
-    match /${param:PRODUCTS_COLLECTION}/{id} {
+    match /${param:PRODUCTS_COLLECTION} {
       allow read: if true;
 
-      match /prices/{id} {
+      match /{id} {
         allow read: if true;
-      }
-
-      match /tax_rates/{id} {
-        allow read: if true;
+  
+        match /prices/{id} {
+          allow read: if true;
+        }
+  
+        match /tax_rates/{id} {
+          allow read: if true;
+        }
       }
     }
   }
