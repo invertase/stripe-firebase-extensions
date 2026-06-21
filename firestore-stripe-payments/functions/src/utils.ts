@@ -235,7 +235,7 @@ export const manageSubscriptionStatusChange = async (
   }
 
   // NOTE: This is a costly operation and should happen at the very end.
-  // Copy the billing deatils to the customer object.
+  // Copy the billing details to the customer object.
   if (createAction && subscription.default_payment_method) {
     await copyBillingDetailsToCustomer(
       subscription.default_payment_method as Stripe.PaymentMethod,
